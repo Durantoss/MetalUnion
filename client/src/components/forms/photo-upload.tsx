@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Card, CardContent } from "@/components/ui/card";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { insertPhotoSchema } from "@shared/schema";
 import { Upload, X, ImageIcon } from "lucide-react";
 import type { Band } from "@shared/schema";
@@ -31,6 +32,18 @@ export default function PhotoUpload({ onSuccess, defaultBandId }: PhotoUploadPro
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-400 mb-4">Please log in to upload photos.</p>
+        <a href="/api/login">
+          <Button className="bg-metal-red hover:bg-metal-red-bright">Login to Upload</Button>
+        </a>
+      </div>
+    );
+  }
 
   const { data: bands = [] } = useQuery<Band[]>({
     queryKey: ["/api/bands"],

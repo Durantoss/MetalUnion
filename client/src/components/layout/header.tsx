@@ -2,11 +2,13 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Upload } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Search, Upload, LogIn, LogOut, User } from "lucide-react";
 
 export default function Header() {
   const [location] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   const isActive = (path: string) => {
     if (path === "/" && location === "/") return true;
@@ -77,12 +79,43 @@ export default function Header() {
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             </form>
-            <Link href="/photos" data-testid="button-upload">
-              <Button className="bg-metal-red hover:bg-metal-red-bright text-white font-bold uppercase tracking-wider">
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Photo
-              </Button>
-            </Link>
+            
+            {isAuthenticated && (
+              <Link href="/photos" data-testid="button-upload">
+                <Button className="bg-metal-red hover:bg-metal-red-bright text-white font-bold uppercase tracking-wider">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload Photo
+                </Button>
+              </Link>
+            )}
+            
+            {!isLoading && (
+              <div className="flex items-center space-x-2">
+                {isAuthenticated ? (
+                  <>
+                    <div className="flex items-center space-x-2 text-white">
+                      <User className="w-4 h-4" />
+                      <span className="text-sm">
+                        {(user as any)?.firstName || (user as any)?.email || 'Member'}
+                      </span>
+                    </div>
+                    <a href="/api/logout" data-testid="button-logout">
+                      <Button variant="outline" className="border-metal-gray text-white hover:bg-metal-gray">
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Logout
+                      </Button>
+                    </a>
+                  </>
+                ) : (
+                  <a href="/api/login" data-testid="button-login">
+                    <Button className="bg-metal-red hover:bg-metal-red-bright text-white font-bold uppercase tracking-wider">
+                      <LogIn className="w-4 h-4 mr-2" />
+                      Login
+                    </Button>
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </nav>

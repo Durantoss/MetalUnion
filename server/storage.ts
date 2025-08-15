@@ -1,7 +1,13 @@
-import { type Band, type InsertBand, type Review, type InsertReview, type Photo, type InsertPhoto, type Tour, type InsertTour } from "@shared/schema";
+import { type Band, type InsertBand, type Review, type InsertReview, type Photo, type InsertPhoto, type Tour, type InsertTour, type User, type UpsertUser, users, bands, reviews, photos, tours } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
+  // User operations (required for authentication)
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  
   // Bands
   getBands(): Promise<Band[]>;
   getBand(id: string): Promise<Band | undefined>;
@@ -39,6 +45,7 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
+  private users: Map<string, User> = new Map();
   private bands: Map<string, Band> = new Map();
   private reviews: Map<string, Review> = new Map();
   private photos: Map<string, Photo> = new Map();
@@ -46,6 +53,30 @@ export class MemStorage implements IStorage {
 
   constructor() {
     this.seedData();
+  }
+
+  // User operations (required for authentication)
+  async getUser(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const id = userData.id || randomUUID();
+    const existingUser = this.users.get(id);
+    
+    const user: User = {
+      ...userData,
+      id,
+      createdAt: existingUser?.createdAt || new Date(),
+      updatedAt: new Date(),
+      email: userData.email || null,
+      firstName: userData.firstName || null,
+      lastName: userData.lastName || null,
+      profileImageUrl: userData.profileImageUrl || null,
+    };
+    
+    this.users.set(id, user);
+    return user;
   }
 
   private seedData() {
@@ -283,4 +314,162 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  // User operations (required for authentication)
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  // Bands
+  async getBands(): Promise<Band[]> {
+    return await db.select().from(bands).orderBy(bands.name);
+  }
+
+  async getBand(id: string): Promise<Band | undefined> {
+    const [band] = await db.select().from(bands).where(eq(bands.id, id));
+    return band;
+  }
+
+  async createBand(insertBand: InsertBand): Promise<Band> {
+    const [band] = await db.insert(bands).values(insertBand).returning();
+    return band;
+  }
+
+  async updateBand(id: string, bandUpdate: Partial<InsertBand>): Promise<Band | undefined> {
+    const [band] = await db.update(bands).set(bandUpdate).where(eq(bands.id, id)).returning();
+    return band;
+  }
+
+  async deleteBand(id: string): Promise<boolean> {
+    const result = await db.delete(bands).where(eq(bands.id, id));
+    return result.rowCount > 0;
+  }
+
+  async searchBands(query: string): Promise<Band[]> {
+    // For now, return all bands - in production you'd implement proper search
+    return await this.getBands();
+  }
+
+  // Reviews
+  async getReviews(): Promise<Review[]> {
+    return await db.select().from(reviews).orderBy(reviews.createdAt);
+  }
+
+  async getReview(id: string): Promise<Review | undefined> {
+    const [review] = await db.select().from(reviews).where(eq(reviews.id, id));
+    return review;
+  }
+
+  async getReviewsByBand(bandId: string): Promise<Review[]> {
+    return await db.select().from(reviews).where(eq(reviews.bandId, bandId)).orderBy(reviews.createdAt);
+  }
+
+  async createReview(insertReview: InsertReview): Promise<Review> {
+    const [review] = await db.insert(reviews).values(insertReview).returning();
+    return review;
+  }
+
+  async updateReview(id: string, reviewUpdate: Partial<InsertReview>): Promise<Review | undefined> {
+    const [review] = await db.update(reviews).set(reviewUpdate).where(eq(reviews.id, id)).returning();
+    return review;
+  }
+
+  async deleteReview(id: string): Promise<boolean> {
+    const result = await db.delete(reviews).where(eq(reviews.id, id));
+    return result.rowCount > 0;
+  }
+
+  async likeReview(id: string): Promise<Review | undefined> {
+    const [review] = await db.update(reviews)
+      .set({ likes: db.sql`${reviews.likes} + 1` })
+      .where(eq(reviews.id, id))
+      .returning();
+    return review;
+  }
+
+  // Photos
+  async getPhotos(): Promise<Photo[]> {
+    return await db.select().from(photos).orderBy(photos.createdAt);
+  }
+
+  async getPhoto(id: string): Promise<Photo | undefined> {
+    const [photo] = await db.select().from(photos).where(eq(photos.id, id));
+    return photo;
+  }
+
+  async getPhotosByBand(bandId: string): Promise<Photo[]> {
+    return await db.select().from(photos).where(eq(photos.bandId, bandId)).orderBy(photos.createdAt);
+  }
+
+  async getPhotosByCategory(category: string): Promise<Photo[]> {
+    return await db.select().from(photos).where(eq(photos.category, category)).orderBy(photos.createdAt);
+  }
+
+  async createPhoto(insertPhoto: InsertPhoto): Promise<Photo> {
+    const [photo] = await db.insert(photos).values(insertPhoto).returning();
+    return photo;
+  }
+
+  async updatePhoto(id: string, photoUpdate: Partial<InsertPhoto>): Promise<Photo | undefined> {
+    const [photo] = await db.update(photos).set(photoUpdate).where(eq(photos.id, id)).returning();
+    return photo;
+  }
+
+  async deletePhoto(id: string): Promise<boolean> {
+    const result = await db.delete(photos).where(eq(photos.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Tours
+  async getTours(): Promise<Tour[]> {
+    return await db.select().from(tours).orderBy(tours.date);
+  }
+
+  async getTour(id: string): Promise<Tour | undefined> {
+    const [tour] = await db.select().from(tours).where(eq(tours.id, id));
+    return tour;
+  }
+
+  async getToursByBand(bandId: string): Promise<Tour[]> {
+    return await db.select().from(tours).where(eq(tours.bandId, bandId)).orderBy(tours.date);
+  }
+
+  async getUpcomingTours(): Promise<Tour[]> {
+    const now = new Date();
+    return await db.select().from(tours).where(db.sql`${tours.date} > ${now}`).orderBy(tours.date);
+  }
+
+  async createTour(insertTour: InsertTour): Promise<Tour> {
+    const [tour] = await db.insert(tours).values(insertTour).returning();
+    return tour;
+  }
+
+  async updateTour(id: string, tourUpdate: Partial<InsertTour>): Promise<Tour | undefined> {
+    const [tour] = await db.update(tours).set(tourUpdate).where(eq(tours.id, id)).returning();
+    return tour;
+  }
+
+  async deleteTour(id: string): Promise<boolean> {
+    const result = await db.delete(tours).where(eq(tours.id, id));
+    return result.rowCount > 0;
+  }
+}
+
+// Use DatabaseStorage instead of MemStorage
+export const storage = new DatabaseStorage();

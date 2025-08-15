@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import LighterRating from "@/components/ui/star-rating";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { insertReviewSchema } from "@shared/schema";
 import type { Band } from "@shared/schema";
 
@@ -28,6 +29,18 @@ interface ReviewFormProps {
 export default function ReviewForm({ onSuccess, defaultBandId }: ReviewFormProps) {
   const [selectedRating, setSelectedRating] = useState(0);
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-400 mb-4">Please log in to write reviews.</p>
+        <a href="/api/login">
+          <Button className="bg-metal-red hover:bg-metal-red-bright">Login to Review</Button>
+        </a>
+      </div>
+    );
+  }
 
   const { data: bands = [] } = useQuery<Band[]>({
     queryKey: ["/api/bands"],
