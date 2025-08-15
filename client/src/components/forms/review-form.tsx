@@ -289,7 +289,7 @@ export default function ReviewForm({ onSuccess, defaultBandId }: ReviewFormProps
           <Button
             type="submit"
             disabled={createReviewMutation.isPending || selectedRating === 0 || !watchedBandId}
-            className="bg-black hover:bg-gray-800 text-white font-bold uppercase tracking-wider disabled:opacity-50"
+            className="bg-metal-red hover:bg-metal-red-bright text-white font-bold uppercase tracking-wider disabled:opacity-50"
             data-testid="button-submit-review"
           >
             {createReviewMutation.isPending ? "Submitting..." : "Submit Review"}

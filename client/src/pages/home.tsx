@@ -169,7 +169,7 @@ export default function Home() {
                   <CardContent className="p-6 text-center">
                     <p className="text-gray-400 mb-4">No reviews yet. Be the first to share your thoughts!</p>
                     <Link href="/reviews" data-testid="button-write-first-review">
-                      <Button className="bg-black hover:bg-gray-800 text-white">
+                      <Button className="bg-metal-red hover:bg-metal-red-bright text-white">
                         Write First Review
                       </Button>
                     </Link>
@@ -218,7 +218,7 @@ export default function Home() {
 
           <div className="mt-8 text-center">
             <Link href="/reviews" data-testid="button-write-review-main">
-              <Button className="bg-black hover:bg-gray-800 text-white px-8 py-3 font-bold uppercase tracking-wider">
+              <Button className="bg-metal-red hover:bg-metal-red-bright text-white px-8 py-3 font-bold uppercase tracking-wider">
                 Write a Review
               </Button>
             </Link>
