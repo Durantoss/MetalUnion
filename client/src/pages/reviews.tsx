@@ -76,7 +76,7 @@ export default function Reviews() {
         
         <Button 
           onClick={() => setShowReviewForm(!showReviewForm)}
-          className="bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider"
+          className="bg-black hover:bg-gray-800 text-white font-bold uppercase tracking-wider"
           data-testid="button-write-review"
         >
           {showReviewForm ? "Cancel" : "Write a Review"}
@@ -128,7 +128,7 @@ export default function Reviews() {
             </p>
             <Button 
               onClick={() => setShowReviewForm(true)}
-              className="bg-metal-red hover:bg-metal-red-bright"
+              className="bg-black hover:bg-gray-800 text-white"
               data-testid="button-write-first-review"
             >
               Write First Review

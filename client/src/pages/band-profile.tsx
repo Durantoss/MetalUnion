@@ -184,7 +184,7 @@ export default function BandProfile() {
                 <div className="text-center py-8">
                   <p className="text-gray-200 mb-4">No reviews yet. Be the first to review {band.name}!</p>
                   <Link href="/reviews" data-testid="button-write-first-review">
-                    <Button className="bg-metal-red hover:bg-metal-red-bright">
+                    <Button className="bg-black hover:bg-gray-800 text-white">
                       Write First Review
                     </Button>
                   </Link>
