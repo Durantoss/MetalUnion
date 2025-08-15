@@ -29,11 +29,12 @@ async function seedDatabase() {
   try {
     // Check if we already have bands
     const existingBands = await storage.getBands();
-    if (existingBands.length > 0) {
-      return; // Already seeded
+    let bandsCreated = false;
+    
+    if (existingBands.length === 0) {
+      console.log("Seeding database with initial bands...");
+      bandsCreated = true;
     }
-
-    console.log("Seeding database with initial data...");
 
     // Create sample bands
     const metallica = await storage.createBand({
@@ -69,7 +70,68 @@ async function seedDatabase() {
       website: "https://blacksabbath.com",
     });
 
-    console.log("Database seeded successfully!");
+    // Check if we need to seed tours
+    const existingTours = await storage.getTours();
+    if (existingTours.length === 0) {
+      console.log("Seeding database with initial tours...");
+      
+      // Get the band IDs (either from just created bands or existing ones)
+      const allBands = bandsCreated ? [metallica, ironMaiden, blackSabbath] : await storage.getBands();
+      const metallicaBand = allBands.find(b => b.name === "METALLICA");
+      const ironMaidenBand = allBands.find(b => b.name === "IRON MAIDEN");  
+      const blackSabbathBand = allBands.find(b => b.name === "BLACK SABBATH");
+
+      // Create sample tours
+      if (metallicaBand) {
+        await storage.createTour({
+      bandId: metallicaBand.id,
+      tourName: "M72 World Tour",
+      venue: "MetLife Stadium",
+      city: "East Rutherford",
+      country: "USA",
+      date: new Date("2025-06-15T19:00:00Z"),
+      ticketmasterUrl: "https://www.ticketmaster.com/metallica-tickets/artist/806069",
+      seatgeekUrl: "https://seatgeek.com/metallica-tickets",
+      price: "$89.50+",
+      status: "upcoming"
+    });
+
+      }
+
+      if (ironMaidenBand) {
+        await storage.createTour({
+          bandId: ironMaidenBand.id,
+      tourName: "The Future Past Tour",
+      venue: "Madison Square Garden",
+      city: "New York",
+      country: "USA", 
+      date: new Date("2025-07-22T20:00:00Z"),
+      ticketmasterUrl: "https://www.ticketmaster.com/iron-maiden-tickets/artist/735437",
+      seatgeekUrl: "https://seatgeek.com/iron-maiden-tickets",
+      price: "$65.00+",
+      status: "upcoming"
+    });
+
+      }
+
+      if (blackSabbathBand) {
+        await storage.createTour({
+          bandId: blackSabbathBand.id,
+      tourName: "Legacy Tour",
+      venue: "Hollywood Bowl",
+      city: "Los Angeles", 
+      country: "USA",
+      date: new Date("2025-08-10T21:00:00Z"),
+      ticketmasterUrl: "https://www.ticketmaster.com/black-sabbath-tickets/artist/735520",
+      price: "$125.00+",
+      status: "upcoming"
+        });
+      }
+    }
+
+    if (bandsCreated || existingTours.length === 0) {
+      console.log("Database seeded successfully!");
+    }
   } catch (error) {
     console.error("Failed to seed database:", error);
   }

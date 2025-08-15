@@ -118,20 +118,59 @@ export default function Tours() {
           </div>
           
           <div className="flex items-center space-x-3">
-            {tour.ticketUrl && tour.status !== 'cancelled' && new Date(tour.date) > now && (
-              <Button 
-                onClick={() => tour.ticketUrl && window.open(tour.ticketUrl, '_blank')}
-                className={`font-bold uppercase text-sm tracking-wider ${
-                  tour.status === 'sold_out' 
-                    ? 'bg-gray-600 hover:bg-gray-700 cursor-not-allowed' 
-                    : 'bg-metal-red hover:bg-metal-red-bright'
-                }`}
-                disabled={tour.status === 'sold_out'}
-                data-testid={`button-tickets-${tour.id}`}
-              >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                {tour.status === 'sold_out' ? 'Sold Out' : 'Get Tickets'}
-              </Button>
+            {tour.status !== 'cancelled' && new Date(tour.date) > now && (
+              <div className="flex space-x-2">
+                {/* Ticketmaster Button */}
+                {tour.ticketmasterUrl && (
+                  <Button 
+                    onClick={() => window.open(tour.ticketmasterUrl!, '_blank')}
+                    className={`font-bold uppercase text-sm tracking-wider ${
+                      tour.status === 'sold_out' 
+                        ? 'bg-gray-600 hover:bg-gray-700 cursor-not-allowed' 
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
+                    disabled={tour.status === 'sold_out'}
+                    data-testid={`button-ticketmaster-${tour.id}`}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    {tour.status === 'sold_out' ? 'Sold Out' : 'Ticketmaster'}
+                  </Button>
+                )}
+                
+                {/* SeatGeek Button */}
+                {tour.seatgeekUrl && (
+                  <Button 
+                    onClick={() => window.open(tour.seatgeekUrl!, '_blank')}
+                    className={`font-bold uppercase text-sm tracking-wider ${
+                      tour.status === 'sold_out' 
+                        ? 'bg-gray-600 hover:bg-gray-700 cursor-not-allowed' 
+                        : 'bg-green-600 hover:bg-green-700'
+                    }`}
+                    disabled={tour.status === 'sold_out'}
+                    data-testid={`button-seatgeek-${tour.id}`}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    {tour.status === 'sold_out' ? 'Sold Out' : 'SeatGeek'}
+                  </Button>
+                )}
+                
+                {/* Fallback to general ticket URL if no specific platform URLs */}
+                {!tour.ticketmasterUrl && !tour.seatgeekUrl && tour.ticketUrl && (
+                  <Button 
+                    onClick={() => window.open(tour.ticketUrl!, '_blank')}
+                    className={`font-bold uppercase text-sm tracking-wider ${
+                      tour.status === 'sold_out' 
+                        ? 'bg-gray-600 hover:bg-gray-700 cursor-not-allowed' 
+                        : 'bg-metal-red hover:bg-metal-red-bright'
+                    }`}
+                    disabled={tour.status === 'sold_out'}
+                    data-testid={`button-tickets-${tour.id}`}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    {tour.status === 'sold_out' ? 'Sold Out' : 'Get Tickets'}
+                  </Button>
+                )}
+              </div>
             )}
           </div>
         </div>

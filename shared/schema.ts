@@ -71,6 +71,8 @@ export const tours = pgTable("tours", {
   country: text("country").notNull(),
   date: timestamp("date").notNull(),
   ticketUrl: text("ticket_url"),
+  ticketmasterUrl: text("ticketmaster_url"),
+  seatgeekUrl: text("seatgeek_url"),
   price: text("price"),
   status: text("status").default("upcoming"), // 'upcoming', 'sold_out', 'cancelled'
 });
