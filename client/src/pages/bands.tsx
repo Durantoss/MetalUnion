@@ -34,10 +34,10 @@ export default function Bands() {
               placeholder="Search bands by name, genre..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red pl-10"
+              className="bg-card-dark border-metal-gray text-white placeholder-gray-300 focus:border-metal-red pl-10"
               data-testid="input-band-search"
             />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 w-4 h-4" />
           </div>
           <Button 
             type="submit" 
@@ -50,7 +50,7 @@ export default function Bands() {
 
         {searchQuery && (
           <div className="flex items-center justify-between mb-6">
-            <p className="text-gray-400">
+            <p className="text-gray-300">
               {isLoading ? "Searching..." : `Found ${bands.length} bands matching "${searchQuery}"`}
             </p>
             <Button 
@@ -122,12 +122,12 @@ export default function Bands() {
               )}
               <CardContent className="p-6">
                 <h3 className="text-xl font-black mb-2" data-testid={`text-band-name-${band.id}`}>{band.name}</h3>
-                <p className="text-gray-400 mb-3" data-testid={`text-band-genre-${band.id}`}>{band.genre}</p>
+                <p className="text-gray-200 font-medium mb-3" data-testid={`text-band-genre-${band.id}`}>{band.genre}</p>
                 <div className="flex items-center mb-3">
                   <LighterRating rating={5} size="sm" />
-                  <span className="text-sm text-gray-400 ml-2">(Reviews coming soon)</span>
+                  <span className="text-sm text-gray-300 ml-2">(Reviews coming soon)</span>
                 </div>
-                <p className="text-sm text-gray-300 mb-4 line-clamp-3" data-testid={`text-band-description-${band.id}`}>
+                <p className="text-sm text-gray-200 mb-4 line-clamp-3" data-testid={`text-band-description-${band.id}`}>
                   {band.description}
                 </p>
                 <div className="flex justify-between items-center">

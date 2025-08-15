@@ -81,10 +81,10 @@ export default function Header() {
                 placeholder="Search bands, albums..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red w-64 pl-10"
+                className="bg-card-dark border-metal-gray text-white placeholder-gray-300 focus:border-metal-red w-64 pl-10"
                 data-testid="input-search"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 w-4 h-4" />
             </form>
             
             {isAuthenticated && (
@@ -100,14 +100,14 @@ export default function Header() {
               <div className="flex items-center space-x-2">
                 {isAuthenticated ? (
                   <>
-                    <a href="/profile" className="flex items-center space-x-2 text-white hover:text-metal-red transition-colors" data-testid="link-profile">
+                    <a href="/profile" className="flex items-center space-x-2 text-white hover:text-metal-red-bright transition-colors" data-testid="link-profile">
                       <User className="w-4 h-4" />
                       <span className="text-sm">
-                        {user?.stagename || user?.firstName || user?.email || 'Member'}
+                        {(user as any)?.stagename || (user as any)?.firstName || (user as any)?.email || 'Member'}
                       </span>
                     </a>
                     <a href="/api/logout" data-testid="button-logout">
-                      <Button variant="outline" className="border-metal-gray text-white hover:bg-metal-gray">
+                      <Button variant="outline" className="border-metal-gray text-white hover:bg-metal-gray hover:text-white font-semibold">
                         <LogOut className="w-4 h-4 mr-2" />
                         Logout
                       </Button>

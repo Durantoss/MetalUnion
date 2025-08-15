@@ -35,7 +35,7 @@ export default function ReviewForm({ onSuccess, defaultBandId }: ReviewFormProps
   if (!isAuthenticated) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-400 mb-4">Please log in to write reviews.</p>
+        <p className="text-gray-200 mb-4">Please log in to write reviews.</p>
         <a href="/api/login">
           <Button className="bg-metal-red hover:bg-metal-red-bright">Login to Review</Button>
         </a>
@@ -190,7 +190,7 @@ export default function ReviewForm({ onSuccess, defaultBandId }: ReviewFormProps
             <p className="text-yellow-400 text-sm mb-2">
               <strong>Set your stagename first!</strong>
             </p>
-            <p className="text-gray-300 text-sm mb-3">
+            <p className="text-gray-200 text-sm mb-3">
               You need to set a stagename in your profile before writing reviews.
             </p>
             <a href="/profile">
@@ -221,7 +221,7 @@ export default function ReviewForm({ onSuccess, defaultBandId }: ReviewFormProps
               onRatingChange={setSelectedRating}
               size="lg"
             />
-            <span className="text-gray-400">
+            <span className="text-gray-200">
               {selectedRating === 0 ? "Click to rate" : `${selectedRating}/5 stars`}
             </span>
           </div>

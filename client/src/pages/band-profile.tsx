@@ -103,7 +103,7 @@ export default function BandProfile() {
             {band.genre}
           </Badge>
           {band.founded && (
-            <span className="text-gray-400 flex items-center" data-testid="text-band-founded">
+            <span className="text-gray-200 flex items-center" data-testid="text-band-founded">
               <Calendar className="w-4 h-4 mr-1" />
               Founded {band.founded}
             </span>
@@ -135,7 +135,7 @@ export default function BandProfile() {
         </div>
         <div className="flex items-center mb-6">
           <LighterRating rating={5} size="lg" showValue />
-          <span className="text-gray-400 ml-3">({reviews.length} reviews)</span>
+          <span className="text-gray-200 ml-3">({reviews.length} reviews)</span>
         </div>
       </div>
 
@@ -156,7 +156,7 @@ export default function BandProfile() {
                 />
               )}
               <h2 className="text-2xl font-black mb-4">About</h2>
-              <p className="text-gray-300 leading-relaxed" data-testid="text-band-description">
+              <p className="text-gray-100 leading-relaxed" data-testid="text-band-description">
                 {band.description}
               </p>
             </CardContent>
@@ -182,7 +182,7 @@ export default function BandProfile() {
                 </div>
               ) : reviews.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-400 mb-4">No reviews yet. Be the first to review {band.name}!</p>
+                  <p className="text-gray-200 mb-4">No reviews yet. Be the first to review {band.name}!</p>
                   <Link href="/reviews" data-testid="button-write-first-review">
                     <Button className="bg-metal-red hover:bg-metal-red-bright">
                       Write First Review
@@ -208,7 +208,7 @@ export default function BandProfile() {
                             <LighterRating rating={review.rating} size="sm" showValue />
                           </div>
                           <h4 className="font-bold mb-2" data-testid={`text-review-title-${review.id}`}>{review.title}</h4>
-                          <p className="text-gray-300 mb-3" data-testid={`text-review-content-${review.id}`}>{review.content}</p>
+                          <p className="text-gray-100 mb-3" data-testid={`text-review-content-${review.id}`}>{review.content}</p>
                           <div className="flex items-center text-sm text-gray-500 space-x-4">
                             <span data-testid={`text-review-date-${review.id}`}>
                               {review.createdAt ? formatDate(review.createdAt) : 'Just now'}
@@ -250,7 +250,7 @@ export default function BandProfile() {
                 </div>
               ) : photos.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-400 mb-4">No photos uploaded yet. Share your {band.name} moments!</p>
+                  <p className="text-gray-200 mb-4">No photos uploaded yet. Share your {band.name} moments!</p>
                   <Link href="/photos" data-testid="button-upload-first-photo">
                     <Button className="bg-metal-red hover:bg-metal-red-bright">
                       Upload First Photo
@@ -267,7 +267,7 @@ export default function BandProfile() {
                           alt={photo.title}
                           className="w-full h-32 object-cover rounded-lg group-hover:opacity-80 transition-opacity"
                         />
-                        <p className="text-xs text-gray-400 mt-1" data-testid={`text-photo-title-${photo.id}`}>{photo.title}</p>
+                        <p className="text-xs text-gray-200 mt-1" data-testid={`text-photo-title-${photo.id}`}>{photo.title}</p>
                       </div>
                     ))}
                   </div>
@@ -302,7 +302,7 @@ export default function BandProfile() {
                     <Users className="w-4 h-4 mr-2" />
                     Members
                   </h4>
-                  <ul className="text-sm text-gray-300 space-y-1">
+                  <ul className="text-sm text-gray-100 space-y-1">
                     {band.members.map((member, index) => (
                       <li key={index} data-testid={`text-member-${index}`}>{member}</li>
                     ))}
@@ -316,7 +316,7 @@ export default function BandProfile() {
                     <Music className="w-4 h-4 mr-2" />
                     Notable Albums
                   </h4>
-                  <ul className="text-sm text-gray-300 space-y-1">
+                  <ul className="text-sm text-gray-100 space-y-1">
                     {band.albums.slice(0, 5).map((album, index) => (
                       <li key={index} data-testid={`text-album-${index}`}>{album}</li>
                     ))}
@@ -347,14 +347,14 @@ export default function BandProfile() {
                   ))}
                 </div>
               ) : upcomingTours.length === 0 ? (
-                <p className="text-gray-400 text-sm">No upcoming tours scheduled.</p>
+                <p className="text-gray-200 text-sm">No upcoming tours scheduled.</p>
               ) : (
                 <div className="space-y-4">
                   {upcomingTours.slice(0, 3).map((tour) => (
                     <div key={tour.id} className="border-b border-metal-gray last:border-b-0 pb-4 last:pb-0" data-testid={`tour-${tour.id}`}>
                       <h4 className="font-bold text-sm" data-testid={`text-tour-venue-${tour.id}`}>{tour.venue}</h4>
-                      <p className="text-xs text-gray-400" data-testid={`text-tour-location-${tour.id}`}>{tour.city}, {tour.country}</p>
-                      <p className="text-xs text-gray-500 mb-2" data-testid={`text-tour-datetime-${tour.id}`}>
+                      <p className="text-xs text-gray-200" data-testid={`text-tour-location-${tour.id}`}>{tour.city}, {tour.country}</p>
+                      <p className="text-xs text-gray-300 mb-2" data-testid={`text-tour-datetime-${tour.id}`}>
                         {formatDate(tour.date)} • {formatTime(tour.date)}
                       </p>
                       {tour.ticketUrl && (
