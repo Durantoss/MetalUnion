@@ -77,6 +77,17 @@ export const tours = pgTable("tours", {
   status: text("status").default("upcoming"), // 'upcoming', 'sold_out', 'cancelled'
 });
 
+export const messages = pgTable("messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  authorId: varchar("author_id").notNull().references(() => users.id),
+  authorStagename: text("author_stagename").notNull(),
+  category: text("category").default("general"), // 'general', 'band_discussion', 'gear', 'events'
+  likes: integer("likes").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertBandSchema = createInsertSchema(bands).omit({
   id: true,
   createdAt: true,
@@ -97,6 +108,12 @@ export const insertTourSchema = createInsertSchema(tours).omit({
   id: true,
 });
 
+export const insertMessageSchema = createInsertSchema(messages).omit({
+  id: true,
+  likes: true,
+  createdAt: true,
+});
+
 export type Band = typeof bands.$inferSelect;
 export type InsertBand = z.infer<typeof insertBandSchema>;
 export type Review = typeof reviews.$inferSelect;
@@ -105,6 +122,8 @@ export type Photo = typeof photos.$inferSelect;
 export type InsertPhoto = z.infer<typeof insertPhotoSchema>;
 export type Tour = typeof tours.$inferSelect;
 export type InsertTour = z.infer<typeof insertTourSchema>;
+export type Message = typeof messages.$inferSelect;
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
 
 export const upsertUserSchema = createInsertSchema(users);
 export type UpsertUser = typeof users.$inferInsert;

@@ -1,6 +1,6 @@
-import { type Band, type InsertBand, type Review, type InsertReview, type Photo, type InsertPhoto, type Tour, type InsertTour, type User, type UpsertUser, users, bands, reviews, photos, tours } from "@shared/schema";
+import { type Band, type InsertBand, type Review, type InsertReview, type Photo, type InsertPhoto, type Tour, type InsertTour, type Message, type InsertMessage, type User, type UpsertUser, users, bands, reviews, photos, tours, messages } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -42,6 +42,15 @@ export interface IStorage {
   createTour(tour: InsertTour): Promise<Tour>;
   updateTour(id: string, tour: Partial<InsertTour>): Promise<Tour | undefined>;
   deleteTour(id: string): Promise<boolean>;
+
+  // Messages
+  getMessages(): Promise<Message[]>;
+  getMessage(id: string): Promise<Message | undefined>;
+  getMessagesByCategory(category: string): Promise<Message[]>;
+  createMessage(message: InsertMessage): Promise<Message>;
+  updateMessage(id: string, message: Partial<InsertMessage>): Promise<Message | undefined>;
+  deleteMessage(id: string): Promise<boolean>;
+  likeMessage(id: string): Promise<Message | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -312,6 +321,15 @@ export class MemStorage implements IStorage {
   async deleteTour(id: string): Promise<boolean> {
     return this.tours.delete(id);
   }
+
+  // Messages (stub implementations - not used since we use DatabaseStorage)
+  async getMessages(): Promise<Message[]> { return []; }
+  async getMessage(id: string): Promise<Message | undefined> { return undefined; }
+  async getMessagesByCategory(category: string): Promise<Message[]> { return []; }
+  async createMessage(message: InsertMessage): Promise<Message> { throw new Error("Not implemented"); }
+  async updateMessage(id: string, message: Partial<InsertMessage>): Promise<Message | undefined> { return undefined; }
+  async deleteMessage(id: string): Promise<boolean> { return false; }
+  async likeMessage(id: string): Promise<Message | undefined> { return undefined; }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -358,7 +376,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBand(id: string): Promise<boolean> {
     const result = await db.delete(bands).where(eq(bands.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async searchBands(query: string): Promise<Band[]> {
@@ -392,12 +410,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteReview(id: string): Promise<boolean> {
     const result = await db.delete(reviews).where(eq(reviews.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async likeReview(id: string): Promise<Review | undefined> {
     const [review] = await db.update(reviews)
-      .set({ likes: db.sql`${reviews.likes} + 1` })
+      .set({ likes: sql`${reviews.likes} + 1` })
       .where(eq(reviews.id, id))
       .returning();
     return review;
@@ -433,7 +451,7 @@ export class DatabaseStorage implements IStorage {
 
   async deletePhoto(id: string): Promise<boolean> {
     const result = await db.delete(photos).where(eq(photos.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Tours
@@ -467,7 +485,44 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTour(id: string): Promise<boolean> {
     const result = await db.delete(tours).where(eq(tours.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Messages
+  async getMessages(): Promise<Message[]> {
+    return await db.select().from(messages).orderBy(messages.createdAt);
+  }
+
+  async getMessage(id: string): Promise<Message | undefined> {
+    const [message] = await db.select().from(messages).where(eq(messages.id, id));
+    return message;
+  }
+
+  async getMessagesByCategory(category: string): Promise<Message[]> {
+    return await db.select().from(messages).where(eq(messages.category, category)).orderBy(messages.createdAt);
+  }
+
+  async createMessage(insertMessage: InsertMessage): Promise<Message> {
+    const [message] = await db.insert(messages).values(insertMessage).returning();
+    return message;
+  }
+
+  async updateMessage(id: string, messageUpdate: Partial<InsertMessage>): Promise<Message | undefined> {
+    const [message] = await db.update(messages).set(messageUpdate).where(eq(messages.id, id)).returning();
+    return message;
+  }
+
+  async deleteMessage(id: string): Promise<boolean> {
+    const result = await db.delete(messages).where(eq(messages.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async likeMessage(id: string): Promise<Message | undefined> {
+    const [message] = await db.update(messages)
+      .set({ likes: sql`${messages.likes} + 1` })
+      .where(eq(messages.id, id))
+      .returning();
+    return message;
   }
 }
 

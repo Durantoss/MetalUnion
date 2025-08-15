@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertBandSchema, insertReviewSchema, insertPhotoSchema, insertTourSchema } from "@shared/schema";
+import { insertBandSchema, insertReviewSchema, insertPhotoSchema, insertTourSchema, insertMessageSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import multer from "multer";
 import path from "path";
@@ -305,6 +305,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(tour);
     } catch (error) {
       res.status(400).json({ message: "Invalid tour data" });
+    }
+  });
+
+  // Messages routes
+  app.get("/api/messages", async (req, res) => {
+    try {
+      const { category } = req.query;
+      let messages;
+      
+      if (category && typeof category === 'string') {
+        messages = await storage.getMessagesByCategory(category);
+      } else {
+        messages = await storage.getMessages();
+      }
+      
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch messages" });
+    }
+  });
+
+  app.post("/api/messages", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+      
+      const messageData = {
+        ...req.body,
+        authorId: userId,
+        authorStagename: user.firstName || user.email || 'Anonymous'
+      };
+      
+      const parsed = insertMessageSchema.parse(messageData);
+      const message = await storage.createMessage(parsed);
+      res.status(201).json(message);
+    } catch (error) {
+      console.error("Message creation error:", error);
+      res.status(400).json({ message: "Invalid message data" });
+    }
+  });
+
+  app.post("/api/messages/:id/like", async (req, res) => {
+    try {
+      const message = await storage.likeMessage(req.params.id);
+      if (!message) {
+        return res.status(404).json({ message: "Message not found" });
+      }
+      res.json(message);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to like message" });
     }
   });
 
