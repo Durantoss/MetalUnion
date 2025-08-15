@@ -186,7 +186,7 @@ export default function Home() {
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">
                             <div>
-                              <span className="font-bold" data-testid={`text-review-username-${review.id}`}>{review.username}</span>
+                              <span className="font-bold" data-testid={`text-review-stagename-${review.id}`}>{review.stagename}</span>
                               <span className="text-gray-400 text-sm ml-2">reviewed</span>
                               <span className="font-bold text-metal-red ml-1" data-testid={`text-review-target-${review.id}`}>
                                 {review.targetName || 'Band'}

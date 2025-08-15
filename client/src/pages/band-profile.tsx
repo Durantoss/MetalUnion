@@ -188,7 +188,7 @@ export default function BandProfile() {
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">
                             <div>
-                              <span className="font-bold" data-testid={`text-review-username-${review.id}`}>{review.username}</span>
+                              <span className="font-bold" data-testid={`text-review-stagename-${review.id}`}>{review.stagename}</span>
                               <span className="text-gray-400 text-sm ml-2">
                                 reviewed {review.targetName || band.name}
                               </span>

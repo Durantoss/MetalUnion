@@ -41,7 +41,7 @@ export const bands = pgTable("bands", {
 export const reviews = pgTable("reviews", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   bandId: varchar("band_id").notNull().references(() => bands.id),
-  username: text("username").notNull(),
+  stagename: text("stagename").notNull(),
   rating: integer("rating").notNull(),
   title: text("title").notNull(),
   content: text("content").notNull(),

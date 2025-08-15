@@ -50,7 +50,7 @@ export default function ReviewForm({ onSuccess, defaultBandId }: ReviewFormProps
     resolver: zodResolver(reviewFormSchema),
     defaultValues: {
       bandId: defaultBandId || "",
-      username: "",
+      stagename: "",
       rating: 0,
       title: "",
       content: "",
@@ -186,16 +186,16 @@ export default function ReviewForm({ onSuccess, defaultBandId }: ReviewFormProps
         {/* Username */}
         <FormField
           control={form.control}
-          name="username"
+          name="stagename"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-white font-bold">Your Name *</FormLabel>
+              <FormLabel className="text-white font-bold">Stage Name *</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Enter your username"
+                  placeholder="Enter your stage name"
                   {...field}
                   className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red"
-                  data-testid="input-username"
+                  data-testid="input-stagename"
                 />
               </FormControl>
               <FormMessage />
