@@ -100,12 +100,12 @@ export default function Header() {
               <div className="flex items-center space-x-2">
                 {isAuthenticated ? (
                   <>
-                    <div className="flex items-center space-x-2 text-white">
+                    <a href="/profile" className="flex items-center space-x-2 text-white hover:text-metal-red transition-colors" data-testid="link-profile">
                       <User className="w-4 h-4" />
                       <span className="text-sm">
-                        {(user as any)?.firstName || (user as any)?.email || 'Member'}
+                        {user?.stagename || user?.firstName || user?.email || 'Member'}
                       </span>
-                    </div>
+                    </a>
                     <a href="/api/logout" data-testid="button-logout">
                       <Button variant="outline" className="border-metal-gray text-white hover:bg-metal-gray">
                         <LogOut className="w-4 h-4 mr-2" />

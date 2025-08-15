@@ -12,6 +12,7 @@ import Reviews from "@/pages/reviews";
 import Photos from "@/pages/photos";
 import Tours from "@/pages/tours";
 import Messages from "@/pages/messages";
+import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -26,6 +27,7 @@ function Router() {
         <Route path="/photos" component={Photos} />
         <Route path="/tours" component={Tours} />
         <Route path="/messages" component={Messages} />
+        <Route path="/profile" component={Profile} />
         <Route component={NotFound} />
       </Switch>
       <Footer />

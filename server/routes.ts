@@ -156,6 +156,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Stagename routes
+  app.get('/api/stagename/check/:stagename', async (req, res) => {
+    try {
+      const { stagename } = req.params;
+      if (!stagename || stagename.length < 2) {
+        return res.status(400).json({ message: "Stagename must be at least 2 characters" });
+      }
+      const available = await storage.checkStagenameAvailable(stagename);
+      res.json({ available, stagename });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check stagename availability" });
+    }
+  });
+
+  app.put('/api/auth/user/stagename', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { stagename } = req.body;
+      
+      if (!stagename || stagename.length < 2 || stagename.length > 50) {
+        return res.status(400).json({ message: "Stagename must be 2-50 characters" });
+      }
+      
+      // Check if stagename is available
+      const available = await storage.checkStagenameAvailable(stagename);
+      if (!available) {
+        return res.status(409).json({ message: "Stagename already taken" });
+      }
+      
+      const user = await storage.updateUserStagename(userId, stagename);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating stagename:", error);
+      res.status(500).json({ message: "Failed to update stagename" });
+    }
+  });
+
   // Bands routes
   app.get("/api/bands", async (req, res) => {
     try {

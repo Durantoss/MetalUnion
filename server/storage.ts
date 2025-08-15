@@ -6,6 +6,9 @@ import { randomUUID } from "crypto";
 export interface IStorage {
   // User operations (required for authentication)
   getUser(id: string): Promise<User | undefined>;
+  getUserByStagename(stagename: string): Promise<User | undefined>;
+  checkStagenameAvailable(stagename: string): Promise<boolean>;
+  updateUserStagename(id: string, stagename: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   
   // Bands
@@ -322,6 +325,11 @@ export class MemStorage implements IStorage {
     return this.tours.delete(id);
   }
 
+  // User operations (stub implementations)
+  async getUserByStagename(stagename: string): Promise<User | undefined> { return undefined; }
+  async checkStagenameAvailable(stagename: string): Promise<boolean> { return true; }
+  async updateUserStagename(id: string, stagename: string): Promise<User | undefined> { return undefined; }
+
   // Messages (stub implementations - not used since we use DatabaseStorage)
   async getMessages(): Promise<Message[]> { return []; }
   async getMessage(id: string): Promise<Message | undefined> { return undefined; }
@@ -336,6 +344,24 @@ export class DatabaseStorage implements IStorage {
   // User operations (required for authentication)
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByStagename(stagename: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.stagename, stagename));
+    return user;
+  }
+
+  async checkStagenameAvailable(stagename: string): Promise<boolean> {
+    const user = await this.getUserByStagename(stagename);
+    return !user;
+  }
+
+  async updateUserStagename(id: string, stagename: string): Promise<User | undefined> {
+    const [user] = await db.update(users)
+      .set({ stagename, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
     return user;
   }
 

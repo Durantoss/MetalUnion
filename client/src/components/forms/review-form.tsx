@@ -12,6 +12,7 @@ import LighterRating from "@/components/ui/star-rating";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { Badge } from "@/components/ui/badge";
 import { insertReviewSchema } from "@shared/schema";
 import type { Band } from "@shared/schema";
 
@@ -29,7 +30,7 @@ interface ReviewFormProps {
 export default function ReviewForm({ onSuccess, defaultBandId }: ReviewFormProps) {
   const [selectedRating, setSelectedRating] = useState(0);
   const { toast } = useToast();
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
     return (
@@ -50,7 +51,7 @@ export default function ReviewForm({ onSuccess, defaultBandId }: ReviewFormProps
     resolver: zodResolver(reviewFormSchema),
     defaultValues: {
       bandId: defaultBandId || "",
-      stagename: "",
+      stagename: user?.stagename || "",
       rating: 0,
       title: "",
       content: "",
@@ -183,25 +184,32 @@ export default function ReviewForm({ onSuccess, defaultBandId }: ReviewFormProps
           />
         )}
 
-        {/* Username */}
-        <FormField
-          control={form.control}
-          name="stagename"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white font-bold">Stage Name *</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Enter your stage name"
-                  {...field}
-                  className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red"
-                  data-testid="input-stagename"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Stage Name - auto-filled or prompt to set */}
+        {!user?.stagename ? (
+          <div className="bg-yellow-900/20 border border-yellow-600 rounded-lg p-4">
+            <p className="text-yellow-400 text-sm mb-2">
+              <strong>Set your stagename first!</strong>
+            </p>
+            <p className="text-gray-300 text-sm mb-3">
+              You need to set a stagename in your profile before writing reviews.
+            </p>
+            <a href="/profile">
+              <Button type="button" className="bg-metal-red hover:bg-metal-red-bright text-sm">
+                Set Stagename
+              </Button>
+            </a>
+          </div>
+        ) : (
+          <div className="bg-card-dark border border-metal-gray rounded-lg p-4">
+            <label className="text-white font-bold text-sm">Your Stage Name</label>
+            <div className="flex items-center space-x-2 mt-2">
+              <Badge className="bg-metal-red text-white">{user.stagename}</Badge>
+              <a href="/profile" className="text-metal-red hover:text-metal-red-bright text-sm">
+                Change
+              </a>
+            </div>
+          </div>
+        )}
 
         {/* Rating */}
         <div className="space-y-2">
