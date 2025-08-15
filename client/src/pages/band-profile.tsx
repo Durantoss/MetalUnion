@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import LighterRating from "@/components/ui/star-rating";
-import { ArrowLeft, ExternalLink, Calendar, Users, Music, User, ThumbsUp } from "lucide-react";
+import { ArrowLeft, ExternalLink, Calendar, Users, Music, User, ThumbsUp, Instagram } from "lucide-react";
 import type { Band, Review, Photo, Tour } from "@shared/schema";
 
 export default function BandProfile() {
@@ -118,6 +118,18 @@ export default function BandProfile() {
             >
               <ExternalLink className="w-4 h-4 mr-1" />
               Official Website
+            </a>
+          )}
+          {band.instagram && (
+            <a 
+              href={band.instagram} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-metal-red hover:text-metal-red-bright flex items-center"
+              data-testid="link-band-instagram"
+            >
+              <Instagram className="w-4 h-4 mr-1" />
+              Instagram
             </a>
           )}
         </div>

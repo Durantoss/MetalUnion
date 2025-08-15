@@ -36,6 +36,7 @@ export const bands = pgTable("bands", {
   members: text("members").array(),
   albums: text("albums").array(),
   website: text("website"),
+  instagram: text("instagram"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

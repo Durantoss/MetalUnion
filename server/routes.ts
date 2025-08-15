@@ -46,6 +46,7 @@ async function seedDatabase() {
       members: ["James Hetfield", "Lars Ulrich", "Kirk Hammett", "Robert Trujillo"],
       albums: ["Kill 'Em All", "Ride the Lightning", "Master of Puppets", "...And Justice for All", "Metallica (Black Album)"],
       website: "https://metallica.com",
+      instagram: "https://instagram.com/metallica",
     });
 
     const ironMaiden = await storage.createBand({
@@ -57,6 +58,7 @@ async function seedDatabase() {
       members: ["Bruce Dickinson", "Steve Harris", "Dave Murray", "Adrian Smith", "Janick Gers", "Nicko McBrain"],
       albums: ["Iron Maiden", "The Number of the Beast", "Piece of Mind", "Powerslave", "Somewhere in Time"],
       website: "https://ironmaiden.com",
+      instagram: "https://instagram.com/ironmaiden",
     });
 
     const blackSabbath = await storage.createBand({
@@ -68,6 +70,7 @@ async function seedDatabase() {
       members: ["Ozzy Osbourne", "Tony Iommi", "Geezer Butler", "Bill Ward"],
       albums: ["Black Sabbath", "Paranoid", "Master of Reality", "Vol. 4", "Sabbath Bloody Sabbath"],
       website: "https://blacksabbath.com",
+      instagram: "https://instagram.com/blacksabbath",
     });
 
     // Check if we need to seed tours
