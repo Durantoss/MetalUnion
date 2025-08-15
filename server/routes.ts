@@ -25,9 +25,62 @@ const upload = multer({
   }
 });
 
+async function seedDatabase() {
+  try {
+    // Check if we already have bands
+    const existingBands = await storage.getBands();
+    if (existingBands.length > 0) {
+      return; // Already seeded
+    }
+
+    console.log("Seeding database with initial data...");
+
+    // Create sample bands
+    const metallica = await storage.createBand({
+      name: "METALLICA",
+      genre: "Thrash Metal",
+      description: "Legendary thrash metal pioneers from San Francisco, known for their aggressive sound and powerful live performances.",
+      imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+      founded: 1981,
+      members: ["James Hetfield", "Lars Ulrich", "Kirk Hammett", "Robert Trujillo"],
+      albums: ["Kill 'Em All", "Ride the Lightning", "Master of Puppets", "...And Justice for All", "Metallica (Black Album)"],
+      website: "https://metallica.com",
+    });
+
+    const ironMaiden = await storage.createBand({
+      name: "IRON MAIDEN",
+      genre: "Heavy Metal",
+      description: "British heavy metal legends with epic storytelling and theatrical live shows that have defined metal for decades.",
+      imageUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+      founded: 1975,
+      members: ["Bruce Dickinson", "Steve Harris", "Dave Murray", "Adrian Smith", "Janick Gers", "Nicko McBrain"],
+      albums: ["Iron Maiden", "The Number of the Beast", "Piece of Mind", "Powerslave", "Somewhere in Time"],
+      website: "https://ironmaiden.com",
+    });
+
+    const blackSabbath = await storage.createBand({
+      name: "BLACK SABBATH",
+      genre: "Doom Metal",
+      description: "The godfathers of heavy metal, creating the blueprint for dark, heavy music that influenced generations.",
+      imageUrl: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+      founded: 1968,
+      members: ["Ozzy Osbourne", "Tony Iommi", "Geezer Butler", "Bill Ward"],
+      albums: ["Black Sabbath", "Paranoid", "Master of Reality", "Vol. 4", "Sabbath Bloody Sabbath"],
+      website: "https://blacksabbath.com",
+    });
+
+    console.log("Database seeded successfully!");
+  } catch (error) {
+    console.error("Failed to seed database:", error);
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+
+  // Seed database with initial data
+  await seedDatabase();
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
