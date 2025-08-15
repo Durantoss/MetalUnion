@@ -1,7 +1,7 @@
-import { Star } from "lucide-react";
+import { Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface StarRatingProps {
+interface LighterRatingProps {
   rating: number;
   maxRating?: number;
   size?: "sm" | "md" | "lg";
@@ -10,23 +10,23 @@ interface StarRatingProps {
   onRatingChange?: (rating: number) => void;
 }
 
-export default function StarRating({
+export default function LighterRating({
   rating,
   maxRating = 5,
   size = "md",
   showValue = false,
   interactive = false,
   onRatingChange,
-}: StarRatingProps) {
+}: LighterRatingProps) {
   const sizeClasses = {
     sm: "w-3 h-3",
     md: "w-4 h-4",
     lg: "w-5 h-5",
   };
 
-  const handleStarClick = (starRating: number) => {
+  const handleLighterClick = (lighterRating: number) => {
     if (interactive && onRatingChange) {
-      onRatingChange(starRating);
+      onRatingChange(lighterRating);
     }
   };
 
@@ -34,26 +34,26 @@ export default function StarRating({
     <div className="flex items-center space-x-1">
       <div className="flex space-x-0.5">
         {Array.from({ length: maxRating }, (_, index) => {
-          const starValue = index + 1;
-          const isFilled = starValue <= rating;
+          const lighterValue = index + 1;
+          const isLit = lighterValue <= rating;
           
           return (
-            <Star
+            <Flame
               key={index}
               className={cn(
                 sizeClasses[size],
-                isFilled ? "text-metal-red fill-metal-red" : "text-gray-400",
-                interactive && "cursor-pointer hover:text-metal-red-bright"
+                isLit ? "text-orange-500 fill-orange-500" : "text-gray-400",
+                interactive && "cursor-pointer hover:text-orange-400"
               )}
-              onClick={() => handleStarClick(starValue)}
-              data-testid={`star-${starValue}`}
+              onClick={() => handleLighterClick(lighterValue)}
+              data-testid={`lighter-${lighterValue}`}
             />
           );
         })}
       </div>
       {showValue && (
         <span className="text-sm text-gray-400 ml-2" data-testid="rating-value">
-          {rating}/{maxRating}
+          {rating}/{maxRating} 🔥
         </span>
       )}
     </div>

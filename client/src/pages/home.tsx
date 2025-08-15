@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import StarRating from "@/components/ui/star-rating";
+import LighterRating from "@/components/ui/star-rating";
 import { ArrowRight, User, ThumbsUp } from "lucide-react";
 import type { Band, Review, Photo, Tour } from "@shared/schema";
 
@@ -118,7 +118,7 @@ export default function Home() {
                     <h3 className="text-xl font-black mb-2" data-testid={`text-band-name-${band.id}`}>{band.name}</h3>
                     <p className="text-gray-400 mb-3" data-testid={`text-band-genre-${band.id}`}>{band.genre}</p>
                     <div className="flex items-center mb-3">
-                      <StarRating rating={5} size="sm" />
+                      <LighterRating rating={5} size="sm" />
                       <span className="text-sm text-gray-400 ml-2">(Reviews coming soon)</span>
                     </div>
                     <p className="text-sm text-gray-300 mb-4" data-testid={`text-band-description-${band.id}`}>{band.description}</p>
@@ -193,7 +193,7 @@ export default function Home() {
                               </span>
                             </div>
                             <div className="flex items-center">
-                              <StarRating rating={review.rating} size="sm" showValue />
+                              <LighterRating rating={review.rating} size="sm" showValue />
                             </div>
                           </div>
                           <p className="text-gray-300 mb-3" data-testid={`text-review-content-${review.id}`}>{review.content}</p>

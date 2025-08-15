@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import StarRating from "@/components/ui/star-rating";
+import LighterRating from "@/components/ui/star-rating";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { insertReviewSchema } from "@shared/schema";
@@ -194,7 +194,7 @@ export default function ReviewForm({ onSuccess, defaultBandId }: ReviewFormProps
         <div className="space-y-2">
           <label className="text-white font-bold">Rating *</label>
           <div className="flex items-center space-x-4">
-            <StarRating
+            <LighterRating
               rating={selectedRating}
               interactive
               onRatingChange={setSelectedRating}

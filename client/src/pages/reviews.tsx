@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import StarRating from "@/components/ui/star-rating";
+import LighterRating from "@/components/ui/star-rating";
 import ReviewForm from "@/components/forms/review-form";
 import { User, ThumbsUp, MessageCircle, Calendar } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
@@ -170,7 +170,7 @@ export default function Reviews() {
                         </p>
                       </div>
                       <div className="flex flex-col items-end">
-                        <StarRating rating={review.rating} size="sm" showValue />
+                        <LighterRating rating={review.rating} size="sm" showValue />
                         <div className="flex items-center text-xs text-gray-500 mt-1">
                           <Calendar className="w-3 h-3 mr-1" />
                           <span data-testid={`text-review-date-${review.id}`}>

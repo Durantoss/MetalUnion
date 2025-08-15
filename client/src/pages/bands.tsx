@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import StarRating from "@/components/ui/star-rating";
+import LighterRating from "@/components/ui/star-rating";
 import { Search } from "lucide-react";
 import type { Band } from "@shared/schema";
 
@@ -124,7 +124,7 @@ export default function Bands() {
                 <h3 className="text-xl font-black mb-2" data-testid={`text-band-name-${band.id}`}>{band.name}</h3>
                 <p className="text-gray-400 mb-3" data-testid={`text-band-genre-${band.id}`}>{band.genre}</p>
                 <div className="flex items-center mb-3">
-                  <StarRating rating={5} size="sm" />
+                  <LighterRating rating={5} size="sm" />
                   <span className="text-sm text-gray-400 ml-2">(Reviews coming soon)</span>
                 </div>
                 <p className="text-sm text-gray-300 mb-4 line-clamp-3" data-testid={`text-band-description-${band.id}`}>

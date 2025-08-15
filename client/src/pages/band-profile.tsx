@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import StarRating from "@/components/ui/star-rating";
+import LighterRating from "@/components/ui/star-rating";
 import { ArrowLeft, ExternalLink, Calendar, Users, Music, User, ThumbsUp } from "lucide-react";
 import type { Band, Review, Photo, Tour } from "@shared/schema";
 
@@ -122,7 +122,7 @@ export default function BandProfile() {
           )}
         </div>
         <div className="flex items-center mb-6">
-          <StarRating rating={5} size="lg" showValue />
+          <LighterRating rating={5} size="lg" showValue />
           <span className="text-gray-400 ml-3">({reviews.length} reviews)</span>
         </div>
       </div>
@@ -193,7 +193,7 @@ export default function BandProfile() {
                                 reviewed {review.targetName || band.name}
                               </span>
                             </div>
-                            <StarRating rating={review.rating} size="sm" showValue />
+                            <LighterRating rating={review.rating} size="sm" showValue />
                           </div>
                           <h4 className="font-bold mb-2" data-testid={`text-review-title-${review.id}`}>{review.title}</h4>
                           <p className="text-gray-300 mb-3" data-testid={`text-review-content-${review.id}`}>{review.content}</p>
