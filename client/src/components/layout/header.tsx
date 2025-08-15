@@ -67,7 +67,7 @@ export default function Header() {
                   <span className={`px-3 py-2 text-sm font-bold uppercase tracking-wider transition-colors ${
                     isActive("/messages") ? "text-metal-red" : "text-gray-400 hover:text-metal-red"
                   }`}>
-                    Messages
+                    The Pit
                   </span>
                 </Link>
               </div>

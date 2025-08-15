@@ -162,7 +162,7 @@ export default function Messages() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
             <MessageCircle className="w-8 h-8 text-metal-red" />
-            <h1 className="text-4xl font-black uppercase tracking-wider">Message Board</h1>
+            <h1 className="text-4xl font-black uppercase tracking-wider">The Pit</h1>
           </div>
           {isAuthenticated && (
             <Button
@@ -176,7 +176,7 @@ export default function Messages() {
           )}
         </div>
         <p className="text-gray-400 mb-6">
-          Connect with fellow metalheads. Share thoughts, discuss bands, and talk gear!
+          Connect with fellow metalheads in The Pit. Share thoughts, discuss bands, and talk gear!
         </p>
       </div>
 
@@ -200,7 +200,7 @@ export default function Messages() {
       {showForm && (
         <Card className="bg-card-dark border-metal-gray mb-8">
           <CardHeader>
-            <h3 className="text-xl font-bold text-white">Create New Message</h3>
+            <h3 className="text-xl font-bold text-white">Post to The Pit</h3>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -264,7 +264,7 @@ export default function Messages() {
                       <FormLabel className="text-white font-bold">Message *</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Share your thoughts with the metal community..."
+                          placeholder="Share your thoughts with The Pit..."
                           {...field}
                           rows={6}
                           className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red resize-none"
@@ -306,7 +306,7 @@ export default function Messages() {
       {!isAuthenticated && (
         <Card className="bg-card-dark border-metal-gray mb-8">
           <CardContent className="p-6 text-center">
-            <p className="text-gray-400 mb-4">Join the conversation! Log in to post messages and engage with the community.</p>
+            <p className="text-gray-400 mb-4">Join The Pit! Log in to post messages and engage with the community.</p>
             <a href="/api/login">
               <Button className="bg-metal-red hover:bg-metal-red-bright">Login to Participate</Button>
             </a>
