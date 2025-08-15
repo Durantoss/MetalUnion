@@ -1,0 +1,181 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(210 25% 7.8431%);
+  --card: hsl(180 6.6667% 97.0588%);
+  --card-foreground: hsl(210 25% 7.8431%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(210 25% 7.8431%);
+  --primary: hsl(203.8863 88.2845% 53.1373%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(210 25% 7.8431%);
+  --secondary-foreground: hsl(0 0% 100%);
+  --muted: hsl(240 1.9608% 90%);
+  --muted-foreground: hsl(210 25% 7.8431%);
+  --accent: hsl(211.5789 51.3514% 92.7451%);
+  --accent-foreground: hsl(203.8863 88.2845% 53.1373%);
+  --destructive: hsl(356.3033 90.5579% 54.3137%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(201.4286 30.4348% 90.9804%);
+  --input: hsl(200 23.0769% 97.4510%);
+  --ring: hsl(202.8169 89.1213% 53.1373%);
+  --chart-1: hsl(203.8863 88.2845% 53.1373%);
+  --chart-2: hsl(159.7826 100% 36.0784%);
+  --chart-3: hsl(42.0290 92.8251% 56.2745%);
+  --chart-4: hsl(147.1429 78.5047% 41.9608%);
+  --chart-5: hsl(341.4894 75.2000% 50.9804%);
+  --sidebar: hsl(180 6.6667% 97.0588%);
+  --sidebar-foreground: hsl(210 25% 7.8431%);
+  --sidebar-primary: hsl(203.8863 88.2845% 53.1373%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(211.5789 51.3514% 92.7451%);
+  --sidebar-accent-foreground: hsl(203.8863 88.2845% 53.1373%);
+  --sidebar-border: hsl(205.0000 25.0000% 90.5882%);
+  --sidebar-ring: hsl(202.8169 89.1213% 53.1373%);
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 1.3rem;
+  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+  
+  /* Metal theme colors */
+  --metal-black: hsl(0 0% 3.9216%);
+  --card-dark: hsl(0 0% 11.7647%);
+  --metal-gray: hsl(0 0% 20%);
+  --metal-red: hsl(0 87.2289% 43.9216%);
+  --metal-red-bright: hsl(0 79.2453% 56.4706%);
+}
+
+.dark {
+  --background: hsl(0 0% 3.9216%);
+  --foreground: hsl(0 0% 100%);
+  --card: hsl(0 0% 11.7647%);
+  --card-foreground: hsl(0 0% 100%);
+  --popover: hsl(0 0% 3.9216%);
+  --popover-foreground: hsl(0 0% 100%);
+  --primary: hsl(0 87.2289% 43.9216%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(0 0% 11.7647%);
+  --secondary-foreground: hsl(0 0% 100%);
+  --muted: hsl(0 0% 9.4118%);
+  --muted-foreground: hsl(0 0% 63.9216%);
+  --accent: hsl(0 0% 11.7647%);
+  --accent-foreground: hsl(0 0% 100%);
+  --destructive: hsl(0 87.2289% 43.9216%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(0 0% 20%);
+  --input: hsl(0 0% 11.7647%);
+  --ring: hsl(0 87.2289% 43.9216%);
+  --chart-1: hsl(0 87.2289% 43.9216%);
+  --chart-2: hsl(159.7826 100% 36.0784%);
+  --chart-3: hsl(42.0290 92.8251% 56.2745%);
+  --chart-4: hsl(147.1429 78.5047% 41.9608%);
+  --chart-5: hsl(341.4894 75.2000% 50.9804%);
+  --sidebar: hsl(0 0% 11.7647%);
+  --sidebar-foreground: hsl(0 0% 100%);
+  --sidebar-primary: hsl(0 87.2289% 43.9216%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(0 0% 11.7647%);
+  --sidebar-accent-foreground: hsl(0 0% 100%);
+  --sidebar-border: hsl(0 0% 20%);
+  --sidebar-ring: hsl(0 87.2289% 43.9216%);
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 1.3rem;
+  --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.25);
+  --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.25);
+  --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0.25), 0px 1px 2px -1px hsl(0 0% 0% / 0.25);
+  --shadow: 0px 2px 0px 0px hsl(0 0% 0% / 0.25), 0px 1px 2px -1px hsl(0 0% 0% / 0.25);
+  --shadow-md: 0px 2px 0px 0px hsl(0 0% 0% / 0.25), 0px 2px 4px -1px hsl(0 0% 0% / 0.25);
+  --shadow-lg: 0px 2px 0px 0px hsl(0 0% 0% / 0.25), 0px 4px 6px -1px hsl(0 0% 0% / 0.25);
+  --shadow-xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.25), 0px 8px 10px -1px hsl(0 0% 0% / 0.25);
+  --shadow-2xl: 0px 2px 0px 0px hsl(0 0% 0% / 0.25);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    background-color: var(--metal-black);
+    color: white;
+  }
+  
+  html {
+    color-scheme: dark;
+  }
+}
+
+@layer utilities {
+  .text-metal-red {
+    color: var(--metal-red);
+  }
+  
+  .text-metal-red-bright {
+    color: var(--metal-red-bright);
+  }
+  
+  .bg-metal-black {
+    background-color: var(--metal-black);
+  }
+  
+  .bg-card-dark {
+    background-color: var(--card-dark);
+  }
+  
+  .bg-metal-gray {
+    background-color: var(--metal-gray);
+  }
+  
+  .bg-metal-red {
+    background-color: var(--metal-red);
+  }
+  
+  .bg-metal-red-bright {
+    background-color: var(--metal-red-bright);
+  }
+  
+  .border-metal-gray {
+    border-color: var(--metal-gray);
+  }
+  
+  .border-metal-red {
+    border-color: var(--metal-red);
+  }
+  
+  .hover\:bg-metal-red:hover {
+    background-color: var(--metal-red);
+  }
+  
+  .hover\:bg-metal-red-bright:hover {
+    background-color: var(--metal-red-bright);
+  }
+  
+  .hover\:text-metal-red:hover {
+    color: var(--metal-red);
+  }
+  
+  .hover\:text-metal-red-bright:hover {
+    color: var(--metal-red-bright);
+  }
+  
+  .hover\:border-metal-red:hover {
+    border-color: var(--metal-red);
+  }
+}

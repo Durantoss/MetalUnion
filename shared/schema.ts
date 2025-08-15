@@ -1,0 +1,83 @@
+import { sql } from "drizzle-orm";
+import { pgTable, text, varchar, integer, timestamp } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
+export const bands = pgTable("bands", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  genre: text("genre").notNull(),
+  description: text("description").notNull(),
+  imageUrl: text("image_url"),
+  founded: integer("founded"),
+  members: text("members").array(),
+  albums: text("albums").array(),
+  website: text("website"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const reviews = pgTable("reviews", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  bandId: varchar("band_id").notNull().references(() => bands.id),
+  username: text("username").notNull(),
+  rating: integer("rating").notNull(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  reviewType: text("review_type").notNull(), // 'band', 'album', 'concert'
+  targetName: text("target_name"), // album name or concert venue
+  likes: integer("likes").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const photos = pgTable("photos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  bandId: varchar("band_id").references(() => bands.id),
+  title: text("title").notNull(),
+  imageUrl: text("image_url").notNull(),
+  category: text("category").notNull(), // 'live', 'promo', 'backstage', 'equipment'
+  uploadedBy: text("uploaded_by").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const tours = pgTable("tours", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  bandId: varchar("band_id").notNull().references(() => bands.id),
+  tourName: text("tour_name").notNull(),
+  venue: text("venue").notNull(),
+  city: text("city").notNull(),
+  country: text("country").notNull(),
+  date: timestamp("date").notNull(),
+  ticketUrl: text("ticket_url"),
+  price: text("price"),
+  status: text("status").default("upcoming"), // 'upcoming', 'sold_out', 'cancelled'
+});
+
+export const insertBandSchema = createInsertSchema(bands).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertReviewSchema = createInsertSchema(reviews).omit({
+  id: true,
+  likes: true,
+  createdAt: true,
+});
+
+export const insertPhotoSchema = createInsertSchema(photos).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertTourSchema = createInsertSchema(tours).omit({
+  id: true,
+});
+
+export type Band = typeof bands.$inferSelect;
+export type InsertBand = z.infer<typeof insertBandSchema>;
+export type Review = typeof reviews.$inferSelect;
+export type InsertReview = z.infer<typeof insertReviewSchema>;
+export type Photo = typeof photos.$inferSelect;
+export type InsertPhoto = z.infer<typeof insertPhotoSchema>;
+export type Tour = typeof tours.$inferSelect;
+export type InsertTour = z.infer<typeof insertTourSchema>;
