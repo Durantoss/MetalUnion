@@ -24,7 +24,9 @@ import {
   Star,
   Users,
   Globe,
-  Instagram
+  Instagram,
+  Ticket,
+  DollarSign
 } from "lucide-react";
 import type { Band, Tour, Review, Photo } from "@shared/schema";
 

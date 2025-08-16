@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertBandSchema, insertReviewSchema, insertPhotoSchema, insertTourSchema, insertMessageSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { googleSearchService, type EnhancedSearchResult } from "./googleSearch";
+import { tourDataService } from "./tourDataService";
 import multer from "multer";
 import path from "path";
 
@@ -147,6 +148,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Seed database with initial data
   await seedDatabase();
+
+  // Initialize tour data refresh (run once on startup)
+  setTimeout(async () => {
+    try {
+      await tourDataService.refreshTourDatabase();
+      console.log('Initial tour data refresh completed');
+    } catch (error) {
+      console.error('Initial tour data refresh failed:', error);
+    }
+  }, 5000); // Wait 5 seconds after startup
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
@@ -516,6 +527,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(tour);
     } catch (error) {
       res.status(400).json({ message: "Invalid tour data" });
+    }
+  });
+
+  // Tour data management routes
+  app.post("/api/tours/refresh", async (req, res) => {
+    try {
+      console.log('Manual tour data refresh requested');
+      await tourDataService.refreshTourDatabase();
+      const stats = await tourDataService.getTourStats();
+      res.json({ 
+        message: "Tour database refreshed successfully", 
+        stats 
+      });
+    } catch (error) {
+      console.error('Tour refresh error:', error);
+      res.status(500).json({ message: "Failed to refresh tour database" });
+    }
+  });
+
+  app.get("/api/tours/stats", async (req, res) => {
+    try {
+      const stats = await tourDataService.getTourStats();
+      res.json(stats);
+    } catch (error) {
+      console.error('Tour stats error:', error);
+      res.status(500).json({ message: "Failed to get tour statistics" });
+    }
+  });
+
+  // Get tours with enhanced data including band information
+  app.get("/api/tours/enhanced", async (req, res) => {
+    try {
+      const { upcoming, limit } = req.query;
+      let tours;
+      
+      if (upcoming === 'true') {
+        tours = await storage.getUpcomingTours();
+      } else {
+        tours = await storage.getTours();
+      }
+      
+      // Get band information for each tour
+      const toursWithBands = await Promise.all(
+        tours.map(async (tour) => {
+          const band = await storage.getBand(tour.bandId);
+          return {
+            ...tour,
+            band: band ? {
+              id: band.id,
+              name: band.name,
+              genre: band.genre,
+              imageUrl: band.imageUrl
+            } : null
+          };
+        })
+      );
+      
+      // Filter out tours without valid bands and sort by date
+      const validTours = toursWithBands
+        .filter(tour => tour.band !== null)
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      // Apply limit if specified
+      const limitNum = limit ? parseInt(limit as string, 10) : undefined;
+      const result = limitNum ? validTours.slice(0, limitNum) : validTours;
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Enhanced tours error:', error);
+      res.status(500).json({ message: "Failed to fetch enhanced tour data" });
     }
   });
 
