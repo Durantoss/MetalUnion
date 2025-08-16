@@ -14,6 +14,7 @@ import Tours from "@/pages/tours";
 import Messages from "@/pages/messages";
 import Profile from "@/pages/profile";
 import MyBands from "@/pages/my-bands";
+import Search from "@/pages/search";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -30,6 +31,7 @@ function Router() {
         <Route path="/messages" component={Messages} />
         <Route path="/profile" component={Profile} />
         <Route path="/my-bands" component={MyBands} />
+        <Route path="/search" component={Search} />
         <Route component={NotFound} />
       </Switch>
       <Footer />

@@ -200,6 +200,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search endpoint
+  app.get("/api/search", async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      const genre = req.query.genre as string;
+      const photoCategory = req.query.photoCategory as string;
+      const reviewType = req.query.reviewType as string;
+      const country = req.query.country as string;
+      const dateRange = req.query.dateRange as string;
+      
+      if (!query || query.length < 2) {
+        return res.json({ bands: [], tours: [], reviews: [], photos: [] });
+      }
+      
+      const results = await storage.searchAll(query, {
+        genre: genre === 'all' ? undefined : genre,
+        photoCategory: photoCategory === 'all' ? undefined : photoCategory,
+        reviewType: reviewType === 'all' ? undefined : reviewType,
+        country: country === 'all' ? undefined : country,
+        dateRange: dateRange === 'all' ? undefined : dateRange
+      });
+      
+      // Add upcoming tours for each band in search results
+      const bandsWithTours = await Promise.all(
+        results.bands.map(async (band) => {
+          const upcomingTours = await storage.getToursByBand(band.id);
+          const now = new Date();
+          const currentTours = upcomingTours.filter(tour => 
+            new Date(tour.date) > now && 
+            tour.status !== 'cancelled'
+          ).slice(0, 3);
+          
+          return {
+            ...band,
+            upcomingTours: currentTours
+          };
+        })
+      );
+      
+      res.json({
+        ...results,
+        bands: bandsWithTours
+      });
+    } catch (error) {
+      console.error("Error performing search:", error);
+      res.status(500).json({ message: "Failed to perform search" });
+    }
+  });
+
   // Bands routes
   app.get("/api/bands", async (req, res) => {
     try {
