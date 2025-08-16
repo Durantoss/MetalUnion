@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -138,127 +138,85 @@ export default function Tours() {
     return new Date(date) > new Date();
   };
 
-  // Extract unique values for filter options
-  const filterOptions = useMemo(() => {
-    if (!tours || tours.length === 0) {
-      return { genres: [], countries: [], cities: [] };
-    }
-    const genres = Array.from(new Set(tours.map(tour => tour.band?.genre).filter((genre): genre is string => Boolean(genre)))).sort();
-    const countries = Array.from(new Set(tours.map(tour => tour.country))).sort();
-    const cities = Array.from(new Set(tours.map(tour => tour.city))).sort();
-    
-    return { genres, countries, cities };
-  }, [tours]);
+  // Extract unique values for filter options (simplified to prevent render loop)
+  const filterOptions = {
+    genres: tours ? Array.from(new Set(tours.map(tour => tour.band?.genre).filter(Boolean))).sort() : [],
+    countries: tours ? Array.from(new Set(tours.map(tour => tour.country))).sort() : [],
+    cities: tours ? Array.from(new Set(tours.map(tour => tour.city))).sort() : []
+  };
 
-  // Advanced filtering logic
-  const filteredTours = useMemo(() => {
-    if (!tours || tours.length === 0) {
-      return [];
-    }
-    
-    let filtered = [...tours]; // Create a copy to avoid mutations
+  // Simplified filtering to prevent render loops
+  let filteredTours = tours || [];
+  
+  // Apply view mode filter
+  if (viewMode === 'upcoming') {
+    filteredTours = filteredTours.filter(tour => isUpcoming(tour.date));
+  }
 
-    // Apply view mode filter
-    if (viewMode === 'upcoming') {
-      filtered = filtered.filter(tour => isUpcoming(tour.date));
-    }
+  // Apply search filter
+  if (searchQuery.trim()) {
+    const query = searchQuery.toLowerCase().trim();
+    filteredTours = filteredTours.filter(tour => 
+      (tour.band?.name || '').toLowerCase().includes(query) ||
+      tour.tourName.toLowerCase().includes(query) ||
+      tour.venue.toLowerCase().includes(query) ||
+      tour.city.toLowerCase().includes(query) ||
+      tour.country.toLowerCase().includes(query)
+    );
+  }
 
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(tour => 
-        (tour.band?.name || '').toLowerCase().includes(query) ||
-        tour.tourName.toLowerCase().includes(query) ||
-        tour.venue.toLowerCase().includes(query) ||
-        tour.city.toLowerCase().includes(query) ||
-        tour.country.toLowerCase().includes(query)
-      );
-    }
-
-    // Apply genre filter
-    if (selectedGenre !== 'all') {
-      filtered = filtered.filter(tour => tour.band?.genre === selectedGenre);
-    }
-
-    // Apply country filter
-    if (selectedCountry !== 'all') {
-      filtered = filtered.filter(tour => tour.country === selectedCountry);
-    }
-
-    // Apply city filter
-    if (selectedCity !== 'all') {
-      filtered = filtered.filter(tour => tour.city === selectedCity);
-    }
-
-    // Apply date range filters
-    if (dateFrom) {
-      try {
-        const fromDate = new Date(dateFrom);
-        filtered = filtered.filter(tour => new Date(tour.date) >= fromDate);
-      } catch (e) {
-        console.warn('Invalid dateFrom:', dateFrom);
+  // Apply filters
+  if (selectedGenre !== 'all') {
+    filteredTours = filteredTours.filter(tour => tour.band?.genre === selectedGenre);
+  }
+  if (selectedCountry !== 'all') {
+    filteredTours = filteredTours.filter(tour => tour.country === selectedCountry);
+  }
+  if (selectedCity !== 'all') {
+    filteredTours = filteredTours.filter(tour => tour.city === selectedCity);
+  }
+  if (dateFrom) {
+    filteredTours = filteredTours.filter(tour => new Date(tour.date) >= new Date(dateFrom));
+  }
+  if (dateTo) {
+    filteredTours = filteredTours.filter(tour => new Date(tour.date) <= new Date(dateTo));
+  }
+  if (priceRange !== 'all') {
+    filteredTours = filteredTours.filter(tour => {
+      if (!tour.price) return priceRange === 'free';
+      const price = parseFloat(tour.price.replace(/[^\d.]/g, ''));
+      switch (priceRange) {
+        case 'free': return price === 0;
+        case 'under-50': return price < 50;
+        case '50-100': return price >= 50 && price <= 100;
+        case '100-200': return price > 100 && price <= 200;
+        case 'over-200': return price > 200;
+        default: return true;
       }
-    }
-    if (dateTo) {
-      try {
-        const toDate = new Date(dateTo);
-        filtered = filtered.filter(tour => new Date(tour.date) <= toDate);
-      } catch (e) {
-        console.warn('Invalid dateTo:', dateTo);
-      }
-    }
+    });
+  }
 
-    // Apply price range filter
-    if (priceRange !== 'all') {
-      filtered = filtered.filter(tour => {
-        if (!tour.price) return priceRange === 'free';
-        try {
-          const price = parseFloat(tour.price.replace(/[^\d.]/g, ''));
-          switch (priceRange) {
-            case 'free': return price === 0;
-            case 'under-50': return price < 50;
-            case '50-100': return price >= 50 && price <= 100;
-            case '100-200': return price > 100 && price <= 200;
-            case 'over-200': return price > 200;
-            default: return true;
-          }
-        } catch (e) {
-          return false;
-        }
-      });
+  // Apply sorting
+  filteredTours = [...filteredTours].sort((a, b) => {
+    switch (sortBy) {
+      case 'date':
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      case 'date-desc':
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      case 'band':
+        return (a.band?.name || '').localeCompare(b.band?.name || '');
+      case 'location':
+        return `${a.city}, ${a.country}`.localeCompare(`${b.city}, ${b.country}`);
+      case 'price':
+        const priceA = parseFloat((a.price || '0').replace(/[^\d.]/g, ''));
+        const priceB = parseFloat((b.price || '0').replace(/[^\d.]/g, ''));
+        return priceA - priceB;
+      default:
+        return 0;
     }
+  });
 
-    // Apply sorting
-    try {
-      filtered.sort((a, b) => {
-        switch (sortBy) {
-          case 'date':
-            return new Date(a.date).getTime() - new Date(b.date).getTime();
-          case 'date-desc':
-            return new Date(b.date).getTime() - new Date(a.date).getTime();
-          case 'band':
-            return (a.band?.name || '').localeCompare(b.band?.name || '');
-          case 'location':
-            return `${a.city}, ${a.country}`.localeCompare(`${b.city}, ${b.country}`);
-          case 'price':
-            const priceA = parseFloat((a.price || '0').replace(/[^\d.]/g, ''));
-            const priceB = parseFloat((b.price || '0').replace(/[^\d.]/g, ''));
-            return priceA - priceB;
-          default:
-            return 0;
-        }
-      });
-    } catch (e) {
-      console.warn('Sorting error:', e);
-    }
-
-    return filtered;
-  }, [tours, viewMode, searchQuery, selectedGenre, selectedCountry, selectedCity, dateFrom, dateTo, priceRange, sortBy]);
-
-  const upcomingTours = useMemo(() => {
-    if (!tours || tours.length === 0) return [];
-    return tours.filter(tour => isUpcoming(tour.date));
-  }, [tours]);
+  const upcomingTours = tours ? tours.filter(tour => isUpcoming(tour.date)) : [];
   
   // Clear all filters
   const clearFilters = () => {
@@ -273,10 +231,8 @@ export default function Tours() {
   };
 
   // Check if any filters are active
-  const hasActiveFilters = useMemo(() => {
-    return Boolean(searchQuery.trim() || selectedGenre !== 'all' || selectedCountry !== 'all' || 
-      selectedCity !== 'all' || dateFrom || dateTo || priceRange !== 'all' || sortBy !== 'date');
-  }, [searchQuery, selectedGenre, selectedCountry, selectedCity, dateFrom, dateTo, priceRange, sortBy]);
+  const hasActiveFilters = searchQuery.trim() || selectedGenre !== 'all' || selectedCountry !== 'all' || 
+    selectedCity !== 'all' || dateFrom || dateTo || priceRange !== 'all' || sortBy !== 'date';
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -559,7 +515,7 @@ export default function Tours() {
             {/* Results Summary */}
             <div className="mt-4 pt-4 border-t border-metal-gray/30">
               <p className="text-sm text-gray-400">
-                Showing <span className="font-bold text-white">{filteredTours.length}</span> of <span className="font-bold text-white">{tours.length}</span> tours
+                Showing <span className="font-bold text-white">{filteredTours.length}</span> of <span className="font-bold text-white">{tours?.length || 0}</span> tours
                 {hasActiveFilters && (
                   <Button
                     onClick={clearFilters}

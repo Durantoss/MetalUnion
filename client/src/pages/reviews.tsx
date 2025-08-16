@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,111 +31,81 @@ export default function Reviews() {
     queryKey: ["/api/reviews"],
   });
 
-  // Extract unique values for filter options
-  const filterOptions = useMemo(() => {
-    if (!allReviews || allReviews.length === 0) {
-      return { reviewers: [], targets: [] };
-    }
-    const reviewers = Array.from(new Set(allReviews.map(review => review.stagename))).sort();
-    const targets = Array.from(new Set(allReviews.map(review => review.targetName).filter((name): name is string => Boolean(name)))).sort();
-    return { reviewers, targets };
-  }, [allReviews]);
+  // Extract unique values for filter options (simplified)
+  const filterOptions = {
+    reviewers: allReviews ? Array.from(new Set(allReviews.map(review => review.stagename))).sort() : [],
+    targets: allReviews ? Array.from(new Set(allReviews.map(review => review.targetName).filter(Boolean))).sort() : []
+  };
 
-  // Advanced filtering logic
-  const reviews = useMemo(() => {
-    if (!allReviews || allReviews.length === 0) {
-      return [];
-    }
-    
-    let filtered = [...allReviews]; // Create a copy
+  // Simplified filtering logic
+  let reviews = allReviews || [];
+  
+  // Apply search filter
+  if (searchQuery.trim()) {
+    const query = searchQuery.toLowerCase().trim();
+    reviews = reviews.filter(review => 
+      review.title.toLowerCase().includes(query) ||
+      review.content.toLowerCase().includes(query) ||
+      review.stagename.toLowerCase().includes(query) ||
+      (review.targetName && review.targetName.toLowerCase().includes(query)) ||
+      review.reviewType.toLowerCase().includes(query)
+    );
+  }
 
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(review => 
-        review.title.toLowerCase().includes(query) ||
-        review.content.toLowerCase().includes(query) ||
-        review.stagename.toLowerCase().includes(query) ||
-        (review.targetName && review.targetName.toLowerCase().includes(query)) ||
-        review.reviewType.toLowerCase().includes(query)
-      );
-    }
+  // Apply type filter
+  if (selectedType !== 'all') {
+    reviews = reviews.filter(review => review.reviewType === selectedType);
+  }
 
-    // Apply type filter
-    if (selectedType !== 'all') {
-      filtered = filtered.filter(review => review.reviewType === selectedType);
+  // Apply rating filter
+  if (selectedRating !== 'all') {
+    if (selectedRating === '5') {
+      reviews = reviews.filter(review => review.rating === 5);
+    } else if (selectedRating === '4+') {
+      reviews = reviews.filter(review => review.rating >= 4);
+    } else if (selectedRating === '3+') {
+      reviews = reviews.filter(review => review.rating >= 3);
+    } else if (selectedRating === '2-') {
+      reviews = reviews.filter(review => review.rating <= 2);
     }
+  }
 
-    // Apply rating filter
-    if (selectedRating !== 'all') {
-      try {
-        if (selectedRating === '5') {
-          filtered = filtered.filter(review => review.rating === 5);
-        } else if (selectedRating === '4+') {
-          filtered = filtered.filter(review => review.rating >= 4);
-        } else if (selectedRating === '3+') {
-          filtered = filtered.filter(review => review.rating >= 3);
-        } else if (selectedRating === '2-') {
-          filtered = filtered.filter(review => review.rating <= 2);
-        }
-      } catch (e) {
-        console.warn('Rating filter error:', e);
-      }
-    }
+  // Apply reviewer filter
+  if (selectedReviewer !== 'all') {
+    reviews = reviews.filter(review => review.stagename === selectedReviewer);
+  }
 
-    // Apply reviewer filter
-    if (selectedReviewer !== 'all') {
-      filtered = filtered.filter(review => review.stagename === selectedReviewer);
-    }
+  // Apply date range filters
+  if (dateFrom) {
+    reviews = reviews.filter(review => review.createdAt && new Date(review.createdAt) >= new Date(dateFrom));
+  }
+  if (dateTo) {
+    reviews = reviews.filter(review => review.createdAt && new Date(review.createdAt) <= new Date(dateTo));
+  }
 
-    // Apply date range filters
-    if (dateFrom) {
-      try {
-        const fromDate = new Date(dateFrom);
-        filtered = filtered.filter(review => review.createdAt && new Date(review.createdAt) >= fromDate);
-      } catch (e) {
-        console.warn('Invalid dateFrom:', dateFrom);
-      }
+  // Apply sorting
+  reviews = [...reviews].sort((a, b) => {
+    switch (sortBy) {
+      case 'date-desc':
+        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      case 'date-asc':
+        return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+      case 'rating-desc':
+        return b.rating - a.rating;
+      case 'rating-asc':
+        return a.rating - b.rating;
+      case 'likes-desc':
+        return (b.likes || 0) - (a.likes || 0);
+      case 'title':
+        return a.title.localeCompare(b.title);
+      case 'reviewer':
+        return a.stagename.localeCompare(b.stagename);
+      case 'target':
+        return (a.targetName || '').localeCompare(b.targetName || '');
+      default:
+        return 0;
     }
-    if (dateTo) {
-      try {
-        const toDate = new Date(dateTo);
-        filtered = filtered.filter(review => review.createdAt && new Date(review.createdAt) <= toDate);
-      } catch (e) {
-        console.warn('Invalid dateTo:', dateTo);
-      }
-    }
-
-    // Apply sorting
-    try {
-      filtered.sort((a, b) => {
-        switch (sortBy) {
-          case 'date-desc':
-            return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-          case 'date-asc':
-            return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
-          case 'rating-desc':
-            return b.rating - a.rating;
-          case 'rating-asc':
-            return a.rating - b.rating;
-          case 'likes-desc':
-            return (b.likes || 0) - (a.likes || 0);
-          case 'title':
-            return a.title.localeCompare(b.title);
-          case 'reviewer':
-            return a.stagename.localeCompare(b.stagename);
-          case 'target':
-            return (a.targetName || '').localeCompare(b.targetName || '');
-          default:
-            return 0;
-        }
-      });
-    } catch (e) {
-      console.warn('Sorting error:', e);
-    }
-
-    return filtered;
-  }, [allReviews, searchQuery, selectedType, selectedRating, selectedReviewer, dateFrom, dateTo, sortBy]);
+  });
   
   // Clear all filters
   const clearFilters = () => {
@@ -149,10 +119,8 @@ export default function Reviews() {
   };
 
   // Check if any filters are active
-  const hasActiveFilters = useMemo(() => {
-    return Boolean(searchQuery.trim() || selectedType !== 'all' || selectedRating !== 'all' || 
-      selectedReviewer !== 'all' || dateFrom || dateTo || sortBy !== 'date-desc');
-  }, [searchQuery, selectedType, selectedRating, selectedReviewer, dateFrom, dateTo, sortBy]);
+  const hasActiveFilters = searchQuery.trim() || selectedType !== 'all' || selectedRating !== 'all' || 
+    selectedReviewer !== 'all' || dateFrom || dateTo || sortBy !== 'date-desc';
 
   const likeMutation = useMutation({
     mutationFn: async (reviewId: string) => {

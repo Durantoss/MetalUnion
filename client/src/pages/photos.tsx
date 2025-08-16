@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,86 +29,60 @@ export default function Photos() {
     queryKey: ["/api/photos"],
   });
 
-  // Extract unique values for filter options
-  const filterOptions = useMemo(() => {
-    if (!allPhotos || allPhotos.length === 0) {
-      return { uploaders: [] };
-    }
-    const uploaders = Array.from(new Set(allPhotos.map(photo => photo.uploadedBy))).sort();
-    return { uploaders };
-  }, [allPhotos]);
+  // Extract unique values for filter options (simplified)
+  const filterOptions = {
+    uploaders: allPhotos ? Array.from(new Set(allPhotos.map(photo => photo.uploadedBy))).sort() : []
+  };
 
-  // Advanced filtering logic
-  const filteredPhotos = useMemo(() => {
-    if (!allPhotos || allPhotos.length === 0) {
-      return [];
-    }
-    
-    let filtered = [...allPhotos]; // Create a copy
+  // Simplified filtering logic
+  let filteredPhotos = allPhotos || [];
+  
+  // Apply category filter
+  if (selectedCategory !== 'all') {
+    filteredPhotos = filteredPhotos.filter(photo => photo.category === selectedCategory);
+  }
 
-    // Apply category filter
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(photo => photo.category === selectedCategory);
-    }
+  // Apply search filter
+  if (searchQuery.trim()) {
+    const query = searchQuery.toLowerCase().trim();
+    filteredPhotos = filteredPhotos.filter(photo => 
+      photo.title.toLowerCase().includes(query) ||
+      (photo.description && photo.description.toLowerCase().includes(query)) ||
+      photo.uploadedBy.toLowerCase().includes(query) ||
+      photo.category.toLowerCase().includes(query)
+    );
+  }
 
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(photo => 
-        photo.title.toLowerCase().includes(query) ||
-        (photo.description && photo.description.toLowerCase().includes(query)) ||
-        photo.uploadedBy.toLowerCase().includes(query) ||
-        photo.category.toLowerCase().includes(query)
-      );
-    }
+  // Apply uploader filter
+  if (selectedUploader !== 'all') {
+    filteredPhotos = filteredPhotos.filter(photo => photo.uploadedBy === selectedUploader);
+  }
 
-    // Apply uploader filter
-    if (selectedUploader !== 'all') {
-      filtered = filtered.filter(photo => photo.uploadedBy === selectedUploader);
-    }
+  // Apply date range filters
+  if (dateFrom) {
+    filteredPhotos = filteredPhotos.filter(photo => photo.createdAt && new Date(photo.createdAt) >= new Date(dateFrom));
+  }
+  if (dateTo) {
+    filteredPhotos = filteredPhotos.filter(photo => photo.createdAt && new Date(photo.createdAt) <= new Date(dateTo));
+  }
 
-    // Apply date range filters
-    if (dateFrom) {
-      try {
-        const fromDate = new Date(dateFrom);
-        filtered = filtered.filter(photo => photo.createdAt && new Date(photo.createdAt) >= fromDate);
-      } catch (e) {
-        console.warn('Invalid dateFrom:', dateFrom);
-      }
+  // Apply sorting
+  filteredPhotos = [...filteredPhotos].sort((a, b) => {
+    switch (sortBy) {
+      case 'date-desc':
+        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      case 'date-asc':
+        return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+      case 'title':
+        return a.title.localeCompare(b.title);
+      case 'uploader':
+        return a.uploadedBy.localeCompare(b.uploadedBy);
+      case 'category':
+        return a.category.localeCompare(b.category);
+      default:
+        return 0;
     }
-    if (dateTo) {
-      try {
-        const toDate = new Date(dateTo);
-        filtered = filtered.filter(photo => photo.createdAt && new Date(photo.createdAt) <= toDate);
-      } catch (e) {
-        console.warn('Invalid dateTo:', dateTo);
-      }
-    }
-
-    // Apply sorting
-    try {
-      filtered.sort((a, b) => {
-        switch (sortBy) {
-          case 'date-desc':
-            return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-          case 'date-asc':
-            return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
-          case 'title':
-            return a.title.localeCompare(b.title);
-          case 'uploader':
-            return a.uploadedBy.localeCompare(b.uploadedBy);
-          case 'category':
-            return a.category.localeCompare(b.category);
-          default:
-            return 0;
-        }
-      });
-    } catch (e) {
-      console.warn('Sorting error:', e);
-    }
-
-    return filtered;
-  }, [allPhotos, selectedCategory, searchQuery, selectedUploader, dateFrom, dateTo, sortBy]);
+  });
 
   // Keep the original photos reference for lightbox navigation
   const photos = filteredPhotos;
@@ -124,10 +98,8 @@ export default function Photos() {
   };
 
   // Check if any filters are active
-  const hasActiveFilters = useMemo(() => {
-    return Boolean(searchQuery.trim() || selectedCategory !== 'all' || selectedUploader !== 'all' || 
-      dateFrom || dateTo || sortBy !== 'date-desc');
-  }, [searchQuery, selectedCategory, selectedUploader, dateFrom, dateTo, sortBy]);
+  const hasActiveFilters = searchQuery.trim() || selectedCategory !== 'all' || selectedUploader !== 'all' || 
+    dateFrom || dateTo || sortBy !== 'date-desc';
 
   const openLightbox = (index: number) => {
     setCurrentPhotoIndex(index);
