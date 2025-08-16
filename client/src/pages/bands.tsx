@@ -1,69 +1,210 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { MetalLoader } from "@/components/ui/metal-loader";
 import LighterRating from "@/components/ui/star-rating";
-import { Search } from "lucide-react";
+import { Search, Filter, X } from "lucide-react";
 import type { Band } from "@shared/schema";
 
 export default function Bands() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState<string>("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
-  const { data: bands = [], isLoading } = useQuery<Band[]>({
-    queryKey: ["/api/bands", searchQuery ? `?search=${searchQuery}` : ""],
+  const { data: allBands = [], isLoading } = useQuery<Band[]>({
+    queryKey: ["/api/bands"],
   });
+
+  // Extract unique genres for filter dropdown
+  const availableGenres = useMemo(() => {
+    const genres = allBands.map(band => band.genre).filter(Boolean);
+    return [...new Set(genres)].sort();
+  }, [allBands]);
+
+  // Filter and search bands locally for better UX
+  const bands = useMemo(() => {
+    let filtered = allBands;
+
+    // Genre filter
+    if (selectedGenre) {
+      filtered = filtered.filter(band => band.genre === selectedGenre);
+    }
+
+    // Text search
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(band => 
+        band.name.toLowerCase().includes(query) ||
+        band.genre?.toLowerCase().includes(query) ||
+        band.description?.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
+  }, [allBands, searchQuery, selectedGenre]);
+
+  // Generate autocomplete suggestions
+  useEffect(() => {
+    if (searchInput.length >= 2) {
+      const suggestions = allBands
+        .filter(band => 
+          band.name.toLowerCase().includes(searchInput.toLowerCase()) ||
+          band.genre?.toLowerCase().includes(searchInput.toLowerCase())
+        )
+        .map(band => band.name)
+        .slice(0, 5);
+      setSuggestions(suggestions);
+      setShowSuggestions(true);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [searchInput, allBands]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setSearchQuery(searchInput);
+    setShowSuggestions(false);
   };
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSearchInput("");
+    setSelectedGenre("");
+  };
+
+  const selectSuggestion = (suggestion: string) => {
+    setSearchInput(suggestion);
+    setSearchQuery(suggestion);
+    setShowSuggestions(false);
+  };
+
+  const activeFiltersCount = (searchQuery ? 1 : 0) + (selectedGenre ? 1 : 0);
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-8">
         <h1 className="text-4xl font-black uppercase tracking-wider mb-6">All Bands</h1>
         
-        <form onSubmit={handleSearch} className="flex gap-4 mb-6">
-          <div className="relative flex-1 max-w-md">
-            <Input
-              type="text"
-              placeholder="Search bands by name, genre..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="bg-card-dark border-metal-gray text-white placeholder-gray-300 focus:border-metal-red pl-10"
-              data-testid="input-band-search"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 w-4 h-4" />
-          </div>
-          <Button 
-            type="submit" 
-            className="bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider"
-            data-testid="button-search-bands"
-          >
-            Search
-          </Button>
-        </form>
+        {/* Enhanced Search Section */}
+        <div className="bg-card-dark border border-metal-gray p-6 mb-8">
+          <div className="flex flex-col md:flex-row gap-4 mb-4">
+            {/* Search Input with Autocomplete */}
+            <div className="relative flex-1">
+              <form onSubmit={handleSearch} className="relative">
+                <Input
+                  type="text"
+                  placeholder="SEARCH THE METAL ARCHIVES..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  className="bg-black border-metal-gray text-white placeholder-gray-400 focus:border-metal-red pl-12 pr-4 h-12 font-bold uppercase tracking-wider"
+                  data-testid="input-band-search"
+                />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-metal-red w-5 h-5" />
+                
+                {/* Autocomplete Suggestions */}
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 bg-black border-2 border-metal-red z-10 max-h-60 overflow-y-auto">
+                    {suggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => selectSuggestion(suggestion)}
+                        className="w-full text-left px-4 py-3 text-white hover:bg-metal-red/20 transition-colors font-bold uppercase tracking-wide border-b border-metal-gray last:border-b-0"
+                        data-testid={`suggestion-${index}`}
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </form>
+            </div>
 
-        {searchQuery && (
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-gray-300">
-              {isLoading ? "Searching..." : `Found ${bands.length} bands matching "${searchQuery}"`}
-            </p>
-            <Button 
-              variant="ghost" 
-              onClick={() => {
-                setSearchQuery("");
-                setSearchInput("");
-              }}
-              className="text-metal-red hover:text-metal-red-bright"
-              data-testid="button-clear-search"
+            {/* Genre Filter */}
+            <div className="min-w-48">
+              <Select value={selectedGenre} onValueChange={setSelectedGenre}>
+                <SelectTrigger className="bg-black border-metal-gray text-white focus:border-metal-red h-12 font-bold uppercase tracking-wider" data-testid="select-genre-filter">
+                  <SelectValue placeholder="ALL GENRES" />
+                </SelectTrigger>
+                <SelectContent className="bg-black border-metal-red">
+                  <SelectItem value="" className="text-white hover:bg-metal-red/20 font-bold uppercase">ALL GENRES</SelectItem>
+                  {availableGenres.map((genre) => (
+                    <SelectItem key={genre} value={genre} className="text-white hover:bg-metal-red/20 font-bold uppercase">
+                      {genre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button
+              type="button"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider min-w-32 ${activeFiltersCount > 0 ? 'ring-2 ring-metal-red' : ''}`}
+              data-testid="button-toggle-filters"
             >
-              Clear Search
+              <Filter className="w-4 h-4 mr-2" />
+              FILTERS {activeFiltersCount > 0 && `(${activeFiltersCount})`}
             </Button>
+          </div>
+
+          {/* Active Filters Display */}
+          {(searchQuery || selectedGenre) && (
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="text-sm font-bold text-gray-400 uppercase tracking-wider">Active Filters:</span>
+              
+              {searchQuery && (
+                <Badge className="bg-metal-red text-white font-bold uppercase px-3 py-1" data-testid="filter-search">
+                  SEARCH: "{searchQuery}"
+                  <X 
+                    className="w-3 h-3 ml-2 cursor-pointer hover:bg-white/20 rounded" 
+                    onClick={() => { setSearchQuery(""); setSearchInput(""); }}
+                  />
+                </Badge>
+              )}
+              
+              {selectedGenre && (
+                <Badge className="bg-metal-red text-white font-bold uppercase px-3 py-1" data-testid="filter-genre">
+                  GENRE: {selectedGenre}
+                  <X 
+                    className="w-3 h-3 ml-2 cursor-pointer hover:bg-white/20 rounded" 
+                    onClick={() => setSelectedGenre("")}
+                  />
+                </Badge>
+              )}
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={clearFilters}
+                className="text-gray-400 hover:text-metal-red font-bold uppercase tracking-wider"
+                data-testid="button-clear-filters"
+              >
+                CLEAR ALL
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Results Summary */}
+        {(searchQuery || selectedGenre) && (
+          <div className="flex items-center justify-between mb-6 bg-metal-red/10 border border-metal-red/30 px-4 py-3">
+            <p className="text-gray-300 font-bold uppercase tracking-wider">
+              {isLoading ? "SEARCHING THE DEPTHS..." : `${bands.length} BANDS FOUND`}
+              {searchQuery && ` MATCHING "${searchQuery}"`}
+              {selectedGenre && ` IN ${selectedGenre}`}
+            </p>
           </div>
         )}
       </div>

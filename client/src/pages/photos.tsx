@@ -5,16 +5,37 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import PhotoUpload from "@/components/forms/photo-upload";
-import { Upload, Filter } from "lucide-react";
+import { PhotoLightbox } from "@/components/ui/photo-lightbox";
+import { Upload, Filter, Eye } from "lucide-react";
 import type { Photo } from "@shared/schema";
 
 export default function Photos() {
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
-  const { data: photos = [], isLoading } = useQuery<Photo[]>({
-    queryKey: ["/api/photos", selectedCategory !== "all" ? `?category=${selectedCategory}` : ""],
+  const { data: allPhotos = [], isLoading } = useQuery<Photo[]>({
+    queryKey: ["/api/photos"],
   });
+
+  // Filter photos by category
+  const photos = selectedCategory === "all" 
+    ? allPhotos 
+    : allPhotos.filter(photo => photo.category === selectedCategory);
+
+  const openLightbox = (index: number) => {
+    setCurrentPhotoIndex(index);
+    setLightboxOpen(true);
+  };
+
+  const closeLightbox = () => {
+    setLightboxOpen(false);
+  };
+
+  const navigatePhoto = (index: number) => {
+    setCurrentPhotoIndex(index);
+  };
 
   const categories = [
     { value: "all", label: "All Photos", color: "bg-gray-600" },
@@ -156,15 +177,23 @@ export default function Photos() {
 
           {/* Photos Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {photos.map((photo) => (
-              <Card key={photo.id} className="bg-card-dark border-metal-gray overflow-hidden hover:border-metal-red transition-colors group" data-testid={`card-photo-${photo.id}`}>
-                <div className="relative overflow-hidden">
+            {photos.map((photo, index) => (
+              <Card key={photo.id} className="bg-card-dark border-metal-gray overflow-hidden hover:border-metal-red transition-colors group cursor-pointer" data-testid={`card-photo-${photo.id}`}>
+                <div className="relative overflow-hidden" onClick={() => openLightbox(index)}>
                   <img 
                     src={photo.imageUrl} 
                     alt={photo.title}
                     className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                     data-testid={`img-photo-${photo.id}`}
                   />
+                  
+                  {/* Hover Overlay */}
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <div className="text-white text-center">
+                      <Eye className="w-8 h-8 mx-auto mb-2" />
+                      <p className="font-bold uppercase tracking-wider">VIEW</p>
+                    </div>
+                  </div>
                   <Badge 
                     className={`absolute top-2 left-2 text-white font-bold text-xs ${getCategoryColor(photo.category)}`}
                     data-testid={`badge-photo-category-${photo.id}`}
@@ -194,6 +223,15 @@ export default function Photos() {
               </Card>
             ))}
           </div>
+
+          {/* Photo Lightbox */}
+          <PhotoLightbox
+            photos={photos}
+            currentIndex={currentPhotoIndex}
+            isOpen={lightboxOpen}
+            onClose={closeLightbox}
+            onNavigate={navigatePhoto}
+          />
 
           {/* Load More */}
           <div className="text-center mt-8">
