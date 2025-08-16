@@ -116,18 +116,81 @@
     @apply border-border;
   }
 
+  html {
+    color-scheme: dark;
+    /* iOS Safari viewport fix */
+    height: -webkit-fill-available;
+    /* Better touch scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent iOS bounce */
+    overscroll-behavior: none;
+  }
+  
   body {
     @apply font-sans antialiased;
     background-color: var(--metal-black);
     color: var(--text-primary);
+    /* iOS Safari viewport fix */
+    min-height: -webkit-fill-available;
+    /* Prevent overscroll bouncing */
+    overscroll-behavior: none;
+    /* Better touch scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent text selection on UI elements */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
   }
   
-  html {
-    color-scheme: dark;
+  /* Re-enable text selection for content areas */
+  p, span, div[contenteditable], input, textarea {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
   }
 }
 
 @layer utilities {
+  /* Mobile-first touch optimizations */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .touch-target-large {
+    min-height: 48px;
+    min-width: 48px;
+  }
+  
+  /* Better mobile scrolling */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  /* Mobile-friendly hover states (only on devices that support hover) */
+  @media (hover: hover) and (pointer: fine) {
+    .hover-scale:hover {
+      transform: scale(1.02);
+    }
+  }
+  
+  /* Touch-friendly active states */
+  .active-scale:active {
+    transform: scale(0.98);
+  }
+  
+  /* Mobile-safe transform animations */
+  .mobile-safe-transform {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+  
   /* Enhanced contrast utilities */
   .text-metal-red {
     color: var(--metal-red);
@@ -244,5 +307,102 @@
   [data-testid="input-search"]::-moz-placeholder {
     color: white !important;
     opacity: 1 !important;
+  }
+  
+  /* Mobile-specific optimizations */
+  @media screen and (max-width: 768px) {
+    /* Larger touch targets on mobile */
+    button, [role="button"], input, select, textarea, a {
+      min-height: 44px;
+    }
+    
+    /* Better text legibility on mobile */
+    body {
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    
+    /* Prevent zoom on input focus in iOS */
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+    
+    /* Better mobile card layouts */
+    .mobile-card {
+      margin: 0.5rem;
+      border-radius: 12px;
+    }
+    
+    /* Mobile-friendly modal animations */
+    .mobile-modal {
+      animation: slideInFromBottom 0.3s ease-out;
+    }
+    
+    @keyframes slideInFromBottom {
+      from {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    /* Safe area padding for notched devices */
+    .safe-top {
+      padding-top: env(safe-area-inset-top);
+    }
+    
+    .safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    
+    .safe-left {
+      padding-left: env(safe-area-inset-left);
+    }
+    
+    .safe-right {
+      padding-right: env(safe-area-inset-right);
+    }
+  }
+  
+  /* High-contrast mode support */
+  @media (prefers-contrast: high) {
+    .text-metal-red {
+      color: hsl(0 100% 70%);
+    }
+    
+    .bg-metal-red {
+      background-color: hsl(0 100% 50%);
+    }
+    
+    .border-metal-gray {
+      border-color: hsl(0 0% 50%);
+    }
+  }
+  
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  
+  /* Dark mode improvements for mobile */
+  @media (prefers-color-scheme: dark) {
+    /* Better readability in dark mode */
+    body {
+      background-color: var(--metal-black);
+    }
+    
+    /* Better contrast for inputs */
+    input, textarea, select {
+      background-color: var(--card-dark);
+      color: var(--text-primary);
+      border-color: var(--metal-gray);
+    }
   }
 }

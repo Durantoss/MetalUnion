@@ -143,8 +143,8 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
   const progress = (currentStep / 4) * 100;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl bg-card-dark border-metal-gray">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 safe-top safe-bottom">
+      <Card className="w-full max-w-2xl bg-card-dark border-metal-gray mobile-modal mobile-card overflow-y-auto max-h-[95vh] sm:max-h-none">
         <CardHeader>
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center">
@@ -191,8 +191,10 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
                           <Input
                             {...field}
                             placeholder="Enter your first name"
-                            className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red h-12"
+                            className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red h-12 sm:h-14 text-base touch-target"
                             data-testid="input-onboarding-first-name"
+                            autoComplete="given-name"
+                            inputMode="text"
                           />
                         </FormControl>
                         <FormMessage />
@@ -210,8 +212,10 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
                           <Input
                             {...field}
                             placeholder="Enter your last name"
-                            className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red h-12"
+                            className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red h-12 sm:h-14 text-base touch-target"
                             data-testid="input-onboarding-last-name"
+                            autoComplete="family-name"
+                            inputMode="text"
                           />
                         </FormControl>
                         <FormMessage />
@@ -243,8 +247,11 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
                           <Input
                             {...field}
                             placeholder="DeathMetalWarrior, IronBeast, etc."
-                            className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red h-12 text-center text-lg font-bold"
+                            className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red h-12 sm:h-14 text-center text-lg font-bold touch-target"
                             data-testid="input-onboarding-stagename"
+                            autoComplete="username"
+                            inputMode="text"
+                            maxLength={50}
                           />
                         </FormControl>
                         <FormDescription className="text-gray-400 text-center">
@@ -286,7 +293,7 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
                                     field.onChange([...field.value, genre]);
                                   }
                                 }}
-                                className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                className={`p-3 sm:p-4 rounded-lg text-sm sm:text-base font-medium transition-all duration-200 touch-target active-scale ${
                                   isSelected
                                     ? 'bg-metal-red text-white border-2 border-metal-red'
                                     : 'bg-card-dark border-2 border-metal-gray text-gray-300 hover:border-metal-red hover:text-white'
@@ -320,19 +327,19 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
                       control={form.control}
                       name="notifications.tourAlerts"
                       render={({ field }) => (
-                        <div className="flex items-center justify-between p-4 rounded-lg border border-metal-gray">
+                        <div className="flex items-center justify-between p-4 sm:p-5 rounded-lg border border-metal-gray touch-target">
                           <div>
-                            <label className="text-white font-bold flex items-center">
+                            <label className="text-white font-bold flex items-center text-sm sm:text-base">
                               <Guitar className="w-4 h-4 mr-2 text-metal-red" />
                               Tour Alerts
                             </label>
-                            <p className="text-sm text-gray-400">Get notified about new tour dates</p>
+                            <p className="text-xs sm:text-sm text-gray-400">Get notified about new tour dates</p>
                           </div>
                           <input
                             type="checkbox"
                             checked={field.value}
                             onChange={field.onChange}
-                            className="w-5 h-5 rounded border-metal-gray bg-card-dark text-metal-red focus:ring-metal-red"
+                            className="w-6 h-6 sm:w-5 sm:h-5 rounded border-metal-gray bg-card-dark text-metal-red focus:ring-metal-red touch-target"
                             data-testid="checkbox-tour-alerts"
                           />
                         </div>
@@ -343,16 +350,16 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
                       control={form.control}
                       name="notifications.bandUpdates"
                       render={({ field }) => (
-                        <div className="flex items-center justify-between p-4 rounded-lg border border-metal-gray">
+                        <div className="flex items-center justify-between p-4 sm:p-5 rounded-lg border border-metal-gray touch-target">
                           <div>
-                            <label className="text-white font-bold">Band Updates</label>
-                            <p className="text-sm text-gray-400">Updates about your submitted bands</p>
+                            <label className="text-white font-bold text-sm sm:text-base">Band Updates</label>
+                            <p className="text-xs sm:text-sm text-gray-400">Updates about your submitted bands</p>
                           </div>
                           <input
                             type="checkbox"
                             checked={field.value}
                             onChange={field.onChange}
-                            className="w-5 h-5 rounded border-metal-gray bg-card-dark text-metal-red focus:ring-metal-red"
+                            className="w-6 h-6 sm:w-5 sm:h-5 rounded border-metal-gray bg-card-dark text-metal-red focus:ring-metal-red touch-target"
                             data-testid="checkbox-band-updates"
                           />
                         </div>
@@ -363,16 +370,16 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
                       control={form.control}
                       name="notifications.reviewNotifications"
                       render={({ field }) => (
-                        <div className="flex items-center justify-between p-4 rounded-lg border border-metal-gray">
+                        <div className="flex items-center justify-between p-4 sm:p-5 rounded-lg border border-metal-gray touch-target">
                           <div>
-                            <label className="text-white font-bold">Review Notifications</label>
-                            <p className="text-sm text-gray-400">When others interact with your reviews</p>
+                            <label className="text-white font-bold text-sm sm:text-base">Review Notifications</label>
+                            <p className="text-xs sm:text-sm text-gray-400">When others interact with your reviews</p>
                           </div>
                           <input
                             type="checkbox"
                             checked={field.value}
                             onChange={field.onChange}
-                            className="w-5 h-5 rounded border-metal-gray bg-card-dark text-metal-red focus:ring-metal-red"
+                            className="w-6 h-6 sm:w-5 sm:h-5 rounded border-metal-gray bg-card-dark text-metal-red focus:ring-metal-red touch-target"
                             data-testid="checkbox-review-notifications"
                           />
                         </div>
@@ -383,13 +390,13 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
               )}
 
               {/* Navigation */}
-              <div className="flex justify-between pt-6">
+              <div className="flex flex-col sm:flex-row justify-between pt-6 gap-3 sm:gap-0">
                 <Button
                   type="button"
                   onClick={previousStep}
                   disabled={currentStep === 1}
                   variant="outline"
-                  className="border-metal-gray text-gray-300 hover:bg-metal-gray/20"
+                  className="border-metal-gray text-gray-300 hover:bg-metal-gray/20 touch-target-large active-scale order-2 sm:order-1"
                   data-testid="button-previous-step"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
@@ -400,7 +407,7 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
                   <Button
                     type="button"
                     onClick={nextStep}
-                    className="bg-metal-red hover:bg-metal-red-bright font-bold"
+                    className="bg-metal-red hover:bg-metal-red-bright font-bold touch-target-large active-scale order-1 sm:order-2"
                     data-testid="button-next-step"
                   >
                     Next
@@ -410,7 +417,7 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
                   <Button
                     type="submit"
                     disabled={completeOnboardingMutation.isPending}
-                    className="bg-metal-red hover:bg-metal-red-bright font-bold px-8"
+                    className="bg-metal-red hover:bg-metal-red-bright font-bold px-8 touch-target-large active-scale order-1 sm:order-2"
                     data-testid="button-complete-onboarding"
                   >
                     {completeOnboardingMutation.isPending ? "Setting up..." : "Complete Setup"}

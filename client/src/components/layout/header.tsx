@@ -25,10 +25,10 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-gradient-to-r from-black via-gray-900 to-black border-b-2 border-metal-red shadow-lg shadow-metal-red/20 sticky top-0 z-50">
+    <header className="bg-gradient-to-r from-black via-gray-900 to-black border-b-2 border-metal-red shadow-lg shadow-metal-red/20 sticky top-0 z-50 safe-top">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
       <nav className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16 sm:h-20 safe-left safe-right">
           <div className="flex items-center space-x-8">
             <div className="flex-shrink-0">
               <Link href="/" data-testid="link-home">
@@ -113,8 +113,9 @@ export default function Header() {
             {/* Mobile menu button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-white hover:text-metal-red transition-colors p-2"
+              className="md:hidden text-white hover:text-metal-red transition-colors p-3 touch-target active-scale mobile-safe-transform"
               data-testid="button-mobile-menu"
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -173,8 +174,8 @@ export default function Header() {
         
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-black/95 backdrop-blur-sm border-t border-metal-red z-50">
-            <div className="px-4 py-6 space-y-4">
+          <div className="md:hidden absolute top-full left-0 right-0 bg-black/95 backdrop-blur-sm border-t border-metal-red z-50 mobile-modal safe-left safe-right">
+            <div className="px-4 py-6 space-y-4 mobile-scroll max-h-[80vh] overflow-y-auto">
               {/* Mobile Search */}
               <form onSubmit={handleSearch} className="relative mb-6">
                 <Input
@@ -191,35 +192,35 @@ export default function Header() {
               {/* Mobile Navigation Links */}
               <div className="space-y-2">
                 <Link href="/bands" data-testid="link-mobile-bands" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-4 py-4 text-lg font-black uppercase tracking-[0.2em] transition-all duration-300 border border-transparent hover:border-metal-red hover:bg-metal-red/20 ${
+                  <div className={`block px-4 py-4 text-lg font-black uppercase tracking-[0.2em] transition-all duration-300 border border-transparent hover:border-metal-red hover:bg-metal-red/20 touch-target-large active-scale mobile-safe-transform ${
                     isActive("/bands") ? "text-metal-red bg-metal-red/10 border-metal-red" : "text-gray-300 hover:text-white"
                   }`}>
                     BANDS
                   </div>
                 </Link>
                 <Link href="/reviews" data-testid="link-mobile-reviews" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-4 py-4 text-lg font-black uppercase tracking-[0.2em] transition-all duration-300 border border-transparent hover:border-metal-red hover:bg-metal-red/20 ${
+                  <div className={`block px-4 py-4 text-lg font-black uppercase tracking-[0.2em] transition-all duration-300 border border-transparent hover:border-metal-red hover:bg-metal-red/20 touch-target-large active-scale mobile-safe-transform ${
                     isActive("/reviews") ? "text-metal-red bg-metal-red/10 border-metal-red" : "text-gray-300 hover:text-white"
                   }`}>
                     REVIEWS
                   </div>
                 </Link>
                 <Link href="/tours" data-testid="link-mobile-tours" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-4 py-4 text-lg font-black uppercase tracking-[0.2em] transition-all duration-300 border border-transparent hover:border-metal-red hover:bg-metal-red/20 ${
+                  <div className={`block px-4 py-4 text-lg font-black uppercase tracking-[0.2em] transition-all duration-300 border border-transparent hover:border-metal-red hover:bg-metal-red/20 touch-target-large active-scale mobile-safe-transform ${
                     isActive("/tours") ? "text-metal-red bg-metal-red/10 border-metal-red" : "text-gray-300 hover:text-white"
                   }`}>
                     TOURS
                   </div>
                 </Link>
                 <Link href="/photos" data-testid="link-mobile-photos" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-4 py-4 text-lg font-black uppercase tracking-[0.2em] transition-all duration-300 border border-transparent hover:border-metal-red hover:bg-metal-red/20 ${
+                  <div className={`block px-4 py-4 text-lg font-black uppercase tracking-[0.2em] transition-all duration-300 border border-transparent hover:border-metal-red hover:bg-metal-red/20 touch-target-large active-scale mobile-safe-transform ${
                     isActive("/photos") ? "text-metal-red bg-metal-red/10 border-metal-red" : "text-gray-300 hover:text-white"
                   }`}>
                     PHOTOS
                   </div>
                 </Link>
                 <Link href="/messages" data-testid="link-mobile-messages" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className={`block px-4 py-4 text-lg font-black uppercase tracking-[0.2em] transition-all duration-300 border border-transparent hover:border-metal-red hover:bg-metal-red/20 ${
+                  <div className={`block px-4 py-4 text-lg font-black uppercase tracking-[0.2em] transition-all duration-300 border border-transparent hover:border-metal-red hover:bg-metal-red/20 touch-target-large active-scale mobile-safe-transform ${
                     isActive("/messages") ? "text-metal-red bg-metal-red/10 border-metal-red" : "text-gray-300 hover:text-white"
                   }`}>
                     THE PIT
@@ -227,7 +228,7 @@ export default function Header() {
                 </Link>
                 {isAuthenticated && (
                   <Link href="/my-bands" data-testid="link-mobile-my-bands" onClick={() => setIsMobileMenuOpen(false)}>
-                    <div className={`block px-4 py-4 text-lg font-black uppercase tracking-[0.2em] transition-all duration-300 border border-transparent hover:border-metal-red hover:bg-metal-red/20 ${
+                    <div className={`block px-4 py-4 text-lg font-black uppercase tracking-[0.2em] transition-all duration-300 border border-transparent hover:border-metal-red hover:bg-metal-red/20 touch-target-large active-scale mobile-safe-transform ${
                       isActive("/my-bands") ? "text-metal-red bg-metal-red/10 border-metal-red" : "text-gray-300 hover:text-white"
                     }`}>
                       MY BANDS
@@ -237,23 +238,23 @@ export default function Header() {
               </div>
               
               {/* Mobile Auth Section */}
-              <div className="pt-4 border-t border-metal-gray space-y-3">
+              <div className="pt-4 border-t border-metal-gray space-y-3 safe-bottom">
                 {isAuthenticated ? (
                   <>
-                    <a href="/profile" className="flex items-center space-x-3 text-gray-300 hover:text-metal-red transition-all duration-300 px-4 py-3 border border-transparent hover:border-metal-red/30 hover:bg-metal-red/10" data-testid="link-mobile-profile" onClick={() => setIsMobileMenuOpen(false)}>
+                    <a href="/profile" className="flex items-center space-x-3 text-gray-300 hover:text-metal-red transition-all duration-300 px-4 py-3 border border-transparent hover:border-metal-red/30 hover:bg-metal-red/10 touch-target-large active-scale mobile-safe-transform" data-testid="link-mobile-profile" onClick={() => setIsMobileMenuOpen(false)}>
                       <User className="w-5 h-5" />
                       <span className="text-lg font-bold uppercase tracking-wider">
                         {(user as any)?.stagename || (user as any)?.firstName || (user as any)?.email || 'MEMBER'}
                       </span>
                     </a>
                     <Link href="/photos" data-testid="button-mobile-upload" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button className="w-full bg-gradient-to-r from-metal-red to-red-700 hover:from-red-700 hover:to-metal-red text-white font-black uppercase tracking-[0.15em] py-4 shadow-lg shadow-metal-red/30">
+                      <Button className="w-full bg-gradient-to-r from-metal-red to-red-700 hover:from-red-700 hover:to-metal-red text-white font-black uppercase tracking-[0.15em] py-4 shadow-lg shadow-metal-red/30 touch-target-large active-scale mobile-safe-transform">
                         <Upload className="w-5 h-5 mr-2" />
                         UPLOAD PHOTO
                       </Button>
                     </Link>
                     <a href="/api/logout" data-testid="button-mobile-logout" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button className="w-full bg-gradient-to-r from-metal-red to-red-700 hover:from-red-700 hover:to-metal-red text-white font-black uppercase tracking-[0.15em] py-4 shadow-lg shadow-metal-red/30">
+                      <Button className="w-full bg-gradient-to-r from-metal-red to-red-700 hover:from-red-700 hover:to-metal-red text-white font-black uppercase tracking-[0.15em] py-4 shadow-lg shadow-metal-red/30 touch-target-large active-scale mobile-safe-transform">
                         <LogOut className="w-5 h-5 mr-2" />
                         LOGOUT
                       </Button>
@@ -261,7 +262,7 @@ export default function Header() {
                   </>
                 ) : (
                   <a href="/api/login" data-testid="button-mobile-login" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button className="w-full bg-gradient-to-r from-metal-red to-red-700 hover:from-red-700 hover:to-metal-red text-white font-black uppercase tracking-[0.15em] py-4 shadow-lg shadow-metal-red/30">
+                    <Button className="w-full bg-gradient-to-r from-metal-red to-red-700 hover:from-red-700 hover:to-metal-red text-white font-black uppercase tracking-[0.15em] py-4 shadow-lg shadow-metal-red/30 touch-target-large active-scale mobile-safe-transform">
                       <LogIn className="w-5 h-5 mr-2" />
                       ENTER THE PIT
                     </Button>
