@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertBandSchema, insertReviewSchema, insertPhotoSchema, insertTourSchema, insertMessageSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { googleSearchService, type EnhancedSearchResult } from "./googleSearch";
 import multer from "multer";
 import path from "path";
 
@@ -200,7 +201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Search endpoint
+  // Enhanced search endpoint with Google integration
   app.get("/api/search", async (req, res) => {
     try {
       const query = req.query.q as string;
@@ -209,22 +210,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const reviewType = req.query.reviewType as string;
       const country = req.query.country as string;
       const dateRange = req.query.dateRange as string;
+      const includeWeb = req.query.includeWeb !== 'false'; // Default to true
       
       if (!query || query.length < 2) {
-        return res.json({ bands: [], tours: [], reviews: [], photos: [] });
+        return res.json({ bands: [], tours: [], reviews: [], photos: [], webResults: [] });
       }
       
-      const results = await storage.searchAll(query, {
-        genre: genre === 'all' ? undefined : genre,
-        photoCategory: photoCategory === 'all' ? undefined : photoCategory,
-        reviewType: reviewType === 'all' ? undefined : reviewType,
-        country: country === 'all' ? undefined : country,
-        dateRange: dateRange === 'all' ? undefined : dateRange
-      });
+      // Run both database and Google searches in parallel
+      const [dbResults, webResults] = await Promise.all([
+        storage.searchAll(query, {
+          genre: genre === 'all' ? undefined : genre,
+          photoCategory: photoCategory === 'all' ? undefined : photoCategory,
+          reviewType: reviewType === 'all' ? undefined : reviewType,
+          country: country === 'all' ? undefined : country,
+          dateRange: dateRange === 'all' ? undefined : dateRange
+        }),
+        includeWeb ? getWebSearchResults(query) : Promise.resolve([])
+      ]);
       
       // Add upcoming tours for each band in search results
       const bandsWithTours = await Promise.all(
-        results.bands.map(async (band) => {
+        dbResults.bands.map(async (band) => {
           const upcomingTours = await storage.getToursByBand(band.id);
           const now = new Date();
           const currentTours = upcomingTours.filter(tour => 
@@ -240,12 +246,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       
       res.json({
-        ...results,
-        bands: bandsWithTours
+        ...dbResults,
+        bands: bandsWithTours,
+        webResults
       });
     } catch (error) {
       console.error("Error performing search:", error);
       res.status(500).json({ message: "Failed to perform search" });
+    }
+  });
+
+  // Helper function to get web search results
+  async function getWebSearchResults(query: string): Promise<EnhancedSearchResult[]> {
+    try {
+      const [bandResults, tourResults, newsResults] = await Promise.all([
+        googleSearchService.searchMetalBands(query, 3),
+        googleSearchService.searchMetalTours(query, 3), 
+        googleSearchService.searchMetalNews(query, 3)
+      ]);
+      
+      return [...bandResults, ...tourResults, ...newsResults];
+    } catch (error) {
+      console.error("Error fetching web search results:", error);
+      return [];
+    }
+  }
+
+  // Google search endpoint for web results only
+  app.get("/api/search/web", async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      const type = req.query.type as string || 'general';
+      
+      if (!query || query.length < 2) {
+        return res.json([]);
+      }
+      
+      let results: EnhancedSearchResult[] = [];
+      
+      switch (type) {
+        case 'bands':
+          results = await googleSearchService.searchMetalBands(query, 5);
+          break;
+        case 'tours':
+          results = await googleSearchService.searchMetalTours(query, 5);
+          break;
+        case 'news':
+          results = await googleSearchService.searchMetalNews(query, 5);
+          break;
+        default:
+          results = await googleSearchService.searchGeneral(query, 5);
+          break;
+      }
+      
+      res.json(results);
+    } catch (error) {
+      console.error("Error performing web search:", error);
+      res.status(500).json({ message: "Failed to perform web search" });
     }
   });
 

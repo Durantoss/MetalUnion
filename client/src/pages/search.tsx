@@ -28,6 +28,15 @@ import {
 } from "lucide-react";
 import type { Band, Tour, Review, Photo } from "@shared/schema";
 
+interface WebSearchResult {
+  title: string;
+  description: string;
+  url: string;
+  source: string;
+  imageUrl?: string;
+  type: 'band' | 'tour' | 'news' | 'general';
+}
+
 // Extended types to include upcoming tours and additional data
 type BandWithTours = Band & {
   upcomingTours?: Tour[];
@@ -38,6 +47,7 @@ type SearchResults = {
   tours: Tour[];
   reviews: Review[];
   photos: Photo[];
+  webResults: WebSearchResult[];
 };
 
 const metalGenres = [
@@ -54,6 +64,7 @@ export default function Search() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [activeTab, setActiveTab] = useState("bands");
+  const [showWebResults, setShowWebResults] = useState(true);
   const [selectedGenre, setSelectedGenre] = useState("");
   const [selectedPhotoCategory, setSelectedPhotoCategory] = useState("");
   const [selectedReviewType, setSelectedReviewType] = useState("");
@@ -80,6 +91,7 @@ export default function Search() {
       if (selectedReviewType) params.append('reviewType', selectedReviewType);
       if (selectedCountry) params.append('country', selectedCountry);
       if (dateRange) params.append('dateRange', dateRange);
+      params.append('includeWeb', showWebResults.toString());
       
       const response = await fetch(`/api/search?${params}`);
       if (!response.ok) {
@@ -108,12 +120,13 @@ export default function Search() {
   };
 
   const getResultCounts = () => {
-    if (!searchResults) return { bands: 0, tours: 0, reviews: 0, photos: 0 };
+    if (!searchResults) return { bands: 0, tours: 0, reviews: 0, photos: 0, webResults: 0 };
     return {
       bands: searchResults.bands?.length || 0,
       tours: searchResults.tours?.length || 0,
       reviews: searchResults.reviews?.length || 0,
       photos: searchResults.photos?.length || 0,
+      webResults: searchResults.webResults?.length || 0,
     };
   };
 
@@ -263,8 +276,37 @@ export default function Search() {
               <MetalLoader size="lg" variant="flame" text="SEARCHING THE METAL UNIVERSE..." />
             </div>
           ) : (
+            <>
+              {/* Web Results Toggle */}
+              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <h2 className="text-lg font-bold text-white">Search Results</h2>
+                {counts.webResults > 0 && (
+                  <Badge className="bg-green-600 text-white">
+                    {counts.webResults} web results
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-400">Include web results</span>
+                <button
+                  onClick={() => setShowWebResults(!showWebResults)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-metal-red focus:ring-offset-2 ${
+                    showWebResults ? 'bg-metal-red' : 'bg-gray-600'
+                  }`}
+                  data-testid="toggle-web-results"
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      showWebResults ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4 bg-card-dark border border-metal-gray mb-6">
+              <TabsList className="grid w-full grid-cols-5 bg-card-dark border border-metal-gray mb-6">
                 <TabsTrigger 
                   value="bands" 
                   className="data-[state=active]:bg-metal-red data-[state=active]:text-white text-gray-400"
@@ -296,6 +338,14 @@ export default function Search() {
                 >
                   <Camera className="w-4 h-4 mr-2" />
                   Photos ({counts.photos})
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="web" 
+                  className="data-[state=active]:bg-metal-red data-[state=active]:text-white text-gray-400"
+                  data-testid="tab-web"
+                >
+                  <Globe className="w-4 h-4 mr-2" />
+                  Web ({counts.webResults})
                 </TabsTrigger>
               </TabsList>
 
@@ -380,6 +430,96 @@ export default function Search() {
                                 >
                                   View Details
                                 </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Web Results */}
+              <TabsContent value="web" className="space-y-4">
+                {!showWebResults ? (
+                  <div className="text-center py-12">
+                    <Globe className="w-16 h-16 mx-auto text-gray-600 mb-4" />
+                    <h3 className="text-xl font-bold text-gray-400 mb-2">Web results disabled</h3>
+                    <p className="text-gray-500">Enable web results to see search results from across the internet</p>
+                    <Button
+                      onClick={() => setShowWebResults(true)}
+                      className="mt-4 bg-metal-red hover:bg-metal-red-bright"
+                    >
+                      Enable Web Results
+                    </Button>
+                  </div>
+                ) : searchResults?.webResults?.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Globe className="w-16 h-16 mx-auto text-gray-600 mb-4" />
+                    <h3 className="text-xl font-bold text-gray-400 mb-2">No web results found</h3>
+                    <p className="text-gray-500">Try adjusting your search terms</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {searchResults?.webResults?.map((result, index) => (
+                      <Card key={index} className="bg-card-dark border-metal-gray" data-testid={`card-web-result-${index}`}>
+                        <CardContent className="p-6">
+                          <div className="flex items-start space-x-4">
+                            {result.imageUrl && (
+                              <img 
+                                src={result.imageUrl} 
+                                alt={result.title}
+                                className="w-20 h-20 object-cover border border-metal-gray flex-shrink-0"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                }}
+                                data-testid={`img-web-result-${index}`}
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <Badge className={`text-xs ${
+                                  result.type === 'band' ? 'bg-blue-600 text-white' :
+                                  result.type === 'tour' ? 'bg-green-600 text-white' :
+                                  result.type === 'news' ? 'bg-purple-600 text-white' :
+                                  'bg-gray-600 text-white'
+                                }`}>
+                                  {result.type.toUpperCase()}
+                                </Badge>
+                                <span className="text-xs text-gray-400">{result.source}</span>
+                              </div>
+                              
+                              <a 
+                                href={result.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="group"
+                                data-testid={`link-web-result-${index}`}
+                              >
+                                <h3 className="text-lg font-bold text-white group-hover:text-metal-red transition-colors mb-2 line-clamp-2">
+                                  {result.title}
+                                </h3>
+                              </a>
+                              
+                              <p className="text-gray-300 text-sm line-clamp-3 mb-3" data-testid={`text-web-description-${index}`}>
+                                {result.description}
+                              </p>
+                              
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-500 truncate max-w-xs">
+                                  {result.url}
+                                </span>
+                                <a 
+                                  href={result.url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-metal-red hover:text-metal-red-bright text-sm font-bold flex items-center"
+                                >
+                                  <ExternalLink className="w-4 h-4 mr-1" />
+                                  Visit
+                                </a>
                               </div>
                             </div>
                           </div>
@@ -582,6 +722,7 @@ export default function Search() {
                 )}
               </TabsContent>
             </Tabs>
+            </>
           )}
         </div>
       )}
