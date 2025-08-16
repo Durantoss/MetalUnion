@@ -118,7 +118,7 @@ export default function BandSubmission({ onSuccess }: BandSubmissionProps) {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             
             {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <FormField
                 control={form.control}
                 name="name"
@@ -129,7 +129,7 @@ export default function BandSubmission({ onSuccess }: BandSubmissionProps) {
                       <Input
                         placeholder="Enter band name"
                         {...field}
-                        className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red"
+                        className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red h-12 sm:h-10"
                         data-testid="input-band-name"
                       />
                     </FormControl>
@@ -146,7 +146,7 @@ export default function BandSubmission({ onSuccess }: BandSubmissionProps) {
                     <FormLabel className="text-white font-bold">Genre *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger className="bg-card-dark border-metal-gray text-white focus:border-metal-red" data-testid="select-band-genre">
+                        <SelectTrigger className="bg-card-dark border-metal-gray text-white focus:border-metal-red h-12 sm:h-10" data-testid="select-band-genre">
                           <SelectValue placeholder="Select metal genre" />
                         </SelectTrigger>
                       </FormControl>
@@ -175,7 +175,7 @@ export default function BandSubmission({ onSuccess }: BandSubmissionProps) {
                       placeholder="Tell us about your band's style, influences, and story..."
                       {...field}
                       rows={4}
-                      className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red resize-none"
+                      className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red resize-none min-h-[120px] sm:min-h-[100px]"
                       data-testid="textarea-band-description"
                     />
                   </FormControl>
@@ -188,7 +188,7 @@ export default function BandSubmission({ onSuccess }: BandSubmissionProps) {
             />
 
             {/* Additional Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <FormField
                 control={form.control}
                 name="founded"
@@ -202,7 +202,7 @@ export default function BandSubmission({ onSuccess }: BandSubmissionProps) {
                         {...field}
                         value={field.value || ''}
                         onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                        className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red"
+                        className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red h-12 sm:h-10"
                         data-testid="input-band-founded"
                       />
                     </FormControl>
@@ -222,7 +222,7 @@ export default function BandSubmission({ onSuccess }: BandSubmissionProps) {
                         placeholder="https://example.com/band-image.jpg"
                         {...field}
                         value={field.value || ''}
-                        className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red"
+                        className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red h-12 sm:h-10"
                         data-testid="input-band-image"
                       />
                     </FormControl>
@@ -236,7 +236,7 @@ export default function BandSubmission({ onSuccess }: BandSubmissionProps) {
             </div>
 
             {/* Social Links */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <FormField
                 control={form.control}
                 name="website"
@@ -251,7 +251,7 @@ export default function BandSubmission({ onSuccess }: BandSubmissionProps) {
                         placeholder="https://yourband.com"
                         {...field}
                         value={field.value || ''}
-                        className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red"
+                        className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red h-12 sm:h-10"
                         data-testid="input-band-website"
                       />
                     </FormControl>
@@ -274,7 +274,7 @@ export default function BandSubmission({ onSuccess }: BandSubmissionProps) {
                         placeholder="https://instagram.com/yourband"
                         {...field}
                         value={field.value || ''}
-                        className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red"
+                        className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red h-12 sm:h-10"
                         data-testid="input-band-instagram"
                       />
                     </FormControl>
@@ -288,22 +288,23 @@ export default function BandSubmission({ onSuccess }: BandSubmissionProps) {
             <div>
               <FormLabel className="text-white font-bold mb-3 block">Band Members</FormLabel>
               <div className="space-y-3">
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
                   <Input
                     placeholder="Add band member"
                     value={newMember}
                     onChange={(e) => setNewMember(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addMember())}
-                    className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red"
+                    className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red h-12 sm:h-10"
                     data-testid="input-new-member"
                   />
                   <Button
                     type="button"
                     onClick={addMember}
-                    className="bg-metal-red hover:bg-metal-red-bright"
+                    className="bg-metal-red hover:bg-metal-red-bright h-12 sm:h-10 w-full sm:w-auto sm:px-4"
                     data-testid="button-add-member"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-4 h-4 sm:mr-0 mr-2" />
+                    <span className="sm:hidden">Add Member</span>
                   </Button>
                 </div>
                 {members.length > 0 && (
@@ -329,22 +330,23 @@ export default function BandSubmission({ onSuccess }: BandSubmissionProps) {
             <div>
               <FormLabel className="text-white font-bold mb-3 block">Albums/Releases</FormLabel>
               <div className="space-y-3">
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
                   <Input
                     placeholder="Add album or release"
                     value={newAlbum}
                     onChange={(e) => setNewAlbum(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAlbum())}
-                    className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red"
+                    className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red h-12 sm:h-10"
                     data-testid="input-new-album"
                   />
                   <Button
                     type="button"
                     onClick={addAlbum}
-                    className="bg-metal-red hover:bg-metal-red-bright"
+                    className="bg-metal-red hover:bg-metal-red-bright h-12 sm:h-10 w-full sm:w-auto sm:px-4"
                     data-testid="button-add-album"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-4 h-4 sm:mr-0 mr-2" />
+                    <span className="sm:hidden">Add Album</span>
                   </Button>
                 </div>
                 {albums.length > 0 && (
@@ -367,11 +369,11 @@ export default function BandSubmission({ onSuccess }: BandSubmissionProps) {
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-end space-x-4 pt-4">
+            <div className="flex justify-center sm:justify-end space-x-4 pt-6">
               <Button
                 type="submit"
                 disabled={submitBandMutation.isPending}
-                className="bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider px-8 py-3"
+                className="bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider px-8 py-3 h-12 w-full sm:w-auto text-base sm:text-sm"
                 data-testid="button-submit-band"
               >
                 {submitBandMutation.isPending ? "Submitting..." : "Submit Band"}

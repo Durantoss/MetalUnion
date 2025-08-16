@@ -120,24 +120,24 @@ export default function MyBands() {
   };
 
   return (
-    <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <div className="flex items-center space-x-3 mb-4">
-          <Guitar className="w-8 h-8 text-metal-red" />
-          <h1 className="text-4xl font-black uppercase tracking-wider">My Bands</h1>
+          <Guitar className="w-6 h-6 sm:w-8 sm:h-8 text-metal-red" />
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase tracking-wider">My Bands</h1>
         </div>
-        <p className="text-gray-400">
+        <p className="text-gray-400 text-sm sm:text-base">
           Manage your band profiles and track submission status. Build your metal legacy in the community.
         </p>
       </div>
 
       {/* Submit Band Button */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <Button 
           onClick={() => setShowSubmissionForm(!showSubmissionForm)}
-          className="bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider"
+          className="bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider h-12 sm:h-10 w-full sm:w-auto text-base sm:text-sm"
           data-testid="button-toggle-submission"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -147,7 +147,7 @@ export default function MyBands() {
 
       {/* Submission Form */}
       {showSubmissionForm && (
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <BandSubmission onSuccess={() => {
             setShowSubmissionForm(false);
             refetch();
@@ -166,15 +166,15 @@ export default function MyBands() {
             <div className="mb-6">
               <Guitar className="w-16 h-16 mx-auto text-metal-red mb-4" />
             </div>
-            <h2 className="text-2xl font-black mb-4 uppercase tracking-wider text-gray-300">
+            <h2 className="text-xl sm:text-2xl font-black mb-4 uppercase tracking-wider text-gray-300">
               No Bands Submitted
             </h2>
-            <p className="text-gray-400 mb-6">
+            <p className="text-gray-400 mb-6 text-sm sm:text-base">
               Ready to unleash your music? Submit your first band profile and join the metal community!
             </p>
             <Button 
               onClick={() => setShowSubmissionForm(true)}
-              className="bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider"
+              className="bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider h-12 sm:h-10 w-full sm:w-auto text-base sm:text-sm"
               data-testid="button-submit-first-band"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -187,31 +187,31 @@ export default function MyBands() {
           {myBands.map((band) => (
             <Card key={band.id} className="bg-card-dark border-metal-gray" data-testid={`card-my-band-${band.id}`}>
               <CardHeader>
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-4 sm:space-y-0">
                   <div className="flex items-center space-x-4">
                     {band.imageUrl && (
                       <img 
                         src={band.imageUrl} 
                         alt={band.name}
-                        className="w-16 h-16 object-cover border border-metal-gray"
+                        className="w-14 h-14 sm:w-16 sm:h-16 object-cover border border-metal-gray flex-shrink-0"
                         data-testid={`img-band-${band.id}`}
                       />
                     )}
-                    <div>
-                      <h3 className="text-2xl font-black text-white" data-testid={`text-band-name-${band.id}`}>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xl sm:text-2xl font-black text-white truncate" data-testid={`text-band-name-${band.id}`}>
                         {band.name}
                       </h3>
-                      <p className="text-gray-300 font-medium" data-testid={`text-band-genre-${band.id}`}>
+                      <p className="text-gray-300 font-medium text-sm sm:text-base" data-testid={`text-band-genre-${band.id}`}>
                         {band.genre}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center justify-between sm:justify-end space-x-3 flex-shrink-0">
                     {getStatusBadge(band.status)}
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-gray-400 hover:text-metal-red"
+                      className="text-gray-400 hover:text-metal-red p-2"
                       data-testid={`button-view-band-${band.id}`}
                     >
                       <Eye className="w-4 h-4" />
@@ -226,7 +226,7 @@ export default function MyBands() {
                 </p>
 
                 {/* Band Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 text-sm">
                   {band.founded && (
                     <div>
                       <span className="text-gray-400 font-bold">Founded:</span>
@@ -280,14 +280,14 @@ export default function MyBands() {
                 <Separator className="bg-metal-gray/30" />
 
                 {/* Actions and Links */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                     {band.website && (
                       <a 
                         href={band.website} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-gray-400 hover:text-metal-red flex items-center"
+                        className="text-gray-400 hover:text-metal-red flex items-center text-sm"
                         data-testid={`link-band-website-${band.id}`}
                       >
                         <Globe className="w-4 h-4 mr-1" />
@@ -299,7 +299,7 @@ export default function MyBands() {
                         href={band.instagram} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-gray-400 hover:text-metal-red flex items-center"
+                        className="text-gray-400 hover:text-metal-red flex items-center text-sm"
                         data-testid={`link-band-instagram-${band.id}`}
                       >
                         <Instagram className="w-4 h-4 mr-1" />
@@ -308,11 +308,11 @@ export default function MyBands() {
                     )}
                   </div>
                   
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-gray-400 hover:text-metal-red"
+                      className="text-gray-400 hover:text-metal-red text-sm h-9 sm:h-8"
                       data-testid={`button-edit-band-${band.id}`}
                     >
                       <Edit className="w-4 h-4 mr-1" />
@@ -324,7 +324,7 @@ export default function MyBands() {
                         size="sm"
                         onClick={() => deleteBandMutation.mutate(band.id)}
                         disabled={deleteBandMutation.isPending}
-                        className="text-red-400 hover:text-red-300"
+                        className="text-red-400 hover:text-red-300 text-sm h-9 sm:h-8"
                         data-testid={`button-delete-band-${band.id}`}
                       >
                         {deleteBandMutation.isPending ? "Deleting..." : "Delete"}
