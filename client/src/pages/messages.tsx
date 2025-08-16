@@ -155,19 +155,19 @@ export default function Messages() {
   }
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <div className="flex items-center space-x-3">
-            <MessageCircle className="w-8 h-8 text-metal-red" />
-            <h1 className="text-4xl font-black uppercase tracking-wider">The Pit</h1>
+            <MessageCircle className="w-6 h-6 sm:w-8 sm:h-8 text-metal-red" />
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black uppercase tracking-wider">The Pit</h1>
           </div>
           {isAuthenticated && (
             <Button
               onClick={() => setShowForm(!showForm)}
-              className="bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider"
+              className="bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider w-full sm:w-auto min-h-[48px] text-sm sm:text-base"
               data-testid="button-new-message"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -175,22 +175,23 @@ export default function Messages() {
             </Button>
           )}
         </div>
-        <p className="text-gray-400 mb-6">
+        <p className="text-gray-400 mb-4 sm:mb-6 text-sm sm:text-base">
           Connect with fellow metalheads in The Pit. Share thoughts, discuss bands, and talk gear!
         </p>
       </div>
 
       {/* Category Filter */}
-      <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="mb-8">
-        <TabsList className="bg-card-dark border-metal-gray">
+      <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="mb-6 sm:mb-8">
+        <TabsList className="bg-card-dark border-metal-gray h-auto p-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1">
           {categories.map((category) => (
             <TabsTrigger 
               key={category.value} 
               value={category.value}
-              className="data-[state=active]:bg-metal-red data-[state=active]:text-white"
+              className="data-[state=active]:bg-metal-red data-[state=active]:text-white font-bold uppercase tracking-wider text-xs sm:text-sm min-h-[44px] px-2 sm:px-3"
               data-testid={`tab-${category.value}`}
             >
-              {category.label}
+              <span className="hidden sm:inline">{category.label}</span>
+              <span className="sm:hidden">{category.label.split(' ')[0]}</span>
             </TabsTrigger>
           ))}
         </TabsList>
@@ -198,13 +199,13 @@ export default function Messages() {
 
       {/* New Message Form */}
       {showForm && (
-        <Card className="bg-card-dark border-metal-gray mb-8">
-          <CardHeader>
-            <h3 className="text-xl font-bold text-white">Post to The Pit</h3>
+        <Card className="bg-card-dark border-metal-gray mb-6 sm:mb-8">
+          <CardHeader className="p-4 sm:p-6">
+            <h3 className="text-lg sm:text-xl font-bold text-white">Post to The Pit</h3>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
                 
                 {/* Category */}
                 <FormField
@@ -216,7 +217,7 @@ export default function Messages() {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger 
-                            className="bg-card-dark border-metal-gray text-white focus:border-metal-red"
+                            className="bg-card-dark border-metal-gray text-white focus:border-metal-red h-12 sm:h-auto min-h-[48px] text-sm sm:text-base"
                             data-testid="select-message-category"
                           >
                             <SelectValue placeholder="Select category" />
@@ -246,7 +247,7 @@ export default function Messages() {
                         <Input
                           placeholder="What's on your mind?"
                           {...field}
-                          className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red"
+                          className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red h-12 sm:h-auto min-h-[48px] text-sm sm:text-base"
                           data-testid="input-message-title"
                         />
                       </FormControl>
@@ -266,8 +267,8 @@ export default function Messages() {
                         <Textarea
                           placeholder="Share your thoughts with The Pit..."
                           {...field}
-                          rows={6}
-                          className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red resize-none"
+                          rows={4}
+                          className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red resize-none min-h-[120px] text-sm sm:text-base"
                           data-testid="textarea-message-content"
                         />
                       </FormControl>
@@ -277,12 +278,12 @@ export default function Messages() {
                 />
 
                 {/* Submit Buttons */}
-                <div className="flex justify-end space-x-4">
+                <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setShowForm(false)}
-                    className="border-metal-gray text-white hover:bg-metal-gray"
+                    className="border-metal-gray text-white hover:bg-metal-gray w-full sm:w-auto min-h-[48px] text-sm sm:text-base"
                     data-testid="button-cancel-message"
                   >
                     Cancel
@@ -290,7 +291,7 @@ export default function Messages() {
                   <Button
                     type="submit"
                     disabled={createMessageMutation.isPending}
-                    className="bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider disabled:opacity-50"
+                    className="bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider disabled:opacity-50 w-full sm:w-auto min-h-[48px] text-sm sm:text-base"
                     data-testid="button-submit-message"
                   >
                     {createMessageMutation.isPending ? "Posting..." : "Post Message"}
@@ -304,24 +305,24 @@ export default function Messages() {
 
       {/* Login Prompt for Guests */}
       {!isAuthenticated && (
-        <Card className="bg-card-dark border-metal-gray mb-8">
-          <CardContent className="p-6 text-center">
-            <p className="text-gray-400 mb-4">Join The Pit! Log in to post messages and engage with the community.</p>
+        <Card className="bg-card-dark border-metal-gray mb-6 sm:mb-8">
+          <CardContent className="p-4 sm:p-6 text-center">
+            <p className="text-gray-400 mb-4 text-sm sm:text-base">Join The Pit! Log in to post messages and engage with the community.</p>
             <a href="/api/login">
-              <Button className="bg-metal-red hover:bg-metal-red-bright">Login to Participate</Button>
+              <Button className="bg-metal-red hover:bg-metal-red-bright w-full sm:w-auto min-h-[48px] text-sm sm:text-base">Login to Participate</Button>
             </a>
           </CardContent>
         </Card>
       )}
 
       {/* Messages List */}
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {filteredMessages.length === 0 ? (
           <Card className="bg-card-dark border-metal-gray">
-            <CardContent className="p-8 text-center">
-              <MessageCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-white mb-2">No messages yet</h3>
-              <p className="text-gray-400">
+            <CardContent className="p-6 sm:p-8 text-center">
+              <MessageCircle className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-2">No messages yet</h3>
+              <p className="text-gray-400 text-sm sm:text-base">
                 {selectedCategory === "all" 
                   ? "Be the first to start a conversation!"
                   : `No messages in ${getCategoryLabel(selectedCategory).toLowerCase()} yet.`
@@ -336,26 +337,26 @@ export default function Messages() {
               className="bg-card-dark border-metal-gray hover:border-metal-red transition-colors"
               data-testid={`card-message-${message.id}`}
             >
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <Badge className={`${getCategoryColor(message.category!)} text-white text-xs`}>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
+                      <Badge className={`${getCategoryColor(message.category!)} text-white text-xs font-bold w-fit`}>
                         {getCategoryLabel(message.category!)}
                       </Badge>
-                      <span className="text-gray-400 text-sm flex items-center">
+                      <span className="text-gray-400 text-xs sm:text-sm flex items-center">
                         <Calendar className="w-3 h-3 mr-1" />
                         {formatDate(message.createdAt!)}
                       </span>
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-3" data-testid={`text-message-title-${message.id}`}>
+                    <h3 className="text-lg sm:text-xl font-bold text-white mb-3" data-testid={`text-message-title-${message.id}`}>
                       {message.title}
                     </h3>
-                    <p className="text-gray-300 leading-relaxed mb-4" data-testid={`text-message-content-${message.id}`}>
+                    <p className="text-gray-300 leading-relaxed mb-4 text-sm sm:text-base" data-testid={`text-message-content-${message.id}`}>
                       {message.content}
                     </p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center text-gray-400 text-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex items-center text-gray-400 text-xs sm:text-sm">
                         <User className="w-4 h-4 mr-1" />
                         <span data-testid={`text-message-author-${message.id}`}>
                           {message.authorStagename}
@@ -366,7 +367,7 @@ export default function Messages() {
                         size="sm"
                         onClick={() => likeMessageMutation.mutate(message.id)}
                         disabled={likeMessageMutation.isPending}
-                        className="text-gray-400 hover:text-metal-red"
+                        className="text-gray-400 hover:text-metal-red self-start sm:self-auto min-h-[44px] px-3 text-sm sm:text-base"
                         data-testid={`button-like-message-${message.id}`}
                       >
                         <Heart className="w-4 h-4 mr-1" />

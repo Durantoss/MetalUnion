@@ -78,53 +78,57 @@ export default function Tours() {
 
   const TourCard = ({ tour }: { tour: Tour }) => (
     <Card key={tour.id} className="bg-card-dark border-metal-gray hover:border-metal-red transition-colors" data-testid={`card-tour-${tour.id}`}>
-      <CardContent className="p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between">
-          <div className="flex items-center space-x-4 mb-4 lg:mb-0 flex-1">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start lg:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
             <img 
               src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100" 
               alt={tour.venue}
-              className="w-16 h-16 object-cover rounded-lg"
+              className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg flex-shrink-0"
             />
             <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-2 mb-1">
-                <h3 className="font-black text-lg truncate" data-testid={`text-tour-name-${tour.id}`}>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
+                <h3 className="font-black text-base sm:text-lg truncate" data-testid={`text-tour-name-${tour.id}`}>
                   {tour.tourName}
                 </h3>
                 {getStatusBadge(tour)}
               </div>
-              <div className="flex items-center text-gray-400 text-sm mb-1">
-                <MapPin className="w-4 h-4 mr-1" />
-                <span data-testid={`text-tour-venue-${tour.id}`}>
+              <div className="flex items-center text-gray-400 text-xs sm:text-sm mb-1">
+                <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
+                <span data-testid={`text-tour-venue-${tour.id}`} className="truncate">
                   {tour.venue}, {tour.city}, {tour.country}
                 </span>
               </div>
-              <div className="flex items-center text-gray-500 text-sm">
-                <Calendar className="w-4 h-4 mr-1" />
-                <span data-testid={`text-tour-date-${tour.id}`}>
-                  {formatDate(tour.date)}
-                </span>
-                <Clock className="w-4 h-4 ml-3 mr-1" />
-                <span data-testid={`text-tour-time-${tour.id}`}>
-                  {formatTime(tour.date)}
-                </span>
+              <div className="flex flex-wrap items-center text-gray-500 text-xs sm:text-sm gap-2 sm:gap-3">
+                <div className="flex items-center">
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                  <span data-testid={`text-tour-date-${tour.id}`}>
+                    {formatDate(tour.date)}
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                  <span data-testid={`text-tour-time-${tour.id}`}>
+                    {formatTime(tour.date)}
+                  </span>
+                </div>
               </div>
               {tour.price && (
-                <p className="text-sm text-gray-400 mt-1" data-testid={`text-tour-price-${tour.id}`}>
+                <p className="text-xs sm:text-sm text-gray-400 mt-1" data-testid={`text-tour-price-${tour.id}`}>
                   From {tour.price}
                 </p>
               )}
             </div>
           </div>
           
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
             {tour.status !== 'cancelled' && new Date(tour.date) > now && (
-              <div className="flex space-x-2">
+              <>
                 {/* Ticketmaster Button */}
                 {tour.ticketmasterUrl && (
                   <Button 
                     onClick={() => window.open(tour.ticketmasterUrl!, '_blank')}
-                    className={`font-bold uppercase text-sm tracking-wider ${
+                    className={`font-bold uppercase text-xs sm:text-sm tracking-wider min-h-[44px] px-3 sm:px-4 ${
                       tour.status === 'sold_out' 
                         ? 'bg-gray-600 hover:bg-gray-700 cursor-not-allowed' 
                         : 'bg-blue-600 hover:bg-blue-700'
@@ -132,7 +136,7 @@ export default function Tours() {
                     disabled={tour.status === 'sold_out'}
                     data-testid={`button-ticketmaster-${tour.id}`}
                   >
-                    <ExternalLink className="w-4 h-4 mr-2" />
+                    <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                     {tour.status === 'sold_out' ? 'Sold Out' : 'Ticketmaster'}
                   </Button>
                 )}
@@ -141,7 +145,7 @@ export default function Tours() {
                 {tour.seatgeekUrl && (
                   <Button 
                     onClick={() => window.open(tour.seatgeekUrl!, '_blank')}
-                    className={`font-bold uppercase text-sm tracking-wider ${
+                    className={`font-bold uppercase text-xs sm:text-sm tracking-wider min-h-[44px] px-3 sm:px-4 ${
                       tour.status === 'sold_out' 
                         ? 'bg-gray-600 hover:bg-gray-700 cursor-not-allowed' 
                         : 'bg-green-600 hover:bg-green-700'
@@ -149,7 +153,7 @@ export default function Tours() {
                     disabled={tour.status === 'sold_out'}
                     data-testid={`button-seatgeek-${tour.id}`}
                   >
-                    <ExternalLink className="w-4 h-4 mr-2" />
+                    <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                     {tour.status === 'sold_out' ? 'Sold Out' : 'SeatGeek'}
                   </Button>
                 )}
@@ -158,7 +162,7 @@ export default function Tours() {
                 {!tour.ticketmasterUrl && !tour.seatgeekUrl && tour.ticketUrl && (
                   <Button 
                     onClick={() => window.open(tour.ticketUrl!, '_blank')}
-                    className={`font-bold uppercase text-sm tracking-wider ${
+                    className={`font-bold uppercase text-xs sm:text-sm tracking-wider min-h-[44px] px-3 sm:px-4 ${
                       tour.status === 'sold_out' 
                         ? 'bg-gray-600 hover:bg-gray-700 cursor-not-allowed' 
                         : 'bg-metal-red hover:bg-metal-red-bright'
@@ -166,11 +170,11 @@ export default function Tours() {
                     disabled={tour.status === 'sold_out'}
                     data-testid={`button-tickets-${tour.id}`}
                   >
-                    <ExternalLink className="w-4 h-4 mr-2" />
+                    <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                     {tour.status === 'sold_out' ? 'Sold Out' : 'Get Tickets'}
                   </Button>
                 )}
-              </div>
+              </>
             )}
           </div>
         </div>
@@ -179,30 +183,30 @@ export default function Tours() {
   );
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-black uppercase tracking-wider mb-4">Tour Dates</h1>
-        <p className="text-gray-400 mb-6">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-wider mb-4">Tour Dates</h1>
+        <p className="text-gray-400 mb-4 sm:mb-6 text-sm sm:text-base">
           Find upcoming concerts and festivals. Don't miss your favorite metal bands live!
         </p>
         
-        <form onSubmit={handleSearch} className="flex gap-4 mb-6">
-          <div className="relative flex-1 max-w-md">
+        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="relative flex-1 max-w-full sm:max-w-md">
             <Input
               type="text"
               placeholder="Search tours, venues, cities..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red pl-10"
+              className="bg-card-dark border-metal-gray text-white placeholder-gray-400 focus:border-metal-red pl-10 pr-4 h-12 text-sm sm:text-base"
               data-testid="input-tour-search"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           </div>
           <Button 
             type="submit" 
-            className="bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider"
+            className="bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider w-full sm:w-auto min-h-[48px] text-sm sm:text-base"
             data-testid="button-search-tours"
           >
             Search
@@ -210,8 +214,8 @@ export default function Tours() {
         </form>
 
         {searchQuery && (
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-gray-400">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+            <p className="text-gray-400 text-sm sm:text-base">
               {isLoading ? "Searching..." : `Found ${upcomingTours.length + pastTours.length} tours matching "${searchQuery}"`}
             </p>
             <Button 
@@ -220,7 +224,7 @@ export default function Tours() {
                 setSearchQuery("");
                 setSearchInput("");
               }}
-              className="text-metal-red hover:text-metal-red-bright"
+              className="text-metal-red hover:text-metal-red-bright self-start sm:self-auto min-h-[40px]"
               data-testid="button-clear-search"
             >
               Clear Search
@@ -231,20 +235,22 @@ export default function Tours() {
 
       {/* Tours Tabs */}
       <Tabs defaultValue="upcoming" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-card-dark border border-metal-gray mb-8">
+        <TabsList className="grid w-full grid-cols-2 bg-card-dark border border-metal-gray mb-6 sm:mb-8 h-12 sm:h-auto">
           <TabsTrigger 
             value="upcoming" 
-            className="data-[state=active]:bg-metal-red data-[state=active]:text-white font-bold uppercase tracking-wider"
+            className="data-[state=active]:bg-metal-red data-[state=active]:text-white font-bold uppercase tracking-wider text-xs sm:text-sm min-h-[44px]"
             data-testid="tab-upcoming"
           >
-            Upcoming ({upcomingTours.length})
+            <span className="hidden sm:inline">Upcoming ({upcomingTours.length})</span>
+            <span className="sm:hidden">Upcoming</span>
           </TabsTrigger>
           <TabsTrigger 
             value="past" 
-            className="data-[state=active]:bg-metal-red data-[state=active]:text-white font-bold uppercase tracking-wider"
+            className="data-[state=active]:bg-metal-red data-[state=active]:text-white font-bold uppercase tracking-wider text-xs sm:text-sm min-h-[44px]"
             data-testid="tab-past"
           >
-            Past ({pastTours.length})
+            <span className="hidden sm:inline">Past ({pastTours.length})</span>
+            <span className="sm:hidden">Past</span>
           </TabsTrigger>
         </TabsList>
 
@@ -270,11 +276,11 @@ export default function Tours() {
             </div>
           ) : upcomingTours.length === 0 ? (
             <Card className="bg-card-dark border-metal-gray">
-              <CardContent className="p-12 text-center">
-                <h2 className="text-2xl font-bold mb-4">
+              <CardContent className="p-6 sm:p-12 text-center">
+                <h2 className="text-xl sm:text-2xl font-bold mb-4">
                   {searchQuery ? "No Upcoming Tours Found" : "No Upcoming Tours"}
                 </h2>
-                <p className="text-gray-400 mb-6">
+                <p className="text-gray-400 mb-4 sm:mb-6 text-sm sm:text-base">
                   {searchQuery 
                     ? `No upcoming tours found matching "${searchQuery}". Try different search terms or check past tours.`
                     : "No upcoming tours scheduled yet. Check back soon for the latest tour announcements!"
@@ -286,7 +292,7 @@ export default function Tours() {
                       setSearchQuery("");
                       setSearchInput("");
                     }}
-                    className="bg-metal-red hover:bg-metal-red-bright"
+                    className="bg-metal-red hover:bg-metal-red-bright w-full sm:w-auto min-h-[48px]"
                     data-testid="button-clear-search-upcoming"
                   >
                     Show All Upcoming Tours
@@ -322,11 +328,11 @@ export default function Tours() {
             </div>
           ) : pastTours.length === 0 ? (
             <Card className="bg-card-dark border-metal-gray">
-              <CardContent className="p-12 text-center">
-                <h2 className="text-2xl font-bold mb-4">
+              <CardContent className="p-6 sm:p-12 text-center">
+                <h2 className="text-xl sm:text-2xl font-bold mb-4">
                   {searchQuery ? "No Past Tours Found" : "No Past Tours"}
                 </h2>
-                <p className="text-gray-400 mb-6">
+                <p className="text-gray-400 mb-4 sm:mb-6 text-sm sm:text-base">
                   {searchQuery 
                     ? `No past tours found matching "${searchQuery}". Try different search terms or check upcoming tours.`
                     : "No past tours recorded yet. Check back as bands complete their tours!"
@@ -338,7 +344,7 @@ export default function Tours() {
                       setSearchQuery("");
                       setSearchInput("");
                     }}
-                    className="bg-metal-red hover:bg-metal-red-bright"
+                    className="bg-metal-red hover:bg-metal-red-bright w-full sm:w-auto min-h-[48px]"
                     data-testid="button-clear-search-past"
                   >
                     Show All Past Tours

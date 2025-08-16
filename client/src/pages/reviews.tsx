@@ -65,18 +65,18 @@ export default function Reviews() {
   };
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-black uppercase tracking-wider mb-4">Reviews</h1>
-        <p className="text-gray-400 mb-6">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-wider mb-4">Reviews</h1>
+        <p className="text-gray-400 mb-4 sm:mb-6 text-sm sm:text-base">
           Share your thoughts on bands, albums, and concerts. Help fellow metalheads discover the best music.
         </p>
         
         <Button 
           onClick={() => setShowReviewForm(!showReviewForm)}
-          className="bg-metal-red hover:bg-metal-red-bright text-white font-bold uppercase tracking-wider"
+          className="bg-metal-red hover:bg-metal-red-bright text-white font-bold uppercase tracking-wider w-full sm:w-auto min-h-[48px] text-sm sm:text-base"
           data-testid="button-write-review"
         >
           {showReviewForm ? "Cancel" : "Write a Review"}
@@ -85,9 +85,9 @@ export default function Reviews() {
 
       {/* Review Form */}
       {showReviewForm && (
-        <Card className="bg-card-dark border-metal-gray mb-8">
-          <CardContent className="p-6">
-            <h2 className="text-2xl font-black mb-6">Write a Review</h2>
+        <Card className="bg-card-dark border-metal-gray mb-6 sm:mb-8">
+          <CardContent className="p-4 sm:p-6">
+            <h2 className="text-xl sm:text-2xl font-black mb-4 sm:mb-6">Write a Review</h2>
             <ReviewForm onSuccess={() => setShowReviewForm(false)} />
           </CardContent>
         </Card>
@@ -121,14 +121,14 @@ export default function Reviews() {
         </div>
       ) : reviews.length === 0 ? (
         <Card className="bg-card-dark border-metal-gray">
-          <CardContent className="p-12 text-center">
-            <h2 className="text-2xl font-bold mb-4">No Reviews Yet</h2>
-            <p className="text-gray-400 mb-6">
+          <CardContent className="p-6 sm:p-12 text-center">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4">No Reviews Yet</h2>
+            <p className="text-gray-400 mb-4 sm:mb-6 text-sm sm:text-base">
               Be the first to share your thoughts on your favorite bands, albums, or concerts!
             </p>
             <Button 
               onClick={() => setShowReviewForm(true)}
-              className="bg-metal-red hover:bg-metal-red-bright text-white"
+              className="bg-metal-red hover:bg-metal-red-bright text-white w-full sm:w-auto min-h-[48px]"
               data-testid="button-write-first-review"
             >
               Write First Review
@@ -136,24 +136,24 @@ export default function Reviews() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {reviews.map((review) => (
             <Card key={review.id} className="bg-card-dark border-metal-gray hover:border-metal-gray transition-colors" data-testid={`card-review-${review.id}`}>
-              <CardContent className="p-6">
-                <div className="flex items-start space-x-4">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-start space-x-3 sm:space-x-4">
                   
                   {/* User Avatar */}
-                  <div className="w-12 h-12 bg-metal-gray rounded-full flex items-center justify-center flex-shrink-0">
-                    <User className="text-gray-400 w-6 h-6" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-metal-gray rounded-full flex items-center justify-center flex-shrink-0">
+                    <User className="text-gray-400 w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                   
                   <div className="flex-1 min-w-0">
                     
                     {/* Review Header */}
-                    <div className="flex items-start justify-between mb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 gap-2">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <span className="font-bold text-white" data-testid={`text-review-username-${review.id}`}>
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <span className="font-bold text-white text-sm sm:text-base" data-testid={`text-review-username-${review.id}`}>
                             {review.stagename}
                           </span>
                           <span 
@@ -163,13 +163,13 @@ export default function Reviews() {
                             {review.reviewType}
                           </span>
                         </div>
-                        <p className="text-gray-400 text-sm">
+                        <p className="text-gray-400 text-xs sm:text-sm">
                           reviewed <span className="text-metal-red font-bold" data-testid={`text-review-target-${review.id}`}>
                             {review.targetName || 'Unknown'}
                           </span>
                         </p>
                       </div>
-                      <div className="flex flex-col items-end">
+                      <div className="flex flex-col items-start sm:items-end">
                         <LighterRating rating={review.rating} size="sm" showValue />
                         <div className="flex items-center text-xs text-gray-500 mt-1">
                           <Calendar className="w-3 h-3 mr-1" />
@@ -181,21 +181,21 @@ export default function Reviews() {
                     </div>
 
                     {/* Review Title */}
-                    <h3 className="text-lg font-bold text-white mb-3" data-testid={`text-review-title-${review.id}`}>
+                    <h3 className="text-base sm:text-lg font-bold text-white mb-3" data-testid={`text-review-title-${review.id}`}>
                       {review.title}
                     </h3>
 
                     {/* Review Content */}
-                    <p className="text-gray-300 leading-relaxed mb-4" data-testid={`text-review-content-${review.id}`}>
+                    <p className="text-gray-300 leading-relaxed mb-4 text-sm sm:text-base" data-testid={`text-review-content-${review.id}`}>
                       {review.content}
                     </p>
 
                     {/* Review Actions */}
-                    <div className="flex items-center space-x-6 text-sm">
+                    <div className="flex items-center gap-4 sm:gap-6 text-sm">
                       <button 
                         onClick={() => likeMutation.mutate(review.id)}
                         disabled={likeMutation.isPending}
-                        className="flex items-center space-x-1 text-gray-500 hover:text-metal-red transition-colors disabled:opacity-50"
+                        className="flex items-center space-x-1 text-gray-500 hover:text-metal-red transition-colors disabled:opacity-50 min-h-[44px] py-2 sm:py-0 sm:min-h-0"
                         data-testid={`button-like-review-${review.id}`}
                       >
                         <ThumbsUp className="w-4 h-4" />
@@ -206,7 +206,7 @@ export default function Reviews() {
                       </button>
                       
                       <button 
-                        className="flex items-center space-x-1 text-gray-500 hover:text-metal-red transition-colors"
+                        className="flex items-center space-x-1 text-gray-500 hover:text-metal-red transition-colors min-h-[44px] py-2 sm:py-0 sm:min-h-0"
                         data-testid={`button-reply-review-${review.id}`}
                       >
                         <MessageCircle className="w-4 h-4" />
@@ -224,8 +224,8 @@ export default function Reviews() {
 
       {/* Load More */}
       {reviews.length > 0 && (
-        <div className="text-center mt-8">
-          <p className="text-gray-400 text-sm">
+        <div className="text-center mt-6 sm:mt-8">
+          <p className="text-gray-400 text-xs sm:text-sm">
             Showing {reviews.length} reviews
           </p>
         </div>
