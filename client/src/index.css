@@ -229,4 +229,20 @@
   a:hover {
     color: var(--metal-red-bright);
   }
+  
+  /* Search input placeholder styles */
+  [data-testid="input-search"]::placeholder {
+    color: white !important;
+    opacity: 1 !important;
+  }
+  
+  [data-testid="input-search"]::-webkit-input-placeholder {
+    color: white !important;
+    opacity: 1 !important;
+  }
+  
+  [data-testid="input-search"]::-moz-placeholder {
+    color: white !important;
+    opacity: 1 !important;
+  }
 }
