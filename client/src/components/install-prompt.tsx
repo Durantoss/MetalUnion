@@ -79,15 +79,6 @@ export function InstallPrompt() {
   // Show manual install guide if PWA prompt not available but not installed
   const showManualGuide = !isInstalled && !deferredPrompt && !sessionStorage.getItem('installPromptDismissed');
   
-  // Debug logging
-  console.log('Install Prompt Debug:', {
-    isInstalled,
-    showPrompt,
-    deferredPrompt: !!deferredPrompt,
-    showManualGuide,
-    dismissed: !!sessionStorage.getItem('installPromptDismissed'),
-    isStandalone: window.matchMedia('(display-mode: standalone)').matches
-  });
   
   // Don't show anything if already installed or dismissed
   if (isInstalled || sessionStorage.getItem('installPromptDismissed')) {
