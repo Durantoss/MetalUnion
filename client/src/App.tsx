@@ -16,8 +16,36 @@ import Profile from "@/pages/profile";
 import MyBands from "@/pages/my-bands";
 import Search from "@/pages/search";
 import NotFound from "@/pages/not-found";
+import UserOnboarding from "@/components/user-onboarding";
+import { useAuth } from "@/hooks/useAuth";
+import { MetalLoader } from "@/components/ui/metal-loader";
 
 function Router() {
+  const { user, isLoading, isAuthenticated } = useAuth();
+
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-metal-black text-white font-metal flex items-center justify-center">
+        <MetalLoader size="lg" variant="skull" text="LOADING METALHUB..." />
+      </div>
+    );
+  }
+
+  // Show onboarding for new authenticated users without stagename
+  const needsOnboarding = isAuthenticated && user && (!user.stagename || !user.firstName || !user.lastName);
+  
+  if (needsOnboarding) {
+    return (
+      <div className="min-h-screen bg-metal-black text-white font-metal">
+        <UserOnboarding onComplete={() => {
+          // Refresh user data after onboarding completion
+          queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+        }} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-metal-black text-white font-metal">
       <Header />
