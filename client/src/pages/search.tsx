@@ -632,14 +632,14 @@ export default function Search() {
                                   {review.title}
                                 </h3>
                                 <Badge className="bg-metal-red/20 text-metal-red border-metal-red/30">
-                                  {review.type}
+                                  {review.reviewType}
                                 </Badge>
                               </div>
                               
                               <div className="flex items-center space-x-4 mb-3">
                                 <LighterRating rating={review.rating} size="sm" />
                                 <span className="text-gray-400 text-sm">
-                                  by {review.reviewerName} • {formatDate(review.createdAt!)}
+                                  by {review.stagename} • {formatDate(review.createdAt!)}
                                 </span>
                               </div>
                               
@@ -710,11 +710,9 @@ export default function Search() {
                           <h4 className="text-sm font-bold text-white mb-1 truncate" data-testid={`text-photo-title-${photo.id}`}>
                             {photo.title || 'Untitled'}
                           </h4>
-                          {photo.bandName && (
-                            <p className="text-xs text-gray-400 truncate" data-testid={`text-photo-band-${photo.id}`}>
-                              {photo.bandName}
-                            </p>
-                          )}
+                          <p className="text-xs text-gray-400 truncate" data-testid={`text-photo-category-${photo.id}`}>
+                            {photo.category} • by {photo.uploadedBy}
+                          </p>
                         </CardContent>
                       </Card>
                     ))}
