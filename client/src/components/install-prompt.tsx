@@ -79,18 +79,28 @@ export function InstallPrompt() {
   // Show manual install guide if PWA prompt not available but not installed
   const showManualGuide = !isInstalled && !deferredPrompt && !sessionStorage.getItem('installPromptDismissed');
   
+  // Debug logging
+  console.log('Install Prompt Debug:', {
+    isInstalled,
+    showPrompt,
+    deferredPrompt: !!deferredPrompt,
+    showManualGuide,
+    dismissed: !!sessionStorage.getItem('installPromptDismissed'),
+    isStandalone: window.matchMedia('(display-mode: standalone)').matches
+  });
+  
   // Don't show anything if already installed or dismissed
   if (isInstalled || sessionStorage.getItem('installPromptDismissed')) {
     return null;
   }
   
-  // Show automatic prompt if available, otherwise show manual guide
-  if (!showPrompt && !showManualGuide) {
-    return null;
-  }
+  // TEMPORARY: Force show for testing
+  // if (!showPrompt && !showManualGuide) {
+  //   return null;
+  // }
 
   return (
-    <Card className="fixed bottom-4 left-4 right-4 z-50 bg-card-dark border-metal-red shadow-lg md:left-auto md:right-4 md:max-w-sm">
+    <Card className="fixed bottom-4 left-4 right-4 z-[9999] bg-red-900 border-4 border-yellow-400 shadow-2xl md:left-auto md:right-4 md:max-w-sm" style={{zIndex: 99999}}>
       <CardContent className="p-4">
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0">
