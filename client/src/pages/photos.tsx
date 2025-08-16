@@ -31,13 +31,20 @@ export default function Photos() {
 
   // Extract unique values for filter options
   const filterOptions = useMemo(() => {
+    if (!allPhotos || allPhotos.length === 0) {
+      return { uploaders: [] };
+    }
     const uploaders = Array.from(new Set(allPhotos.map(photo => photo.uploadedBy))).sort();
     return { uploaders };
   }, [allPhotos]);
 
   // Advanced filtering logic
   const filteredPhotos = useMemo(() => {
-    let filtered = allPhotos;
+    if (!allPhotos || allPhotos.length === 0) {
+      return [];
+    }
+    
+    let filtered = [...allPhotos]; // Create a copy
 
     // Apply category filter
     if (selectedCategory !== 'all') {
@@ -45,8 +52,8 @@ export default function Photos() {
     }
 
     // Apply search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(photo => 
         photo.title.toLowerCase().includes(query) ||
         (photo.description && photo.description.toLowerCase().includes(query)) ||
@@ -62,29 +69,43 @@ export default function Photos() {
 
     // Apply date range filters
     if (dateFrom) {
-      filtered = filtered.filter(photo => photo.createdAt && new Date(photo.createdAt) >= new Date(dateFrom));
+      try {
+        const fromDate = new Date(dateFrom);
+        filtered = filtered.filter(photo => photo.createdAt && new Date(photo.createdAt) >= fromDate);
+      } catch (e) {
+        console.warn('Invalid dateFrom:', dateFrom);
+      }
     }
     if (dateTo) {
-      filtered = filtered.filter(photo => photo.createdAt && new Date(photo.createdAt) <= new Date(dateTo));
+      try {
+        const toDate = new Date(dateTo);
+        filtered = filtered.filter(photo => photo.createdAt && new Date(photo.createdAt) <= toDate);
+      } catch (e) {
+        console.warn('Invalid dateTo:', dateTo);
+      }
     }
 
     // Apply sorting
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'date-desc':
-          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-        case 'date-asc':
-          return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
-        case 'title':
-          return a.title.localeCompare(b.title);
-        case 'uploader':
-          return a.uploadedBy.localeCompare(b.uploadedBy);
-        case 'category':
-          return a.category.localeCompare(b.category);
-        default:
-          return 0;
-      }
-    });
+    try {
+      filtered.sort((a, b) => {
+        switch (sortBy) {
+          case 'date-desc':
+            return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+          case 'date-asc':
+            return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+          case 'title':
+            return a.title.localeCompare(b.title);
+          case 'uploader':
+            return a.uploadedBy.localeCompare(b.uploadedBy);
+          case 'category':
+            return a.category.localeCompare(b.category);
+          default:
+            return 0;
+        }
+      });
+    } catch (e) {
+      console.warn('Sorting error:', e);
+    }
 
     return filtered;
   }, [allPhotos, selectedCategory, searchQuery, selectedUploader, dateFrom, dateTo, sortBy]);
@@ -103,8 +124,10 @@ export default function Photos() {
   };
 
   // Check if any filters are active
-  const hasActiveFilters = searchQuery || selectedCategory !== 'all' || selectedUploader !== 'all' || 
-    dateFrom || dateTo || sortBy !== 'date-desc';
+  const hasActiveFilters = useMemo(() => {
+    return Boolean(searchQuery.trim() || selectedCategory !== 'all' || selectedUploader !== 'all' || 
+      dateFrom || dateTo || sortBy !== 'date-desc');
+  }, [searchQuery, selectedCategory, selectedUploader, dateFrom, dateTo, sortBy]);
 
   const openLightbox = (index: number) => {
     setCurrentPhotoIndex(index);

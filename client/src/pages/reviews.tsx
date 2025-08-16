@@ -33,6 +33,9 @@ export default function Reviews() {
 
   // Extract unique values for filter options
   const filterOptions = useMemo(() => {
+    if (!allReviews || allReviews.length === 0) {
+      return { reviewers: [], targets: [] };
+    }
     const reviewers = Array.from(new Set(allReviews.map(review => review.stagename))).sort();
     const targets = Array.from(new Set(allReviews.map(review => review.targetName).filter((name): name is string => Boolean(name)))).sort();
     return { reviewers, targets };
@@ -40,11 +43,15 @@ export default function Reviews() {
 
   // Advanced filtering logic
   const reviews = useMemo(() => {
-    let filtered = allReviews;
+    if (!allReviews || allReviews.length === 0) {
+      return [];
+    }
+    
+    let filtered = [...allReviews]; // Create a copy
 
     // Apply search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(review => 
         review.title.toLowerCase().includes(query) ||
         review.content.toLowerCase().includes(query) ||
@@ -61,15 +68,18 @@ export default function Reviews() {
 
     // Apply rating filter
     if (selectedRating !== 'all') {
-      const rating = parseInt(selectedRating);
-      if (selectedRating === '5') {
-        filtered = filtered.filter(review => review.rating === 5);
-      } else if (selectedRating === '4+') {
-        filtered = filtered.filter(review => review.rating >= 4);
-      } else if (selectedRating === '3+') {
-        filtered = filtered.filter(review => review.rating >= 3);
-      } else if (selectedRating === '2-') {
-        filtered = filtered.filter(review => review.rating <= 2);
+      try {
+        if (selectedRating === '5') {
+          filtered = filtered.filter(review => review.rating === 5);
+        } else if (selectedRating === '4+') {
+          filtered = filtered.filter(review => review.rating >= 4);
+        } else if (selectedRating === '3+') {
+          filtered = filtered.filter(review => review.rating >= 3);
+        } else if (selectedRating === '2-') {
+          filtered = filtered.filter(review => review.rating <= 2);
+        }
+      } catch (e) {
+        console.warn('Rating filter error:', e);
       }
     }
 
@@ -80,35 +90,49 @@ export default function Reviews() {
 
     // Apply date range filters
     if (dateFrom) {
-      filtered = filtered.filter(review => review.createdAt && new Date(review.createdAt) >= new Date(dateFrom));
+      try {
+        const fromDate = new Date(dateFrom);
+        filtered = filtered.filter(review => review.createdAt && new Date(review.createdAt) >= fromDate);
+      } catch (e) {
+        console.warn('Invalid dateFrom:', dateFrom);
+      }
     }
     if (dateTo) {
-      filtered = filtered.filter(review => review.createdAt && new Date(review.createdAt) <= new Date(dateTo));
+      try {
+        const toDate = new Date(dateTo);
+        filtered = filtered.filter(review => review.createdAt && new Date(review.createdAt) <= toDate);
+      } catch (e) {
+        console.warn('Invalid dateTo:', dateTo);
+      }
     }
 
     // Apply sorting
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'date-desc':
-          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-        case 'date-asc':
-          return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
-        case 'rating-desc':
-          return b.rating - a.rating;
-        case 'rating-asc':
-          return a.rating - b.rating;
-        case 'likes-desc':
-          return (b.likes || 0) - (a.likes || 0);
-        case 'title':
-          return a.title.localeCompare(b.title);
-        case 'reviewer':
-          return a.stagename.localeCompare(b.stagename);
-        case 'target':
-          return (a.targetName || '').localeCompare(b.targetName || '');
-        default:
-          return 0;
-      }
-    });
+    try {
+      filtered.sort((a, b) => {
+        switch (sortBy) {
+          case 'date-desc':
+            return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+          case 'date-asc':
+            return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+          case 'rating-desc':
+            return b.rating - a.rating;
+          case 'rating-asc':
+            return a.rating - b.rating;
+          case 'likes-desc':
+            return (b.likes || 0) - (a.likes || 0);
+          case 'title':
+            return a.title.localeCompare(b.title);
+          case 'reviewer':
+            return a.stagename.localeCompare(b.stagename);
+          case 'target':
+            return (a.targetName || '').localeCompare(b.targetName || '');
+          default:
+            return 0;
+        }
+      });
+    } catch (e) {
+      console.warn('Sorting error:', e);
+    }
 
     return filtered;
   }, [allReviews, searchQuery, selectedType, selectedRating, selectedReviewer, dateFrom, dateTo, sortBy]);
@@ -125,8 +149,10 @@ export default function Reviews() {
   };
 
   // Check if any filters are active
-  const hasActiveFilters = searchQuery || selectedType !== 'all' || selectedRating !== 'all' || 
-    selectedReviewer !== 'all' || dateFrom || dateTo || sortBy !== 'date-desc';
+  const hasActiveFilters = useMemo(() => {
+    return Boolean(searchQuery.trim() || selectedType !== 'all' || selectedRating !== 'all' || 
+      selectedReviewer !== 'all' || dateFrom || dateTo || sortBy !== 'date-desc');
+  }, [searchQuery, selectedType, selectedRating, selectedReviewer, dateFrom, dateTo, sortBy]);
 
   const likeMutation = useMutation({
     mutationFn: async (reviewId: string) => {
