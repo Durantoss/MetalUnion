@@ -421,8 +421,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchBands(query: string): Promise<Band[]> {
-    // For now, return all bands - in production you'd implement proper search
-    return await this.getBands();
+    const searchTerm = `%${query.toLowerCase()}%`;
+    return await db.select().from(bands)
+      .where(
+        db.sql`LOWER(${bands.name}) LIKE ${searchTerm} OR LOWER(${bands.genre}) LIKE ${searchTerm} OR LOWER(${bands.description}) LIKE ${searchTerm}`
+      )
+      .orderBy(bands.name);
   }
 
   // Reviews

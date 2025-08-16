@@ -25,7 +25,18 @@ export default function Bands() {
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const { data: allBands = [], isLoading } = useQuery<BandWithTours[]>({
-    queryKey: ["/api/bands"],
+    queryKey: ["/api/bands", searchQuery],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchQuery) {
+        params.append('search', searchQuery);
+      }
+      const response = await fetch(`/api/bands?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch bands');
+      }
+      return response.json();
+    },
   });
 
   // Extract unique genres for filter dropdown
@@ -34,27 +45,17 @@ export default function Bands() {
     return Array.from(new Set(genres)).sort();
   }, [allBands]);
 
-  // Filter and search bands locally for better UX
+  // Filter bands by genre (search is handled by backend)
   const bands = useMemo(() => {
     let filtered = allBands;
 
-    // Genre filter
+    // Genre filter (only applied locally for better UX)
     if (selectedGenre && selectedGenre !== "all") {
       filtered = filtered.filter(band => band.genre === selectedGenre);
     }
 
-    // Text search
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(band => 
-        band.name.toLowerCase().includes(query) ||
-        band.genre?.toLowerCase().includes(query) ||
-        band.description?.toLowerCase().includes(query)
-      );
-    }
-
     return filtered;
-  }, [allBands, searchQuery, selectedGenre]);
+  }, [allBands, selectedGenre]);
 
   // Helper functions for tour display
   const formatDate = (date: string | Date) => {
