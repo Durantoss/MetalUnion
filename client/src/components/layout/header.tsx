@@ -103,7 +103,7 @@ export default function Header() {
                 placeholder="SEARCH THE DEPTHS..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-black border-2 border-metal-gray text-white placeholder-gray-300 focus:border-metal-red focus:shadow-lg focus:shadow-metal-red/30 w-72 pl-12 h-12 font-black uppercase tracking-wider transition-all duration-300 group-hover:border-metal-red/50 shadow-inner"
+                className="bg-black border-2 border-metal-gray text-white placeholder-white focus:border-metal-red focus:shadow-lg focus:shadow-metal-red/30 w-72 pl-12 h-12 font-black uppercase tracking-wider transition-all duration-300 group-hover:border-metal-red/50 shadow-inner"
                 data-testid="input-search"
               />
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-metal-red w-5 h-5 group-hover:animate-pulse" />
