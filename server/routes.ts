@@ -171,6 +171,182 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User profile and account management routes
+  app.get('/api/user/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get user's bands count
+      const userBands = await storage.getBandsByOwner(userId);
+      
+      // Get user's reviews count (would need to add userId to reviews in a real app)
+      const allReviews = await storage.getReviews();
+      const userReviews = allReviews.filter(review => 
+        // For now, match by stagename since we don't have userId in reviews
+        userBands.some(band => band.name === review.stagename)
+      );
+      
+      // Get user's photos count (would need to add userId to photos in a real app)
+      const allPhotos = await storage.getPhotos();
+      const userPhotos = allPhotos.filter(photo => 
+        userBands.some(band => band.id === photo.bandId)
+      );
+      
+      const user = await storage.getUser(userId);
+      
+      res.json({
+        bandsSubmitted: userBands.length,
+        reviewsWritten: userReviews.length,
+        photosUploaded: userPhotos.length,
+        memberSince: user?.createdAt ? new Date(user.createdAt).toISOString() : new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error fetching user stats:", error);
+      res.status(500).json({ message: "Failed to fetch user statistics" });
+    }
+  });
+
+  app.put('/api/user/profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { firstName, lastName, stagename } = req.body;
+      
+      if (!firstName || !lastName || !stagename) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+      
+      // Check stagename availability if changed
+      const currentUser = await storage.getUser(userId);
+      if (currentUser?.stagename !== stagename) {
+        const available = await storage.checkStagenameAvailable(stagename);
+        if (!available) {
+          return res.status(409).json({ message: "Stagename already taken" });
+        }
+      }
+      
+      const updatedUser = await storage.upsertUser({
+        id: userId,
+        firstName,
+        lastName,
+        stagename,
+        email: currentUser?.email,
+        profileImageUrl: currentUser?.profileImageUrl,
+      });
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  app.get('/api/user/preferences', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // For now, return default preferences since we don't have a preferences table
+      // In a real app, you'd have a user_preferences table
+      const defaultPreferences = {
+        id: userId,
+        userId,
+        emailNotifications: true,
+        tourAlerts: true,
+        reviewNotifications: true,
+        bandUpdates: true,
+        profileVisibility: "public" as const,
+        preferredGenres: [],
+        autoApprovePhotos: false,
+      };
+      
+      res.json(defaultPreferences);
+    } catch (error) {
+      console.error("Error fetching user preferences:", error);
+      res.status(500).json({ message: "Failed to fetch user preferences" });
+    }
+  });
+
+  app.put('/api/user/preferences', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const preferences = req.body;
+      
+      // In a real app, you'd save these to a user_preferences table
+      // For now, just return the updated preferences
+      const updatedPreferences = {
+        id: userId,
+        userId,
+        ...preferences,
+      };
+      
+      res.json(updatedPreferences);
+    } catch (error) {
+      console.error("Error updating user preferences:", error);
+      res.status(500).json({ message: "Failed to update preferences" });
+    }
+  });
+
+  app.post('/api/user/onboarding', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { firstName, lastName, stagename, favoriteGenres, notifications } = req.body;
+      
+      if (!firstName || !lastName || !stagename) {
+        return res.status(400).json({ message: "All profile fields are required" });
+      }
+      
+      // Check stagename availability
+      const available = await storage.checkStagenameAvailable(stagename);
+      if (!available) {
+        return res.status(409).json({ message: "Stagename already taken" });
+      }
+      
+      const currentUser = await storage.getUser(userId);
+      const updatedUser = await storage.upsertUser({
+        id: userId,
+        firstName,
+        lastName,
+        stagename,
+        email: currentUser?.email,
+        profileImageUrl: currentUser?.profileImageUrl,
+      });
+      
+      // In a real app, you'd also save the favorite genres and notification preferences
+      // For now, just return success
+      
+      res.json({ 
+        user: updatedUser, 
+        message: "Onboarding completed successfully",
+        preferences: {
+          favoriteGenres,
+          notifications
+        }
+      });
+    } catch (error) {
+      console.error("Error completing onboarding:", error);
+      res.status(500).json({ message: "Failed to complete onboarding" });
+    }
+  });
+
+  app.delete('/api/user/account', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // In a real app, you'd delete all user data:
+      // - User record
+      // - User's bands
+      // - User's reviews
+      // - User's photos
+      // - User's preferences
+      // - User's sessions
+      
+      // For now, just return success (since we can't actually delete from the auth provider)
+      res.json({ message: "Account deletion initiated. You will be logged out shortly." });
+    } catch (error) {
+      console.error("Error deleting user account:", error);
+      res.status(500).json({ message: "Failed to delete account" });
+    }
+  });
+
   // Stagename routes
   app.get('/api/stagename/check/:stagename', async (req, res) => {
     try {

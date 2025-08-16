@@ -363,6 +363,97 @@ export class MemStorage implements IStorage {
     return this.tours.delete(id);
   }
 
+  async searchAll(query: string, filters: {
+    genre?: string;
+    photoCategory?: string;
+    reviewType?: string;
+    country?: string;
+    dateRange?: string;
+  } = {}): Promise<{
+    bands: Band[];
+    tours: Tour[];
+    reviews: Review[];
+    photos: Photo[];
+  }> {
+    const searchTerm = query.toLowerCase();
+    const now = new Date();
+    
+    // Filter bands
+    let filteredBands = Array.from(this.bands.values()).filter(band => 
+      band.name.toLowerCase().includes(searchTerm) ||
+      band.genre.toLowerCase().includes(searchTerm) ||
+      band.description.toLowerCase().includes(searchTerm)
+    );
+    
+    if (filters.genre && filters.genre !== 'all') {
+      filteredBands = filteredBands.filter(band => band.genre === filters.genre);
+    }
+    
+    // Filter tours
+    let filteredTours = Array.from(this.tours.values()).filter(tour => 
+      tour.tourName.toLowerCase().includes(searchTerm) ||
+      tour.venue.toLowerCase().includes(searchTerm) ||
+      tour.city.toLowerCase().includes(searchTerm) ||
+      tour.country.toLowerCase().includes(searchTerm)
+    );
+    
+    if (filters.country && filters.country !== 'all') {
+      filteredTours = filteredTours.filter(tour => 
+        tour.country.toLowerCase().includes(filters.country!.toLowerCase())
+      );
+    }
+    
+    if (filters.dateRange && filters.dateRange !== 'all') {
+      switch (filters.dateRange) {
+        case 'upcoming':
+          filteredTours = filteredTours.filter(tour => tour.date > now);
+          break;
+        case 'thisWeek':
+          const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+          filteredTours = filteredTours.filter(tour => tour.date >= now && tour.date <= weekFromNow);
+          break;
+        case 'thisMonth':
+          const monthFromNow = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
+          filteredTours = filteredTours.filter(tour => tour.date >= now && tour.date <= monthFromNow);
+          break;
+        case 'thisYear':
+          const yearEnd = new Date(now.getFullYear(), 11, 31);
+          filteredTours = filteredTours.filter(tour => tour.date >= now && tour.date <= yearEnd);
+          break;
+      }
+    }
+    
+    // Filter reviews
+    let filteredReviews = Array.from(this.reviews.values()).filter(review => 
+      review.title.toLowerCase().includes(searchTerm) ||
+      review.content.toLowerCase().includes(searchTerm) ||
+      (review.targetName && review.targetName.toLowerCase().includes(searchTerm)) ||
+      review.stagename.toLowerCase().includes(searchTerm)
+    );
+    
+    if (filters.reviewType && filters.reviewType !== 'all') {
+      filteredReviews = filteredReviews.filter(review => review.reviewType === filters.reviewType);
+    }
+    
+    // Filter photos
+    let filteredPhotos = Array.from(this.photos.values()).filter(photo => 
+      photo.title.toLowerCase().includes(searchTerm) ||
+      (photo.description && photo.description.toLowerCase().includes(searchTerm)) ||
+      photo.uploadedBy.toLowerCase().includes(searchTerm)
+    );
+    
+    if (filters.photoCategory && filters.photoCategory !== 'all') {
+      filteredPhotos = filteredPhotos.filter(photo => photo.category === filters.photoCategory);
+    }
+    
+    return {
+      bands: filteredBands.sort((a, b) => a.name.localeCompare(b.name)),
+      tours: filteredTours.sort((a, b) => a.date.getTime() - b.date.getTime()),
+      reviews: filteredReviews.sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime()),
+      photos: filteredPhotos.sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime())
+    };
+  }
+
   // User operations (stub implementations)
   async getUserByStagename(stagename: string): Promise<User | undefined> { return undefined; }
   async checkStagenameAvailable(stagename: string): Promise<boolean> { return true; }
