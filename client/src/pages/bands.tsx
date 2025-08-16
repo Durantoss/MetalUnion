@@ -8,8 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { MetalLoader } from "@/components/ui/metal-loader";
 import LighterRating from "@/components/ui/star-rating";
-import { Search, Filter, X } from "lucide-react";
-import type { Band } from "@shared/schema";
+import { Search, Filter, X, Calendar, MapPin, ExternalLink, Clock } from "lucide-react";
+import type { Band, Tour } from "@shared/schema";
+
+// Extended type to include upcoming tours
+type BandWithTours = Band & {
+  upcomingTours?: Tour[];
+};
 
 export default function Bands() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -19,7 +24,7 @@ export default function Bands() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  const { data: allBands = [], isLoading } = useQuery<Band[]>({
+  const { data: allBands = [], isLoading } = useQuery<BandWithTours[]>({
     queryKey: ["/api/bands"],
   });
 
@@ -50,6 +55,23 @@ export default function Bands() {
 
     return filtered;
   }, [allBands, searchQuery, selectedGenre]);
+
+  // Helper functions for tour display
+  const formatDate = (date: string | Date) => {
+    return new Date(date).toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  };
+
+  const formatTime = (date: string | Date) => {
+    return new Date(date).toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
 
   // Generate autocomplete suggestions
   useEffect(() => {
@@ -263,6 +285,95 @@ export default function Bands() {
                 <p className="text-sm text-gray-200 mb-4 line-clamp-2 sm:line-clamp-3" data-testid={`text-band-description-${band.id}`}>
                   {band.description}
                 </p>
+
+                {/* Upcoming Tours Section */}
+                {band.upcomingTours && band.upcomingTours.length > 0 && (
+                  <div className="mb-4 p-3 sm:p-4 bg-metal-red/10 border border-metal-red/30 rounded-lg">
+                    <div className="flex items-center mb-3">
+                      <Calendar className="w-4 h-4 text-metal-red mr-2" />
+                      <h4 className="text-sm sm:text-base font-bold text-metal-red uppercase tracking-wider">
+                        Upcoming Shows
+                      </h4>
+                    </div>
+                    <div className="space-y-2 sm:space-y-3">
+                      {band.upcomingTours.map((tour) => (
+                        <div 
+                          key={tour.id} 
+                          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2 border-b border-metal-red/20 last:border-b-0 last:pb-0"
+                          data-testid={`tour-info-${tour.id}`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-1">
+                              <span className="font-bold text-white text-xs sm:text-sm truncate" data-testid={`text-tour-name-${tour.id}`}>
+                                {tour.tourName}
+                              </span>
+                              <div className="flex items-center text-gray-400 text-xs">
+                                <MapPin className="w-3 h-3 mr-1" />
+                                <span data-testid={`text-tour-location-${tour.id}`} className="truncate">
+                                  {tour.city}, {tour.country}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center text-xs text-gray-500 gap-3">
+                              <span data-testid={`text-tour-date-${tour.id}`}>
+                                {formatDate(tour.date)}
+                              </span>
+                              <span data-testid={`text-tour-time-${tour.id}`}>
+                                {formatTime(tour.date)}
+                              </span>
+                              {tour.price && (
+                                <span data-testid={`text-tour-price-${tour.id}`}>
+                                  From {tour.price}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Ticket Links */}
+                          <div className="flex flex-row gap-2 self-start sm:self-auto">
+                            {tour.ticketmasterUrl && (
+                              <Button
+                                size="sm"
+                                onClick={() => window.open(tour.ticketmasterUrl!, '_blank')}
+                                className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 min-h-[32px]"
+                                data-testid={`button-ticketmaster-${tour.id}`}
+                              >
+                                <ExternalLink className="w-3 h-3 mr-1" />
+                                <span className="hidden sm:inline">Ticketmaster</span>
+                                <span className="sm:hidden">TM</span>
+                              </Button>
+                            )}
+                            {tour.seatgeekUrl && (
+                              <Button
+                                size="sm"
+                                onClick={() => window.open(tour.seatgeekUrl!, '_blank')}
+                                className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 min-h-[32px]"
+                                data-testid={`button-seatgeek-${tour.id}`}
+                              >
+                                <ExternalLink className="w-3 h-3 mr-1" />
+                                <span className="hidden sm:inline">SeatGeek</span>
+                                <span className="sm:hidden">SG</span>
+                              </Button>
+                            )}
+                            {!tour.ticketmasterUrl && !tour.seatgeekUrl && tour.ticketUrl && (
+                              <Button
+                                size="sm"
+                                onClick={() => window.open(tour.ticketUrl!, '_blank')}
+                                className="bg-metal-red hover:bg-metal-red-bright text-white text-xs px-2 py-1 min-h-[32px]"
+                                data-testid={`button-tickets-${tour.id}`}
+                              >
+                                <ExternalLink className="w-3 h-3 mr-1" />
+                                <span className="hidden sm:inline">Tickets</span>
+                                <span className="sm:hidden">Tix</span>
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                   <Link href={`/bands/${band.id}`} data-testid={`button-view-profile-${band.id}`} className="flex-1">
                     <Button className="bg-metal-red hover:bg-metal-red-bright text-sm font-bold uppercase tracking-wider w-full sm:w-auto min-h-[44px]">

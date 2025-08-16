@@ -212,8 +212,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bands = await storage.getBands();
       }
       
-      res.json(bands);
+      // Get upcoming tours for each band
+      const bandsWithTours = await Promise.all(
+        bands.map(async (band) => {
+          const upcomingTours = await storage.getToursByBand(band.id);
+          const now = new Date();
+          const currentTours = upcomingTours.filter(tour => 
+            new Date(tour.date) > now && 
+            tour.status !== 'cancelled'
+          ).slice(0, 3); // Get max 3 upcoming tours
+          
+          return {
+            ...band,
+            upcomingTours: currentTours
+          };
+        })
+      );
+      
+      res.json(bandsWithTours);
     } catch (error) {
+      console.error('Error fetching bands with tours:', error);
       res.status(500).json({ message: "Failed to fetch bands" });
     }
   });
