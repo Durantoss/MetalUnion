@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { MetalLoader } from "@/components/ui/metal-loader";
 import LighterRating from "@/components/ui/star-rating";
 import { Search } from "lucide-react";
 import type { Band } from "@shared/schema";
@@ -69,33 +69,24 @@ export default function Bands() {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="bg-card-dark border-metal-gray">
-              <Skeleton className="w-full h-48 bg-metal-gray" />
-              <CardContent className="p-6">
-                <Skeleton className="h-6 bg-metal-gray mb-2" />
-                <Skeleton className="h-4 bg-metal-gray w-1/2 mb-3" />
-                <Skeleton className="h-16 bg-metal-gray mb-4" />
-                <div className="flex justify-between items-center">
-                  <Skeleton className="h-10 w-24 bg-metal-gray" />
-                  <Skeleton className="h-4 w-20 bg-metal-gray" />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="flex items-center justify-center min-h-96">
+          <MetalLoader size="lg" variant="flame" text="SUMMONING BANDS..." />
         </div>
       ) : bands.length === 0 ? (
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold mb-4">
-            {searchQuery ? "No bands found" : "No bands available"}
-          </h2>
-          <p className="text-gray-400 mb-6">
-            {searchQuery 
-              ? `Try searching for different terms or browse all bands.`
-              : "Be the first to add a band to our database!"
-            }
-          </p>
+        <Card className="bg-card-dark border-metal-gray">
+          <CardContent className="p-12 text-center">
+            <div className="mb-6">
+              <MetalLoader size="md" variant="skull" />
+            </div>
+            <h2 className="text-2xl font-black mb-4 uppercase tracking-wider text-gray-300">
+              {searchQuery ? "NO BANDS FOUND" : "THE VAULT IS EMPTY"}
+            </h2>
+            <p className="text-gray-400 mb-6">
+              {searchQuery 
+                ? "The underground remains silent... try different search terms."
+                : "Be the first to unleash bands into our realm!"
+              }
+            </p>
           {searchQuery && (
             <Button 
               onClick={() => {
@@ -108,7 +99,8 @@ export default function Bands() {
               Browse All Bands
             </Button>
           )}
-        </div>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {bands.map((band) => (

@@ -12,6 +12,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { User, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { MetalLoader } from "@/components/ui/metal-loader";
 
 const stagenameSchema = z.object({
   stagename: z.string()
@@ -113,8 +114,8 @@ export default function Profile() {
   if (isLoading) {
     return (
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-metal-red" />
+        <div className="flex items-center justify-center min-h-96">
+          <MetalLoader size="lg" variant="skull" text="LOADING PROFILE..." />
         </div>
       </main>
     );
@@ -138,7 +139,7 @@ export default function Profile() {
 
   const getAvailabilityIcon = () => {
     if (checkingAvailability) {
-      return <Loader2 className="w-4 h-4 animate-spin text-gray-400" />;
+      return <MetalLoader size="sm" variant="lightning" />;
     }
     if (availabilityStatus === 'available') {
       return <CheckCircle className="w-4 h-4 text-green-500" />;
