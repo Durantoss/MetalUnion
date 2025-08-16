@@ -31,7 +31,7 @@ export default function Bands() {
   // Extract unique genres for filter dropdown
   const availableGenres = useMemo(() => {
     const genres = allBands.map(band => band.genre).filter(Boolean);
-    return [...new Set(genres)].sort();
+    return Array.from(new Set(genres)).sort();
   }, [allBands]);
 
   // Filter and search bands locally for better UX
@@ -39,7 +39,7 @@ export default function Bands() {
     let filtered = allBands;
 
     // Genre filter
-    if (selectedGenre) {
+    if (selectedGenre && selectedGenre !== "all") {
       filtered = filtered.filter(band => band.genre === selectedGenre);
     }
 
@@ -100,7 +100,7 @@ export default function Bands() {
   const clearFilters = () => {
     setSearchQuery("");
     setSearchInput("");
-    setSelectedGenre("");
+    setSelectedGenre("all");
   };
 
   const selectSuggestion = (suggestion: string) => {
@@ -109,7 +109,7 @@ export default function Bands() {
     setShowSuggestions(false);
   };
 
-  const activeFiltersCount = (searchQuery ? 1 : 0) + (selectedGenre ? 1 : 0);
+  const activeFiltersCount = (searchQuery ? 1 : 0) + (selectedGenre && selectedGenre !== "all" ? 1 : 0);
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -155,12 +155,12 @@ export default function Bands() {
 
             {/* Genre Filter */}
             <div className="min-w-full sm:min-w-48">
-              <Select value={selectedGenre} onValueChange={setSelectedGenre}>
+              <Select value={selectedGenre || "all"} onValueChange={setSelectedGenre}>
                 <SelectTrigger className="bg-black border-metal-gray text-white focus:border-metal-red h-12 sm:h-14 font-bold uppercase tracking-wider text-sm sm:text-base" data-testid="select-genre-filter">
                   <SelectValue placeholder="ALL GENRES" />
                 </SelectTrigger>
                 <SelectContent className="bg-black border-metal-red">
-                  <SelectItem value="" className="text-white hover:bg-metal-red/20 font-bold uppercase min-h-[44px] text-sm sm:text-base">ALL GENRES</SelectItem>
+                  <SelectItem value="all" className="text-white hover:bg-metal-red/20 font-bold uppercase min-h-[44px] text-sm sm:text-base">ALL GENRES</SelectItem>
                   {availableGenres.map((genre) => (
                     <SelectItem key={genre} value={genre} className="text-white hover:bg-metal-red/20 font-bold uppercase min-h-[44px] text-sm sm:text-base">
                       {genre}
@@ -196,12 +196,12 @@ export default function Bands() {
                 </Badge>
               )}
               
-              {selectedGenre && (
+              {selectedGenre && selectedGenre !== "all" && (
                 <Badge className="bg-metal-red text-white font-bold uppercase px-3 py-2 text-xs sm:text-sm min-h-[36px]" data-testid="filter-genre">
                   GENRE: {selectedGenre}
                   <X 
                     className="w-3 h-3 ml-2 cursor-pointer hover:bg-white/20 rounded" 
-                    onClick={() => setSelectedGenre("")}
+                    onClick={() => setSelectedGenre("all")}
                   />
                 </Badge>
               )}
