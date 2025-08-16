@@ -17,6 +17,7 @@ import MyBands from "@/pages/my-bands";
 import Search from "@/pages/search";
 import NotFound from "@/pages/not-found";
 import UserOnboarding from "@/components/user-onboarding";
+import { InstallPrompt } from "@/components/install-prompt";
 import { useAuth } from "@/hooks/useAuth";
 import { MetalLoader } from "@/components/ui/metal-loader";
 
@@ -63,6 +64,7 @@ function Router() {
         <Route component={NotFound} />
       </Switch>
       <Footer />
+      <InstallPrompt />
     </div>
   );
 }

@@ -1,0 +1,27 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1f1f1f"/>
+      <stop offset="100%" style="stop-color:#0f0f0f"/>
+    </linearGradient>
+    <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ef4444"/>
+      <stop offset="100%" style="stop-color:#dc2626"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="url(#bgGradient)"/>
+  
+  <!-- Metal "M" Letter -->
+  <path d="M 120 150 L 120 362 L 160 362 L 160 230 L 200 290 L 240 290 L 280 230 L 280 362 L 320 362 L 320 150 L 270 150 L 220 240 L 170 150 Z" fill="url(#redGradient)" stroke="#fff" stroke-width="2"/>
+  
+  <!-- Decorative metal elements -->
+  <circle cx="140" cy="180" r="8" fill="#dc2626"/>
+  <circle cx="300" cy="180" r="8" fill="#dc2626"/>
+  <circle cx="140" cy="340" r="8" fill="#dc2626"/>
+  <circle cx="300" cy="340" r="8" fill="#dc2626"/>
+  
+  <!-- Bottom text -->
+  <text x="256" y="420" text-anchor="middle" fill="#dc2626" font-family="sans-serif" font-size="32" font-weight="bold">HUB</text>
+</svg>
