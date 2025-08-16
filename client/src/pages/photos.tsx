@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PhotoUpload from "@/components/forms/photo-upload";
 import { PhotoLightbox } from "@/components/ui/photo-lightbox";
-import { Upload, Filter, Eye } from "lucide-react";
+import { Upload, Filter, Eye, Search, X, SlidersHorizontal, Calendar, User } from "lucide-react";
 import type { Photo } from "@shared/schema";
 
 export default function Photos() {
@@ -14,15 +16,95 @@ export default function Photos() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // Advanced filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUploader, setSelectedUploader] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
+  const [sortBy, setSortBy] = useState<string>('date-desc');
 
   const { data: allPhotos = [], isLoading } = useQuery<Photo[]>({
     queryKey: ["/api/photos"],
   });
 
-  // Filter photos by category
-  const photos = selectedCategory === "all" 
-    ? allPhotos 
-    : allPhotos.filter(photo => photo.category === selectedCategory);
+  // Extract unique values for filter options
+  const filterOptions = useMemo(() => {
+    const uploaders = Array.from(new Set(allPhotos.map(photo => photo.uploadedBy))).sort();
+    return { uploaders };
+  }, [allPhotos]);
+
+  // Advanced filtering logic
+  const filteredPhotos = useMemo(() => {
+    let filtered = allPhotos;
+
+    // Apply category filter
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(photo => photo.category === selectedCategory);
+    }
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(photo => 
+        photo.title.toLowerCase().includes(query) ||
+        (photo.description && photo.description.toLowerCase().includes(query)) ||
+        photo.uploadedBy.toLowerCase().includes(query) ||
+        photo.category.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply uploader filter
+    if (selectedUploader !== 'all') {
+      filtered = filtered.filter(photo => photo.uploadedBy === selectedUploader);
+    }
+
+    // Apply date range filters
+    if (dateFrom) {
+      filtered = filtered.filter(photo => photo.createdAt && new Date(photo.createdAt) >= new Date(dateFrom));
+    }
+    if (dateTo) {
+      filtered = filtered.filter(photo => photo.createdAt && new Date(photo.createdAt) <= new Date(dateTo));
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'date-desc':
+          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+        case 'date-asc':
+          return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+        case 'title':
+          return a.title.localeCompare(b.title);
+        case 'uploader':
+          return a.uploadedBy.localeCompare(b.uploadedBy);
+        case 'category':
+          return a.category.localeCompare(b.category);
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [allPhotos, selectedCategory, searchQuery, selectedUploader, dateFrom, dateTo, sortBy]);
+
+  // Keep the original photos reference for lightbox navigation
+  const photos = filteredPhotos;
+  
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('all');
+    setSelectedUploader('all');
+    setDateFrom('');
+    setDateTo('');
+    setSortBy('date-desc');
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = searchQuery || selectedCategory !== 'all' || selectedUploader !== 'all' || 
+    dateFrom || dateTo || sortBy !== 'date-desc';
 
   const openLightbox = (index: number) => {
     setCurrentPhotoIndex(index);
@@ -67,44 +149,176 @@ export default function Photos() {
         <p className="text-gray-400 mb-4 sm:mb-6 text-sm sm:text-base">
           Share your metal moments! Upload photos from concerts, backstage, equipment, and more.
         </p>
-        
-        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-          <Button 
-            onClick={() => setShowUploadForm(!showUploadForm)}
-            className="bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider w-full sm:w-auto min-h-[48px] text-sm sm:text-base"
-            data-testid="button-upload-photo"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            {showUploadForm ? "Cancel Upload" : "Upload Photo"}
-          </Button>
-          
-          {/* Category Filter */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto">
-            <div className="flex items-center space-x-2">
-              <Filter className="w-4 h-4 text-gray-400" />
-              <span className="text-sm text-gray-400 font-bold uppercase hidden sm:inline">Filters:</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
-                <Button
-                  key={category.value}
-                  variant={selectedCategory === category.value ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category.value)}
-                  className={`text-xs sm:text-xs font-bold uppercase tracking-wider min-h-[36px] px-3 ${
-                    selectedCategory === category.value 
-                      ? "bg-metal-red hover:bg-metal-red-bright text-white" 
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                  data-testid={`button-filter-${category.value}`}
-                >
-                  {category.label}
-                </Button>
-              ))}
-            </div>
+      </div>
+
+      {/* Search and Quick Controls */}
+      <div className="mb-6 space-y-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Input
+            placeholder="Search photos by title, description, uploader, or category..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-12 bg-card-dark border-metal-gray text-white placeholder:text-gray-400"
+            data-testid="input-search-photos"
+          />
+        </div>
+
+        {/* Quick Controls */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button 
+              onClick={() => setShowUploadForm(!showUploadForm)}
+              size="sm"
+              className="bg-metal-red hover:bg-metal-red-bright font-bold uppercase tracking-wider"
+              data-testid="button-upload-photo"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {showUploadForm ? "Cancel Upload" : "Upload Photo"}
+            </Button>
+
+            {/* Category Filter Buttons */}
+            {categories.map((category) => (
+              <Button
+                key={category.value}
+                variant={selectedCategory === category.value ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setSelectedCategory(category.value)}
+                className={`text-xs font-bold uppercase tracking-wider ${
+                  selectedCategory === category.value 
+                    ? "bg-metal-red hover:bg-metal-red-bright text-white" 
+                    : "text-gray-400 hover:text-white"
+                }`}
+                data-testid={`button-filter-${category.value}`}
+              >
+                {category.label}
+              </Button>
+            ))}
+
+            <Button
+              onClick={() => setShowFilters(!showFilters)}
+              variant="outline"
+              size="sm"
+              className={`border-metal-gray text-white hover:bg-metal-red/20 ${hasActiveFilters ? 'bg-metal-red/20 border-metal-red' : ''}`}
+              data-testid="button-toggle-filters"
+            >
+              <SlidersHorizontal className="w-4 h-4 mr-2" />
+              More Filters {hasActiveFilters && `(${[searchQuery, selectedCategory !== 'all', selectedUploader !== 'all', dateFrom, dateTo, sortBy !== 'date-desc'].filter(Boolean).length})`}
+            </Button>
+
+            {hasActiveFilters && (
+              <Button
+                onClick={clearFilters}
+                variant="ghost"
+                size="sm"
+                className="text-metal-red hover:text-metal-red-bright hover:bg-metal-red/10"
+                data-testid="button-clear-filters"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Clear
+              </Button>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Advanced Filters */}
+      {showFilters && (
+        <Card className="bg-card-dark border-metal-gray mb-6">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center">
+              <Filter className="w-5 h-5 mr-2 text-metal-red" />
+              Advanced Filters
+            </h3>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {/* Uploader Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300 flex items-center">
+                  <User className="w-4 h-4 mr-1" />
+                  Uploader
+                </label>
+                <Select value={selectedUploader} onValueChange={setSelectedUploader}>
+                  <SelectTrigger className="bg-card-dark border-metal-gray text-white" data-testid="select-uploader">
+                    <SelectValue placeholder="All Uploaders" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card-dark border-metal-gray">
+                    <SelectItem value="all">All Uploaders</SelectItem>
+                    {filterOptions.uploaders.map((uploader) => (
+                      <SelectItem key={uploader} value={uploader}>{uploader}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Date From */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300 flex items-center">
+                  <Calendar className="w-4 h-4 mr-1" />
+                  From Date
+                </label>
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="bg-card-dark border-metal-gray text-white"
+                  data-testid="input-date-from"
+                />
+              </div>
+
+              {/* Date To */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300 flex items-center">
+                  <Calendar className="w-4 h-4 mr-1" />
+                  To Date
+                </label>
+                <Input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="bg-card-dark border-metal-gray text-white"
+                  data-testid="input-date-to"
+                />
+              </div>
+
+              {/* Sort By */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">Sort By</label>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="bg-card-dark border-metal-gray text-white" data-testid="select-sort">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card-dark border-metal-gray">
+                    <SelectItem value="date-desc">Newest First</SelectItem>
+                    <SelectItem value="date-asc">Oldest First</SelectItem>
+                    <SelectItem value="title">Title (A-Z)</SelectItem>
+                    <SelectItem value="uploader">Uploader (A-Z)</SelectItem>
+                    <SelectItem value="category">Category</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Results Summary */}
+            <div className="mt-4 pt-4 border-t border-metal-gray/30">
+              <p className="text-sm text-gray-400">
+                Showing <span className="font-bold text-white">{photos.length}</span> of <span className="font-bold text-white">{allPhotos.length}</span> photos
+                {hasActiveFilters && (
+                  <Button
+                    onClick={clearFilters}
+                    variant="link"
+                    className="ml-2 text-metal-red hover:text-metal-red-bright p-0 h-auto"
+                    data-testid="link-clear-filters"
+                  >
+                    Clear all filters
+                  </Button>
+                )}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Upload Form */}
       {showUploadForm && (
@@ -134,24 +348,38 @@ export default function Photos() {
         <Card className="bg-card-dark border-metal-gray">
           <CardContent className="p-6 sm:p-12 text-center">
             <h2 className="text-xl sm:text-2xl font-bold mb-4">
-              {selectedCategory === "all" ? "No Photos Yet" : `No ${categories.find(c => c.value === selectedCategory)?.label} Photos`}
+              {hasActiveFilters ? 'No Photos Match Your Filters' : (selectedCategory === "all" ? "No Photos Yet" : `No ${categories.find(c => c.value === selectedCategory)?.label} Photos`)}
             </h2>
             <p className="text-gray-400 mb-4 sm:mb-6 text-sm sm:text-base">
-              {selectedCategory === "all" 
-                ? "Be the first to share your metal moments! Upload photos from concerts, backstage, equipment, and more."
-                : `No photos found in the ${categories.find(c => c.value === selectedCategory)?.label.toLowerCase()} category. Try a different filter or upload some photos.`
+              {hasActiveFilters
+                ? 'Try adjusting your filters or search terms to find more photos'
+                : (selectedCategory === "all" 
+                  ? "Be the first to share your metal moments! Upload photos from concerts, backstage, equipment, and more."
+                  : `No photos found in the ${categories.find(c => c.value === selectedCategory)?.label.toLowerCase()} category. Try a different filter or upload some photos.`
+                )
               }
             </p>
             <div className="space-y-3 sm:space-y-4">
+              {hasActiveFilters && (
+                <Button
+                  onClick={clearFilters}
+                  variant="outline"
+                  className="border-metal-gray text-white hover:bg-metal-red/20 mr-4"
+                  data-testid="button-clear-filters-empty"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Clear Filters
+                </Button>
+              )}
               <Button 
                 onClick={() => setShowUploadForm(true)}
                 className="bg-metal-red hover:bg-metal-red-bright w-full sm:w-auto min-h-[48px]"
                 data-testid="button-upload-first-photo"
               >
                 <Upload className="w-4 h-4 mr-2" />
-                Upload First Photo
+                Upload Photo
               </Button>
-              {selectedCategory !== "all" && (
+              {selectedCategory !== "all" && !hasActiveFilters && (
                 <div>
                   <Button 
                     variant="outline"
@@ -170,12 +398,33 @@ export default function Photos() {
         <>
           {/* Results Info */}
           <div className="mb-4 sm:mb-6">
-            <p className="text-gray-400 text-sm sm:text-base">
-              {selectedCategory === "all" 
-                ? `Showing ${photos.length} photos`
-                : `Found ${photos.length} ${categories.find(c => c.value === selectedCategory)?.label.toLowerCase()} photos`
-              }
-            </p>
+            <div className="bg-card-dark/50 border border-metal-gray/30 rounded-lg p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <p className="text-gray-400 text-sm">
+                  Showing <span className="font-bold text-white">{photos.length}</span> photos
+                  {hasActiveFilters && (
+                    <span className="ml-2 text-xs bg-metal-red/20 text-metal-red px-2 py-1 rounded">
+                      Filtered
+                    </span>
+                  )}
+                  {selectedCategory !== 'all' && (
+                    <span className="ml-2 text-xs bg-blue-600/20 text-blue-400 px-2 py-1 rounded">
+                      {categories.find(c => c.value === selectedCategory)?.label}
+                    </span>
+                  )}
+                </p>
+                <div className="text-xs text-gray-500">
+                  Sorted by: <span className="text-white">
+                    {sortBy === 'date-desc' ? 'Newest First' :
+                     sortBy === 'date-asc' ? 'Oldest First' :
+                     sortBy === 'title' ? 'Title (A-Z)' :
+                     sortBy === 'uploader' ? 'Uploader (A-Z)' :
+                     sortBy === 'category' ? 'Category' : sortBy
+                    }
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Photos Grid */}
@@ -239,10 +488,17 @@ export default function Photos() {
           {/* Load More */}
           <div className="text-center mt-6 sm:mt-8">
             <p className="text-gray-400 text-xs sm:text-sm">
-              {selectedCategory === "all" 
-                ? `Showing ${photos.length} photos`
-                : `Showing ${photos.length} ${categories.find(c => c.value === selectedCategory)?.label.toLowerCase()} photos`
-              }
+              Showing <span className="font-bold text-white">{photos.length}</span> of <span className="font-bold text-white">{allPhotos.length}</span> photos
+              {hasActiveFilters && (
+                <Button
+                  onClick={clearFilters}
+                  variant="link"
+                  className="ml-2 text-metal-red hover:text-metal-red-bright p-0 h-auto text-xs"
+                  data-testid="link-clear-filters-bottom"
+                >
+                  Clear all filters
+                </Button>
+              )}
             </p>
           </div>
         </>

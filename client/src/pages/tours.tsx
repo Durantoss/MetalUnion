@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MetalLoader } from "@/components/ui/metal-loader";
 import TourSubmission from "@/components/forms/tour-submission";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -19,7 +21,12 @@ import {
   TrendingUp,
   Clock,
   Globe,
-  Plus
+  Plus,
+  Search,
+  Filter,
+  ChevronDown,
+  X,
+  SlidersHorizontal
 } from "lucide-react";
 
 interface TourWithBand {
@@ -53,6 +60,18 @@ interface TourStats {
 export default function Tours() {
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
   const [viewMode, setViewMode] = useState<'upcoming' | 'all'>('upcoming');
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedGenre, setSelectedGenre] = useState<string>('all');
+  const [selectedCountry, setSelectedCountry] = useState<string>('all');
+  const [selectedCity, setSelectedCity] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
+  const [priceRange, setPriceRange] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('date');
+  
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
 
@@ -119,7 +138,115 @@ export default function Tours() {
     return new Date(date) > new Date();
   };
 
+  // Extract unique values for filter options
+  const filterOptions = useMemo(() => {
+    const genres = Array.from(new Set(tours.map(tour => tour.band?.genre).filter((genre): genre is string => Boolean(genre)))).sort();
+    const countries = Array.from(new Set(tours.map(tour => tour.country))).sort();
+    const cities = Array.from(new Set(tours.map(tour => tour.city))).sort();
+    
+    return { genres, countries, cities };
+  }, [tours]);
+
+  // Advanced filtering logic
+  const filteredTours = useMemo(() => {
+    let filtered = tours;
+
+    // Apply view mode filter
+    if (viewMode === 'upcoming') {
+      filtered = filtered.filter(tour => isUpcoming(tour.date));
+    }
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(tour => 
+        tour.band?.name.toLowerCase().includes(query) ||
+        tour.tourName.toLowerCase().includes(query) ||
+        tour.venue.toLowerCase().includes(query) ||
+        tour.city.toLowerCase().includes(query) ||
+        tour.country.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply genre filter
+    if (selectedGenre !== 'all') {
+      filtered = filtered.filter(tour => tour.band?.genre === selectedGenre);
+    }
+
+    // Apply country filter
+    if (selectedCountry !== 'all') {
+      filtered = filtered.filter(tour => tour.country === selectedCountry);
+    }
+
+    // Apply city filter
+    if (selectedCity !== 'all') {
+      filtered = filtered.filter(tour => tour.city === selectedCity);
+    }
+
+    // Apply date range filters
+    if (dateFrom) {
+      filtered = filtered.filter(tour => new Date(tour.date) >= new Date(dateFrom));
+    }
+    if (dateTo) {
+      filtered = filtered.filter(tour => new Date(tour.date) <= new Date(dateTo));
+    }
+
+    // Apply price range filter
+    if (priceRange !== 'all') {
+      filtered = filtered.filter(tour => {
+        if (!tour.price) return priceRange === 'free';
+        const price = parseFloat(tour.price.replace(/[^\d.]/g, ''));
+        switch (priceRange) {
+          case 'free': return price === 0;
+          case 'under-50': return price < 50;
+          case '50-100': return price >= 50 && price <= 100;
+          case '100-200': return price > 100 && price <= 200;
+          case 'over-200': return price > 200;
+          default: return true;
+        }
+      });
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'date':
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        case 'date-desc':
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        case 'band':
+          return (a.band?.name || '').localeCompare(b.band?.name || '');
+        case 'location':
+          return `${a.city}, ${a.country}`.localeCompare(`${b.city}, ${b.country}`);
+        case 'price':
+          const priceA = parseFloat((a.price || '0').replace(/[^\d.]/g, ''));
+          const priceB = parseFloat((b.price || '0').replace(/[^\d.]/g, ''));
+          return priceA - priceB;
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [tours, viewMode, searchQuery, selectedGenre, selectedCountry, selectedCity, dateFrom, dateTo, priceRange, sortBy]);
+
   const upcomingTours = tours.filter(tour => isUpcoming(tour.date));
+  
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedGenre('all');
+    setSelectedCountry('all');
+    setSelectedCity('all');
+    setDateFrom('');
+    setDateTo('');
+    setPriceRange('all');
+    setSortBy('date');
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = searchQuery || selectedGenre !== 'all' || selectedCountry !== 'all' || 
+    selectedCity !== 'all' || dateFrom || dateTo || priceRange !== 'all' || sortBy !== 'date';
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -190,53 +317,234 @@ export default function Tours() {
         </div>
       )}
 
-      {/* Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div className="flex items-center space-x-2">
-          <Button
-            onClick={() => setViewMode('upcoming')}
-            variant={viewMode === 'upcoming' ? 'default' : 'outline'}
-            className={viewMode === 'upcoming' ? 'bg-metal-red hover:bg-metal-red-bright' : 'border-metal-gray text-white hover:bg-metal-red/20'}
-            data-testid="button-upcoming-tours"
-          >
-            <TrendingUp className="w-4 h-4 mr-2" />
-            Upcoming ({upcomingTours.length})
-          </Button>
-          <Button
-            onClick={() => setViewMode('all')}
-            variant={viewMode === 'all' ? 'default' : 'outline'}
-            className={viewMode === 'all' ? 'bg-metal-red hover:bg-metal-red-bright' : 'border-metal-gray text-white hover:bg-metal-red/20'}
-            data-testid="button-all-tours"
-          >
-            <Calendar className="w-4 h-4 mr-2" />
-            All Tours ({tours.length})
-          </Button>
+      {/* Search and Quick Controls */}
+      <div className="mb-6 space-y-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Input
+            placeholder="Search bands, venues, cities, or countries..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-12 bg-card-dark border-metal-gray text-white placeholder:text-gray-400"
+            data-testid="input-search-tours"
+          />
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Button
-            onClick={() => refreshToursMutation.mutate()}
-            disabled={refreshToursMutation.isPending}
-            variant="outline"
-            className="border-metal-gray text-white hover:bg-metal-red/20"
-            data-testid="button-refresh-tours"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${refreshToursMutation.isPending ? 'animate-spin' : ''}`} />
-            {refreshToursMutation.isPending ? 'Updating...' : 'Update Tours'}
-          </Button>
-
-          {isAuthenticated && (
+        {/* Quick Controls */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
-              onClick={() => setShowSubmissionForm(!showSubmissionForm)}
-              className="bg-metal-red hover:bg-metal-red-bright font-bold"
-              data-testid="button-add-tour"
+              onClick={() => setViewMode('upcoming')}
+              variant={viewMode === 'upcoming' ? 'default' : 'outline'}
+              size="sm"
+              className={viewMode === 'upcoming' ? 'bg-metal-red hover:bg-metal-red-bright' : 'border-metal-gray text-white hover:bg-metal-red/20'}
+              data-testid="button-upcoming-tours"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Tour
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Upcoming ({upcomingTours.length})
             </Button>
-          )}
+            <Button
+              onClick={() => setViewMode('all')}
+              variant={viewMode === 'all' ? 'default' : 'outline'}
+              size="sm"
+              className={viewMode === 'all' ? 'bg-metal-red hover:bg-metal-red-bright' : 'border-metal-gray text-white hover:bg-metal-red/20'}
+              data-testid="button-all-tours"
+            >
+              <Calendar className="w-4 h-4 mr-2" />
+              All Tours ({tours.length})
+            </Button>
+
+            <Button
+              onClick={() => setShowFilters(!showFilters)}
+              variant="outline"
+              size="sm"
+              className={`border-metal-gray text-white hover:bg-metal-red/20 ${hasActiveFilters ? 'bg-metal-red/20 border-metal-red' : ''}`}
+              data-testid="button-toggle-filters"
+            >
+              <SlidersHorizontal className="w-4 h-4 mr-2" />
+              Filters {hasActiveFilters && `(${[searchQuery, selectedGenre !== 'all', selectedCountry !== 'all', selectedCity !== 'all', dateFrom, dateTo, priceRange !== 'all', sortBy !== 'date'].filter(Boolean).length})`}
+            </Button>
+
+            {hasActiveFilters && (
+              <Button
+                onClick={clearFilters}
+                variant="ghost"
+                size="sm"
+                className="text-metal-red hover:text-metal-red-bright hover:bg-metal-red/10"
+                data-testid="button-clear-filters"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Clear
+              </Button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => refreshToursMutation.mutate()}
+              disabled={refreshToursMutation.isPending}
+              variant="outline"
+              size="sm"
+              className="border-metal-gray text-white hover:bg-metal-red/20"
+              data-testid="button-refresh-tours"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${refreshToursMutation.isPending ? 'animate-spin' : ''}`} />
+              {refreshToursMutation.isPending ? 'Updating...' : 'Update'}
+            </Button>
+
+            {isAuthenticated && (
+              <Button
+                onClick={() => setShowSubmissionForm(!showSubmissionForm)}
+                size="sm"
+                className="bg-metal-red hover:bg-metal-red-bright font-bold"
+                data-testid="button-add-tour"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Tour
+              </Button>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Advanced Filters */}
+      {showFilters && (
+        <Card className="bg-card-dark border-metal-gray mb-6">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center">
+              <Filter className="w-5 h-5 mr-2 text-metal-red" />
+              Advanced Filters
+            </h3>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {/* Genre Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">Genre</label>
+                <Select value={selectedGenre} onValueChange={setSelectedGenre}>
+                  <SelectTrigger className="bg-card-dark border-metal-gray text-white" data-testid="select-genre">
+                    <SelectValue placeholder="All Genres" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card-dark border-metal-gray">
+                    <SelectItem value="all">All Genres</SelectItem>
+                    {filterOptions.genres.map((genre) => (
+                      <SelectItem key={genre} value={genre}>{genre}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Country Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">Country</label>
+                <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                  <SelectTrigger className="bg-card-dark border-metal-gray text-white" data-testid="select-country">
+                    <SelectValue placeholder="All Countries" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card-dark border-metal-gray">
+                    <SelectItem value="all">All Countries</SelectItem>
+                    {filterOptions.countries.map((country) => (
+                      <SelectItem key={country} value={country}>{country}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* City Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">City</label>
+                <Select value={selectedCity} onValueChange={setSelectedCity}>
+                  <SelectTrigger className="bg-card-dark border-metal-gray text-white" data-testid="select-city">
+                    <SelectValue placeholder="All Cities" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card-dark border-metal-gray">
+                    <SelectItem value="all">All Cities</SelectItem>
+                    {filterOptions.cities.map((city) => (
+                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Price Range Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">Price Range</label>
+                <Select value={priceRange} onValueChange={setPriceRange}>
+                  <SelectTrigger className="bg-card-dark border-metal-gray text-white" data-testid="select-price-range">
+                    <SelectValue placeholder="All Prices" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card-dark border-metal-gray">
+                    <SelectItem value="all">All Prices</SelectItem>
+                    <SelectItem value="free">Free</SelectItem>
+                    <SelectItem value="under-50">Under $50</SelectItem>
+                    <SelectItem value="50-100">$50 - $100</SelectItem>
+                    <SelectItem value="100-200">$100 - $200</SelectItem>
+                    <SelectItem value="over-200">Over $200</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Date From */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">From Date</label>
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="bg-card-dark border-metal-gray text-white"
+                  data-testid="input-date-from"
+                />
+              </div>
+
+              {/* Date To */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">To Date</label>
+                <Input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="bg-card-dark border-metal-gray text-white"
+                  data-testid="input-date-to"
+                />
+              </div>
+
+              {/* Sort By */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">Sort By</label>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="bg-card-dark border-metal-gray text-white" data-testid="select-sort">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card-dark border-metal-gray">
+                    <SelectItem value="date">Date (Earliest First)</SelectItem>
+                    <SelectItem value="date-desc">Date (Latest First)</SelectItem>
+                    <SelectItem value="band">Band Name</SelectItem>
+                    <SelectItem value="location">Location</SelectItem>
+                    <SelectItem value="price">Price (Low to High)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Results Summary */}
+            <div className="mt-4 pt-4 border-t border-metal-gray/30">
+              <p className="text-sm text-gray-400">
+                Showing <span className="font-bold text-white">{filteredTours.length}</span> of <span className="font-bold text-white">{tours.length}</span> tours
+                {hasActiveFilters && (
+                  <Button
+                    onClick={clearFilters}
+                    variant="link"
+                    className="ml-2 text-metal-red hover:text-metal-red-bright p-0 h-auto"
+                    data-testid="link-clear-filters"
+                  >
+                    Clear all filters
+                  </Button>
+                )}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tour Submission Form */}
       {showSubmissionForm && isAuthenticated && (
@@ -253,19 +561,33 @@ export default function Tours() {
         <div className="flex items-center justify-center min-h-96">
           <MetalLoader size="lg" variant="flame" text="LOADING TOURS..." />
         </div>
-      ) : tours.length === 0 ? (
+      ) : filteredTours.length === 0 ? (
         <Card className="bg-card-dark border-metal-gray">
           <CardContent className="p-12 text-center">
             <Calendar className="w-16 h-16 mx-auto text-metal-red mb-4" />
             <h2 className="text-2xl font-black mb-4 uppercase tracking-wider text-gray-300">
-              {viewMode === 'upcoming' ? 'No Upcoming Tours' : 'No Tours Found'}
+              {hasActiveFilters ? 'No Tours Match Your Filters' : (viewMode === 'upcoming' ? 'No Upcoming Tours' : 'No Tours Found')}
             </h2>
             <p className="text-gray-400 mb-6">
-              {viewMode === 'upcoming' 
-                ? 'Check back later for new tour announcements' 
-                : 'No tour data available at the moment'
+              {hasActiveFilters
+                ? 'Try adjusting your filters or search terms to find more tours'
+                : (viewMode === 'upcoming' 
+                  ? 'Check back later for new tour announcements' 
+                  : 'No tour data available at the moment'
+                )
               }
             </p>
+            {hasActiveFilters && (
+              <Button
+                onClick={clearFilters}
+                variant="outline"
+                className="border-metal-gray text-white hover:bg-metal-red/20 mr-4"
+                data-testid="button-clear-filters-empty"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Clear Filters
+              </Button>
+            )}
             <Button
               onClick={() => refreshToursMutation.mutate()}
               disabled={refreshToursMutation.isPending}
@@ -278,10 +600,31 @@ export default function Tours() {
         </Card>
       ) : (
         <div className="space-y-6">
-          {tours
-            .filter(tour => viewMode === 'all' || isUpcoming(tour.date))
-            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-            .map((tour) => (
+          {/* Results Summary */}
+          <div className="bg-card-dark/50 border border-metal-gray/30 rounded-lg p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <p className="text-gray-400 text-sm">
+                Showing <span className="font-bold text-white">{filteredTours.length}</span> tours
+                {hasActiveFilters && (
+                  <span className="ml-2 text-xs bg-metal-red/20 text-metal-red px-2 py-1 rounded">
+                    Filtered
+                  </span>
+                )}
+              </p>
+              <div className="text-xs text-gray-500">
+                Sorted by: <span className="text-white capitalize">
+                  {sortBy === 'date' ? 'Date (Earliest First)' :
+                   sortBy === 'date-desc' ? 'Date (Latest First)' :
+                   sortBy === 'band' ? 'Band Name' :
+                   sortBy === 'location' ? 'Location' :
+                   sortBy === 'price' ? 'Price (Low to High)' : sortBy
+                  }
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {filteredTours.map((tour) => (
             <Card key={tour.id} className="bg-card-dark border-metal-gray hover:border-metal-red/50 transition-colors" data-testid={`card-tour-${tour.id}`}>
               <CardContent className="p-6">
                 <div className="flex items-start space-x-4">
