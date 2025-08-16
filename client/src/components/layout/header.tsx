@@ -55,8 +55,8 @@ export default function Header() {
                 <Link href="/reviews" data-testid="link-reviews">
                   <span className={`px-4 py-3 text-sm font-black uppercase tracking-[0.2em] transition-all duration-300 transform hover:scale-105 relative group ${
                     isActive("/reviews") 
-                      ? "text-metal-red bg-metal-red/10 border border-metal-red shadow-lg shadow-metal-red/25" 
-                      : "text-gray-300 hover:text-white hover:bg-metal-red/20 hover:border-metal-red hover:shadow-md hover:shadow-metal-red/30 border border-transparent"
+                      ? "text-white bg-gradient-to-r from-metal-red to-red-700 border border-metal-red shadow-lg shadow-metal-red/50" 
+                      : "text-white bg-gradient-to-r from-metal-red to-red-700 hover:from-red-700 hover:to-metal-red border border-metal-red/50 shadow-lg shadow-metal-red/30 hover:shadow-xl hover:shadow-metal-red/50"
                   }`}>
                     REVIEWS
                     <div className="absolute inset-0 bg-gradient-to-r from-metal-red/0 via-metal-red/10 to-metal-red/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
