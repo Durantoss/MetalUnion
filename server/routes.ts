@@ -240,6 +240,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Band submission routes
+  app.post("/api/bands/submit", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.claims?.sub;
+      const parsed = insertBandSchema.parse(req.body);
+      const band = await storage.createBandSubmission({
+        ...parsed,
+        ownerId: userId,
+      });
+      res.status(201).json(band);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid band data" });
+    }
+  });
+
+  app.get("/api/my-bands", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.claims?.sub;
+      const bands = await storage.getBandsByOwner(userId);
+      res.json(bands);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch your bands" });
+    }
+  });
+
+  app.delete("/api/bands/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.claims?.sub;
+      const bandId = req.params.id;
+      
+      // Check if user owns this band
+      const band = await storage.getBand(bandId);
+      if (!band || band.ownerId !== userId) {
+        return res.status(403).json({ message: "You don't have permission to delete this band" });
+      }
+      
+      await storage.deleteBand(bandId);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete band" });
+    }
+  });
+
   // Reviews routes
   app.get("/api/reviews", async (req, res) => {
     try {

@@ -13,6 +13,7 @@ import Photos from "@/pages/photos";
 import Tours from "@/pages/tours";
 import Messages from "@/pages/messages";
 import Profile from "@/pages/profile";
+import MyBands from "@/pages/my-bands";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -28,6 +29,7 @@ function Router() {
         <Route path="/tours" component={Tours} />
         <Route path="/messages" component={Messages} />
         <Route path="/profile" component={Profile} />
+        <Route path="/my-bands" component={MyBands} />
         <Route component={NotFound} />
       </Switch>
       <Footer />

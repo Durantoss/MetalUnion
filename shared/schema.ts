@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 import { pgTable, text, varchar, integer, timestamp, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -37,6 +37,10 @@ export const bands = pgTable("bands", {
   albums: text("albums").array(),
   website: text("website"),
   instagram: text("instagram"),
+  ownerId: varchar("owner_id").references(() => users.id),
+  status: text("status").default("pending"), // 'pending', 'approved', 'rejected'
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  approvedAt: timestamp("approved_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -90,8 +94,56 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  ownedBands: many(bands),
+  messages: many(messages),
+}));
+
+export const bandsRelations = relations(bands, ({ one, many }) => ({
+  owner: one(users, {
+    fields: [bands.ownerId],
+    references: [users.id],
+  }),
+  reviews: many(reviews),
+  photos: many(photos),
+  tours: many(tours),
+}));
+
+export const reviewsRelations = relations(reviews, ({ one }) => ({
+  band: one(bands, {
+    fields: [reviews.bandId],
+    references: [bands.id],
+  }),
+}));
+
+export const photosRelations = relations(photos, ({ one }) => ({
+  band: one(bands, {
+    fields: [photos.bandId],
+    references: [bands.id],
+  }),
+}));
+
+export const toursRelations = relations(tours, ({ one }) => ({
+  band: one(bands, {
+    fields: [tours.bandId],
+    references: [bands.id],
+  }),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  author: one(users, {
+    fields: [messages.authorId],
+    references: [users.id],
+  }),
+}));
+
 export const insertBandSchema = createInsertSchema(bands).omit({
   id: true,
+  ownerId: true,
+  status: true,
+  submittedAt: true,
+  approvedAt: true,
   createdAt: true,
 });
 

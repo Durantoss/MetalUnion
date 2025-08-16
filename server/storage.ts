@@ -15,6 +15,8 @@ export interface IStorage {
   getBands(): Promise<Band[]>;
   getBand(id: string): Promise<Band | undefined>;
   createBand(band: InsertBand): Promise<Band>;
+  createBandSubmission(band: InsertBand & { ownerId: string }): Promise<Band>;
+  getBandsByOwner(ownerId: string): Promise<Band[]>;
   updateBand(id: string, band: Partial<InsertBand>): Promise<Band | undefined>;
   deleteBand(id: string): Promise<boolean>;
   searchBands(query: string): Promise<Band[]>;
@@ -393,6 +395,19 @@ export class DatabaseStorage implements IStorage {
   async createBand(insertBand: InsertBand): Promise<Band> {
     const [band] = await db.insert(bands).values(insertBand).returning();
     return band;
+  }
+
+  async createBandSubmission(bandData: InsertBand & { ownerId: string }): Promise<Band> {
+    const [band] = await db.insert(bands).values({
+      ...bandData,
+      status: 'pending',
+      submittedAt: new Date(),
+    }).returning();
+    return band;
+  }
+
+  async getBandsByOwner(ownerId: string): Promise<Band[]> {
+    return await db.select().from(bands).where(eq(bands.ownerId, ownerId)).orderBy(bands.submittedAt);
   }
 
   async updateBand(id: string, bandUpdate: Partial<InsertBand>): Promise<Band | undefined> {
