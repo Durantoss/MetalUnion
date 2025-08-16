@@ -38,41 +38,125 @@ async function seedDatabase() {
       bandsCreated = true;
     }
 
-    // Create sample bands
-    const metallica = await storage.createBand({
-      name: "METALLICA",
-      genre: "Thrash Metal",
-      description: "Legendary thrash metal pioneers from San Francisco, known for their aggressive sound and powerful live performances.",
+    // Create top 10 rock/metal bands from Spotify (2025)
+    const linkinPark = await storage.createBand({
+      name: "LINKIN PARK",
+      genre: "Nu Metal",
+      description: "Pioneering nu-metal band with massive Spotify presence (60.4M monthly listeners). Known for their fusion of rock, hip-hop, and electronic elements.",
       imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
-      founded: 1981,
-      members: ["James Hetfield", "Lars Ulrich", "Kirk Hammett", "Robert Trujillo"],
-      albums: ["Kill 'Em All", "Ride the Lightning", "Master of Puppets", "...And Justice for All", "Metallica (Black Album)"],
-      website: "https://metallica.com",
-      instagram: "https://instagram.com/metallica",
+      founded: 1996,
+      members: ["Mike Shinoda", "Brad Delson", "Dave Farrell", "Joe Hahn", "Rob Bourdon", "Emily Armstrong"],
+      albums: ["Hybrid Theory", "Meteora", "Minutes to Midnight", "A Thousand Suns", "Living Things"],
+      website: "https://linkinpark.com",
+      instagram: "https://instagram.com/linkinpark",
     });
 
-    const ironMaiden = await storage.createBand({
-      name: "IRON MAIDEN",
-      genre: "Heavy Metal",
-      description: "British heavy metal legends with epic storytelling and theatrical live shows that have defined metal for decades.",
+    const queen = await storage.createBand({
+      name: "QUEEN",
+      genre: "Rock",
+      description: "Legendary British rock band with global appeal (52.8M monthly listeners). Timeless classics that span generations with theatrical performances.",
       imageUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
-      founded: 1975,
-      members: ["Bruce Dickinson", "Steve Harris", "Dave Murray", "Adrian Smith", "Janick Gers", "Nicko McBrain"],
-      albums: ["Iron Maiden", "The Number of the Beast", "Piece of Mind", "Powerslave", "Somewhere in Time"],
-      website: "https://ironmaiden.com",
-      instagram: "https://instagram.com/ironmaiden",
+      founded: 1970,
+      members: ["Freddie Mercury", "Brian May", "Roger Taylor", "John Deacon"],
+      albums: ["Queen", "A Night at the Opera", "News of the World", "The Game", "Innuendo"],
+      website: "https://queenonline.com",
+      instagram: "https://instagram.com/officialqueenmusic",
     });
 
-    const blackSabbath = await storage.createBand({
-      name: "BLACK SABBATH",
-      genre: "Doom Metal",
-      description: "The godfathers of heavy metal, creating the blueprint for dark, heavy music that influenced generations.",
+    const acdc = await storage.createBand({
+      name: "AC/DC",
+      genre: "Hard Rock",
+      description: "Australian hard rock titans with consistent streaming power (37.7M monthly listeners). High-voltage rock and roll since the 1970s.",
       imageUrl: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
-      founded: 1968,
-      members: ["Ozzy Osbourne", "Tony Iommi", "Geezer Butler", "Bill Ward"],
-      albums: ["Black Sabbath", "Paranoid", "Master of Reality", "Vol. 4", "Sabbath Bloody Sabbath"],
-      website: "https://blacksabbath.com",
-      instagram: "https://instagram.com/blacksabbath",
+      founded: 1973,
+      members: ["Angus Young", "Brian Johnson", "Phil Rudd", "Cliff Williams", "Stevie Young"],
+      albums: ["High Voltage", "Highway to Hell", "Back in Black", "For Those About to Rock", "The Razors Edge"],
+      website: "https://acdc.com",
+      instagram: "https://instagram.com/acdc",
+    });
+
+    const redHotChiliPeppers = await storage.createBand({
+      name: "RED HOT CHILI PEPPERS",
+      genre: "Alternative Rock",
+      description: "Funk rock pioneers with crossover success (36.7M monthly listeners). Blending rock, funk, and rap with California attitude.",
+      imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+      founded: 1982,
+      members: ["Anthony Kiedis", "Flea", "Chad Smith", "John Frusciante"],
+      albums: ["Blood Sugar Sex Magik", "Californication", "By the Way", "Stadium Arcadium", "Unlimited Love"],
+      website: "https://redhotchilipeppers.com",
+      instagram: "https://instagram.com/chilipeppers",
+    });
+
+    const greenDay = await storage.createBand({
+      name: "GREEN DAY",
+      genre: "Pop Punk",
+      description: "Pop-punk legends with mainstream staying power (36.4M monthly listeners). Defined the 90s punk revival and continue to evolve.",
+      imageUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+      founded: 1987,
+      members: ["Billie Joe Armstrong", "Mike Dirnt", "Tré Cool"],
+      albums: ["Dookie", "Insomniac", "American Idiot", "21st Century Breakdown", "Revolution Radio"],
+      website: "https://greenday.com",
+      instagram: "https://instagram.com/greenday",
+    });
+
+    const nirvana = await storage.createBand({
+      name: "NIRVANA",
+      genre: "Grunge",
+      description: "Grunge pioneers with lasting cultural impact (32.9M monthly listeners). Defined alternative rock and the Seattle sound of the 90s.",
+      imageUrl: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+      founded: 1987,
+      members: ["Kurt Cobain", "Krist Novoselic", "Dave Grohl"],
+      albums: ["Bleach", "Nevermind", "In Utero", "MTV Unplugged in New York"],
+      website: "https://nirvana.com",
+      instagram: "https://instagram.com/nirvana",
+    });
+
+    const twentyOnePilots = await storage.createBand({
+      name: "TWENTY ONE PILOTS",
+      genre: "Alternative Rock",
+      description: "Modern alternative rock with metal influences (30.9M monthly listeners). Genre-blending duo from Columbus with devoted fanbase.",
+      imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+      founded: 2009,
+      members: ["Tyler Joseph", "Josh Dun"],
+      albums: ["Vessel", "Blurryface", "Trench", "Scaled and Icy", "Clancy"],
+      website: "https://twentyonepilots.com",
+      instagram: "https://instagram.com/twentyonepilots",
+    });
+
+    const gunsNRoses = await storage.createBand({
+      name: "GUNS N' ROSES",
+      genre: "Hard Rock",
+      description: "Hard rock icons maintaining streaming relevance (30.4M monthly listeners). Los Angeles rock legends with a rebellious attitude.",
+      imageUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+      founded: 1985,
+      members: ["Axl Rose", "Slash", "Duff McKagan", "Dizzy Reed", "Richard Fortus", "Frank Ferrer", "Melissa Reese"],
+      albums: ["Appetite for Destruction", "G N' R Lies", "Use Your Illusion I", "Use Your Illusion II", "Chinese Democracy"],
+      website: "https://gunsnroses.com",
+      instagram: "https://instagram.com/gunsnroses",
+    });
+
+    const bonJovi = await storage.createBand({
+      name: "BON JOVI",
+      genre: "Arena Rock",
+      description: "Arena rock veterans with broad appeal (30.0M monthly listeners). New Jersey rock icons known for anthemic choruses and stadium shows.",
+      imageUrl: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+      founded: 1983,
+      members: ["Jon Bon Jovi", "David Bryan", "Tico Torres", "Phil X"],
+      albums: ["Bon Jovi", "Slippery When Wet", "New Jersey", "Keep the Faith", "These Days"],
+      website: "https://bonjovi.com",
+      instagram: "https://instagram.com/bonjovi",
+    });
+
+    const radiohead = await storage.createBand({
+      name: "RADIOHEAD",
+      genre: "Alternative Rock",
+      description: "Art rock innovators with devoted fanbase (29.7M monthly listeners). Experimental British band pushing the boundaries of rock music.",
+      imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+      founded: 1985,
+      members: ["Thom Yorke", "Jonny Greenwood", "Colin Greenwood", "Ed O'Brien", "Philip Selway"],
+      albums: ["OK Computer", "Kid A", "In Rainbows", "Hail to the Thief", "A Moon Shaped Pool"],
+      website: "https://radiohead.com",
+      instagram: "https://instagram.com/radiohead",
     });
 
     // Check if we need to seed tours
@@ -81,32 +165,32 @@ async function seedDatabase() {
       console.log("Seeding database with initial tours...");
       
       // Get the band IDs (either from just created bands or existing ones)
-      const allBands = bandsCreated ? [metallica, ironMaiden, blackSabbath] : await storage.getBands();
-      const metallicaBand = allBands.find(b => b.name === "METALLICA");
-      const ironMaidenBand = allBands.find(b => b.name === "IRON MAIDEN");  
-      const blackSabbathBand = allBands.find(b => b.name === "BLACK SABBATH");
+      const allBands = bandsCreated ? [linkinPark, queen, acdc, redHotChiliPeppers, greenDay, nirvana, twentyOnePilots, gunsNRoses, bonJovi, radiohead] : await storage.getBands();
+      const linkinParkBand = allBands.find(b => b.name === "LINKIN PARK");
+      const queenBand = allBands.find(b => b.name === "QUEEN");
+      const acdcBand = allBands.find(b => b.name === "AC/DC");
 
-      // Create sample tours
-      if (metallicaBand) {
+      // Create sample tours for top Spotify bands
+      if (linkinParkBand) {
         await storage.createTour({
-      bandId: metallicaBand.id,
-      tourName: "M72 World Tour",
-      venue: "MetLife Stadium",
-      city: "East Rutherford",
+      bandId: linkinParkBand.id,
+      tourName: "From Zero World Tour 2025",
+      venue: "Madison Square Garden",
+      city: "New York",
       country: "USA",
-      date: new Date("2025-06-15T19:00:00Z"),
-      ticketmasterUrl: "https://www.ticketmaster.com/metallica-tickets/artist/806069",
-      seatgeekUrl: "https://seatgeek.com/metallica-tickets",
-      price: "$89.50+",
+      date: new Date("2025-07-20T19:30:00Z"),
+      ticketmasterUrl: "https://www.ticketmaster.com/linkin-park-tickets/artist/806070",
+      seatgeekUrl: "https://seatgeek.com/linkin-park-tickets",
+      price: "$75.00+",
       status: "upcoming"
     });
 
       }
 
-      if (ironMaidenBand) {
+      if (queenBand) {
         await storage.createTour({
-          bandId: ironMaidenBand.id,
-      tourName: "The Future Past Tour",
+          bandId: queenBand.id,
+      tourName: "Queen + Adam Lambert Rhapsody Tour",
       venue: "Madison Square Garden",
       city: "New York",
       country: "USA", 
@@ -119,10 +203,10 @@ async function seedDatabase() {
 
       }
 
-      if (blackSabbathBand) {
+      if (acdcBand) {
         await storage.createTour({
-          bandId: blackSabbathBand.id,
-      tourName: "Legacy Tour",
+          bandId: acdcBand.id,
+      tourName: "Power Up World Tour",
       venue: "Hollywood Bowl",
       city: "Los Angeles", 
       country: "USA",
