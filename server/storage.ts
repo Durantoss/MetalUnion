@@ -219,90 +219,6 @@ export class MemStorage implements IStorage {
     );
   }
 
-  async searchAll(query: string, filters: {
-    genre?: string;
-    photoCategory?: string;
-    reviewType?: string;
-    country?: string;
-    dateRange?: string;
-  } = {}): Promise<{
-    bands: Band[];
-    tours: Tour[];
-    reviews: Review[];
-    photos: Photo[];
-  }> {
-    const searchTerm = query.toLowerCase();
-    const now = new Date();
-    
-    // Search bands
-    let bands = Array.from(this.bands.values()).filter(band => 
-      band.name.toLowerCase().includes(searchTerm) ||
-      band.genre.toLowerCase().includes(searchTerm) ||
-      band.description.toLowerCase().includes(searchTerm)
-    );
-    
-    if (filters.genre && filters.genre !== 'all') {
-      bands = bands.filter(band => band.genre === filters.genre);
-    }
-    
-    // Search tours
-    let tours = Array.from(this.tours.values()).filter(tour => 
-      tour.tourName.toLowerCase().includes(searchTerm) ||
-      tour.venue.toLowerCase().includes(searchTerm) ||
-      tour.city.toLowerCase().includes(searchTerm) ||
-      tour.country.toLowerCase().includes(searchTerm)
-    );
-    
-    if (filters.country && filters.country !== 'all') {
-      tours = tours.filter(tour => tour.country.toLowerCase().includes(filters.country!.toLowerCase()));
-    }
-    
-    if (filters.dateRange && filters.dateRange !== 'all') {
-      const filterDate = new Date();
-      switch (filters.dateRange) {
-        case 'upcoming':
-          tours = tours.filter(tour => tour.date > now);
-          break;
-        case 'thisWeek':
-          const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-          tours = tours.filter(tour => tour.date >= now && tour.date <= weekFromNow);
-          break;
-        case 'thisMonth':
-          const monthFromNow = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
-          tours = tours.filter(tour => tour.date >= now && tour.date <= monthFromNow);
-          break;
-        case 'thisYear':
-          const yearEnd = new Date(now.getFullYear(), 11, 31);
-          tours = tours.filter(tour => tour.date >= now && tour.date <= yearEnd);
-          break;
-      }
-    }
-    
-    // Search reviews
-    let reviews = Array.from(this.reviews.values()).filter(review => 
-      review.title.toLowerCase().includes(searchTerm) ||
-      review.content.toLowerCase().includes(searchTerm) ||
-      (review.targetName && review.targetName.toLowerCase().includes(searchTerm)) ||
-      review.stagename.toLowerCase().includes(searchTerm)
-    );
-    
-    if (filters.reviewType && filters.reviewType !== 'all') {
-      reviews = reviews.filter(review => review.reviewType === filters.reviewType);
-    }
-    
-    // Search photos
-    let photos = Array.from(this.photos.values()).filter(photo => 
-      (photo.title && photo.title.toLowerCase().includes(searchTerm)) ||
-      (photo.description && photo.description.toLowerCase().includes(searchTerm)) ||
-      (photo.uploadedBy && photo.uploadedBy.toLowerCase().includes(searchTerm))
-    );
-    
-    if (filters.photoCategory && filters.photoCategory !== 'all') {
-      photos = photos.filter(photo => photo.category === filters.photoCategory);
-    }
-    
-    return { bands, tours, reviews, photos };
-  }
 
   // Reviews
   async getReviews(): Promise<Review[]> {
@@ -453,20 +369,6 @@ export class MemStorage implements IStorage {
   async updateUserStagename(id: string, stagename: string): Promise<User | undefined> { return undefined; }
   async createBandSubmission(band: InsertBand & { ownerId: string }): Promise<Band> { throw new Error("Not implemented"); }
   async getBandsByOwner(ownerId: string): Promise<Band[]> { return []; }
-  async searchAll(query: string, filters: {
-    genre?: string;
-    photoCategory?: string;
-    reviewType?: string;
-    country?: string;
-    dateRange?: string;
-  } = {}): Promise<{
-    bands: Band[];
-    tours: Tour[];
-    reviews: Review[];
-    photos: Photo[];
-  }> {
-    return { bands: [], tours: [], reviews: [], photos: [] };
-  }
 
   // Messages (stub implementations - not used since we use DatabaseStorage)
   async getMessages(): Promise<Message[]> { return []; }
@@ -580,73 +482,55 @@ export class DatabaseStorage implements IStorage {
     const searchTerm = `%${query.toLowerCase()}%`;
     const now = new Date();
     
-    // Search bands
-    let bandsQuery = db.select().from(bands)
-      .where(
-        sql`LOWER(${bands.name}) LIKE ${searchTerm} OR LOWER(${bands.genre}) LIKE ${searchTerm} OR LOWER(${bands.description}) LIKE ${searchTerm}`
-      );
-    
+    // Build bands query with all conditions
+    let bandsCondition = sql`LOWER(${bands.name}) LIKE ${searchTerm} OR LOWER(${bands.genre}) LIKE ${searchTerm} OR LOWER(${bands.description}) LIKE ${searchTerm}`;
     if (filters.genre && filters.genre !== 'all') {
-      bandsQuery = bandsQuery.where(eq(bands.genre, filters.genre));
+      bandsCondition = sql`(${bandsCondition}) AND ${bands.genre} = ${filters.genre}`;
     }
+    const bandsResult = await db.select().from(bands).where(bandsCondition).orderBy(bands.name);
     
-    const bandsResult = await bandsQuery.orderBy(bands.name);
-    
-    // Search tours
-    let toursQuery = db.select().from(tours)
-      .where(
-        sql`LOWER(${tours.tourName}) LIKE ${searchTerm} OR LOWER(${tours.venue}) LIKE ${searchTerm} OR LOWER(${tours.city}) LIKE ${searchTerm} OR LOWER(${tours.country}) LIKE ${searchTerm}`
-      );
+    // Build tours query with all conditions
+    let toursCondition = sql`LOWER(${tours.tourName}) LIKE ${searchTerm} OR LOWER(${tours.venue}) LIKE ${searchTerm} OR LOWER(${tours.city}) LIKE ${searchTerm} OR LOWER(${tours.country}) LIKE ${searchTerm}`;
     
     if (filters.country && filters.country !== 'all') {
-      toursQuery = toursQuery.where(sql`LOWER(${tours.country}) LIKE ${`%${filters.country.toLowerCase()}%`}`);
+      const countryTerm = `%${filters.country.toLowerCase()}%`;
+      toursCondition = sql`(${toursCondition}) AND LOWER(${tours.country}) LIKE ${countryTerm}`;
     }
     
     if (filters.dateRange && filters.dateRange !== 'all') {
       switch (filters.dateRange) {
         case 'upcoming':
-          toursQuery = toursQuery.where(sql`${tours.date} > ${now}`);
+          toursCondition = sql`(${toursCondition}) AND ${tours.date} > ${now}`;
           break;
         case 'thisWeek':
           const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-          toursQuery = toursQuery.where(sql`${tours.date} >= ${now} AND ${tours.date} <= ${weekFromNow}`);
+          toursCondition = sql`(${toursCondition}) AND ${tours.date} >= ${now} AND ${tours.date} <= ${weekFromNow}`;
           break;
         case 'thisMonth':
           const monthFromNow = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
-          toursQuery = toursQuery.where(sql`${tours.date} >= ${now} AND ${tours.date} <= ${monthFromNow}`);
+          toursCondition = sql`(${toursCondition}) AND ${tours.date} >= ${now} AND ${tours.date} <= ${monthFromNow}`;
           break;
         case 'thisYear':
           const yearEnd = new Date(now.getFullYear(), 11, 31);
-          toursQuery = toursQuery.where(sql`${tours.date} >= ${now} AND ${tours.date} <= ${yearEnd}`);
+          toursCondition = sql`(${toursCondition}) AND ${tours.date} >= ${now} AND ${tours.date} <= ${yearEnd}`;
           break;
       }
     }
+    const toursResult = await db.select().from(tours).where(toursCondition).orderBy(tours.date);
     
-    const toursResult = await toursQuery.orderBy(tours.date);
-    
-    // Search reviews
-    let reviewsQuery = db.select().from(reviews)
-      .where(
-        sql`LOWER(${reviews.title}) LIKE ${searchTerm} OR LOWER(${reviews.content}) LIKE ${searchTerm} OR LOWER(${reviews.targetName}) LIKE ${searchTerm} OR LOWER(${reviews.reviewerName}) LIKE ${searchTerm}`
-      );
-    
+    // Build reviews query with all conditions
+    let reviewsCondition = sql`LOWER(${reviews.title}) LIKE ${searchTerm} OR LOWER(${reviews.content}) LIKE ${searchTerm} OR LOWER(${reviews.targetName}) LIKE ${searchTerm} OR LOWER(${reviews.stagename}) LIKE ${searchTerm}`;
     if (filters.reviewType && filters.reviewType !== 'all') {
-      reviewsQuery = reviewsQuery.where(eq(reviews.type, filters.reviewType));
+      reviewsCondition = sql`(${reviewsCondition}) AND ${reviews.reviewType} = ${filters.reviewType}`;
     }
+    const reviewsResult = await db.select().from(reviews).where(reviewsCondition).orderBy(reviews.createdAt);
     
-    const reviewsResult = await reviewsQuery.orderBy(reviews.createdAt);
-    
-    // Search photos
-    let photosQuery = db.select().from(photos)
-      .where(
-        sql`LOWER(${photos.title}) LIKE ${searchTerm} OR LOWER(${photos.description}) LIKE ${searchTerm} OR LOWER(${photos.bandName}) LIKE ${searchTerm}`
-      );
-    
+    // Build photos query with all conditions
+    let photosCondition = sql`LOWER(${photos.title}) LIKE ${searchTerm} OR LOWER(${photos.description}) LIKE ${searchTerm} OR LOWER(${photos.uploadedBy}) LIKE ${searchTerm}`;
     if (filters.photoCategory && filters.photoCategory !== 'all') {
-      photosQuery = photosQuery.where(eq(photos.category, filters.photoCategory));
+      photosCondition = sql`(${photosCondition}) AND ${photos.category} = ${filters.photoCategory}`;
     }
-    
-    const photosResult = await photosQuery.orderBy(photos.createdAt);
+    const photosResult = await db.select().from(photos).where(photosCondition).orderBy(photos.createdAt);
     
     return {
       bands: bandsResult,
