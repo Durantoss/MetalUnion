@@ -81,6 +81,7 @@ export class MemStorage implements IStorage {
     const user: User = {
       ...userData,
       id,
+      stagename: userData.stagename || null,
       createdAt: existingUser?.createdAt || new Date(),
       updatedAt: new Date(),
       email: userData.email || null,
@@ -105,6 +106,11 @@ export class MemStorage implements IStorage {
       members: ["James Hetfield", "Lars Ulrich", "Kirk Hammett", "Robert Trujillo"],
       albums: ["Kill 'Em All", "Ride the Lightning", "Master of Puppets", "...And Justice for All", "Metallica (Black Album)"],
       website: "https://metallica.com",
+      instagram: null,
+      ownerId: null,
+      status: "approved",
+      submittedAt: null,
+      approvedAt: null,
       createdAt: new Date(),
     };
 
@@ -118,6 +124,11 @@ export class MemStorage implements IStorage {
       members: ["Bruce Dickinson", "Steve Harris", "Dave Murray", "Adrian Smith", "Janick Gers", "Nicko McBrain"],
       albums: ["Iron Maiden", "The Number of the Beast", "Piece of Mind", "Powerslave", "Somewhere in Time"],
       website: "https://ironmaiden.com",
+      instagram: null,
+      ownerId: null,
+      status: "approved",
+      submittedAt: null,
+      approvedAt: null,
       createdAt: new Date(),
     };
 
@@ -131,6 +142,11 @@ export class MemStorage implements IStorage {
       members: ["Ozzy Osbourne", "Tony Iommi", "Geezer Butler", "Bill Ward"],
       albums: ["Black Sabbath", "Paranoid", "Master of Reality", "Vol. 4", "Sabbath Bloody Sabbath"],
       website: "https://blacksabbath.com",
+      instagram: null,
+      ownerId: null,
+      status: "approved",
+      submittedAt: null,
+      approvedAt: null,
       createdAt: new Date(),
     };
 
@@ -158,7 +174,12 @@ export class MemStorage implements IStorage {
       founded: insertBand.founded || null,
       members: insertBand.members || null,
       albums: insertBand.albums || null,
-      website: insertBand.website || null
+      website: insertBand.website || null,
+      instagram: insertBand.instagram || null,
+      ownerId: null,
+      status: "approved",
+      submittedAt: null,
+      approvedAt: null
     };
     this.bands.set(id, band);
     return band;
@@ -309,6 +330,8 @@ export class MemStorage implements IStorage {
       id,
       status: insertTour.status || null,
       ticketUrl: insertTour.ticketUrl || null,
+      ticketmasterUrl: insertTour.ticketmasterUrl || null,
+      seatgeekUrl: insertTour.seatgeekUrl || null,
       price: insertTour.price || null
     };
     this.tours.set(id, tour);
@@ -331,6 +354,8 @@ export class MemStorage implements IStorage {
   async getUserByStagename(stagename: string): Promise<User | undefined> { return undefined; }
   async checkStagenameAvailable(stagename: string): Promise<boolean> { return true; }
   async updateUserStagename(id: string, stagename: string): Promise<User | undefined> { return undefined; }
+  async createBandSubmission(band: InsertBand & { ownerId: string }): Promise<Band> { throw new Error("Not implemented"); }
+  async getBandsByOwner(ownerId: string): Promise<Band[]> { return []; }
 
   // Messages (stub implementations - not used since we use DatabaseStorage)
   async getMessages(): Promise<Message[]> { return []; }
@@ -515,7 +540,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUpcomingTours(): Promise<Tour[]> {
     const now = new Date();
-    return await db.select().from(tours).where(db.sql`${tours.date} > ${now}`).orderBy(tours.date);
+    return await db.select().from(tours).where(sql`${tours.date} > ${now}`).orderBy(tours.date);
   }
 
   async createTour(insertTour: InsertTour): Promise<Tour> {
