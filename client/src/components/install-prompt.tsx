@@ -76,13 +76,16 @@ export function InstallPrompt() {
     sessionStorage.setItem('installPromptDismissed', 'true');
   };
 
-  // Don't show if already installed, dismissed this session, or no prompt available
-  if (
-    isInstalled || 
-    !showPrompt || 
-    !deferredPrompt ||
-    sessionStorage.getItem('installPromptDismissed')
-  ) {
+  // Show manual install guide if PWA prompt not available but not installed
+  const showManualGuide = !isInstalled && !deferredPrompt && !sessionStorage.getItem('installPromptDismissed');
+  
+  // Don't show anything if already installed or dismissed
+  if (isInstalled || sessionStorage.getItem('installPromptDismissed')) {
+    return null;
+  }
+  
+  // Show automatic prompt if available, otherwise show manual guide
+  if (!showPrompt && !showManualGuide) {
     return null;
   }
 
@@ -98,22 +101,37 @@ export function InstallPrompt() {
           
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-bold text-white mb-1">
-              Install MetalHub
+              {deferredPrompt ? 'Install MetalHub' : 'Add to Homescreen'}
             </h3>
             <p className="text-xs text-gray-400 mb-3">
-              Add MetalHub to your homescreen for quick access to metal tours, reviews, and photos!
+              {deferredPrompt 
+                ? 'Add MetalHub to your homescreen for quick access to metal tours, reviews, and photos!'
+                : 'Install MetalHub as an app! Chrome/Edge: Menu → "Add to Home screen" | Safari: Share → "Add to Home Screen"'
+              }
             </p>
             
             <div className="flex items-center space-x-2">
-              <Button
-                onClick={handleInstallClick}
-                size="sm"
-                className="bg-metal-red hover:bg-metal-red-bright text-white text-xs"
-                data-testid="button-install-app"
-              >
-                <Download className="w-3 h-3 mr-1" />
-                Install
-              </Button>
+              {deferredPrompt ? (
+                <Button
+                  onClick={handleInstallClick}
+                  size="sm"
+                  className="bg-metal-red hover:bg-metal-red-bright text-white text-xs"
+                  data-testid="button-install-app"
+                >
+                  <Download className="w-3 h-3 mr-1" />
+                  Install
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => window.open('/', '_blank')}
+                  size="sm"
+                  className="bg-metal-red hover:bg-metal-red-bright text-white text-xs"
+                  data-testid="button-manual-install"
+                >
+                  <Smartphone className="w-3 h-3 mr-1" />
+                  Guide
+                </Button>
+              )}
               
               <Button
                 onClick={handleDismiss}
