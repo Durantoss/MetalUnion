@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { Search, Upload, LogIn, LogOut, User } from "lucide-react";
+import { Search, Upload, LogIn, LogOut, User, Flame, Skull } from "lucide-react";
 
 export default function Header() {
   const [location] = useLocation();
@@ -24,100 +24,123 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-black border-b border-metal-gray sticky top-0 z-50">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <header className="bg-gradient-to-r from-black via-gray-900 to-black border-b-2 border-metal-red shadow-lg shadow-metal-red/20 sticky top-0 z-50">
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+      <nav className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-20">
           <div className="flex items-center space-x-8">
             <div className="flex-shrink-0">
               <Link href="/" data-testid="link-home">
-                <h1 className="text-2xl font-black text-metal-red tracking-tight">METALHUB</h1>
+                <div className="flex items-center space-x-2 group">
+                  <Skull className="w-8 h-8 text-metal-red group-hover:text-white transition-all duration-300 group-hover:animate-pulse" />
+                  <h1 className="text-3xl font-black text-metal-red tracking-wider group-hover:text-white transition-all duration-300 transform group-hover:scale-105 drop-shadow-lg">
+                    METAL<span className="text-white group-hover:text-metal-red">HUB</span>
+                  </h1>
+                  <Flame className="w-8 h-8 text-metal-red group-hover:text-white transition-all duration-300 group-hover:animate-pulse" />
+                </div>
               </Link>
             </div>
             <div className="hidden md:block">
-              <div className="flex items-baseline space-x-8">
+              <div className="flex items-baseline space-x-2">
                 <Link href="/bands" data-testid="link-bands">
-                  <span className={`px-3 py-2 text-sm font-bold uppercase tracking-wider transition-colors ${
-                    isActive("/bands") ? "text-metal-red" : "text-gray-400 hover:text-metal-red"
+                  <span className={`px-4 py-3 text-sm font-black uppercase tracking-[0.2em] transition-all duration-300 transform hover:scale-105 relative group ${
+                    isActive("/bands") 
+                      ? "text-metal-red bg-metal-red/10 border border-metal-red shadow-lg shadow-metal-red/25" 
+                      : "text-gray-300 hover:text-white hover:bg-metal-red/20 hover:border-metal-red hover:shadow-md hover:shadow-metal-red/30 border border-transparent"
                   }`}>
-                    Bands
+                    BANDS
+                    <div className="absolute inset-0 bg-gradient-to-r from-metal-red/0 via-metal-red/10 to-metal-red/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </span>
                 </Link>
                 <Link href="/reviews" data-testid="link-reviews">
-                  <span className={`px-3 py-2 text-sm font-bold uppercase tracking-wider transition-colors ${
-                    isActive("/reviews") ? "text-metal-red" : "text-gray-400 hover:text-metal-red"
+                  <span className={`px-4 py-3 text-sm font-black uppercase tracking-[0.2em] transition-all duration-300 transform hover:scale-105 relative group ${
+                    isActive("/reviews") 
+                      ? "text-metal-red bg-metal-red/10 border border-metal-red shadow-lg shadow-metal-red/25" 
+                      : "text-gray-300 hover:text-white hover:bg-metal-red/20 hover:border-metal-red hover:shadow-md hover:shadow-metal-red/30 border border-transparent"
                   }`}>
-                    Reviews
+                    REVIEWS
+                    <div className="absolute inset-0 bg-gradient-to-r from-metal-red/0 via-metal-red/10 to-metal-red/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </span>
                 </Link>
                 <Link href="/tours" data-testid="link-tours">
-                  <span className={`px-3 py-2 text-sm font-bold uppercase tracking-wider transition-colors ${
-                    isActive("/tours") ? "text-metal-red" : "text-gray-400 hover:text-metal-red"
+                  <span className={`px-4 py-3 text-sm font-black uppercase tracking-[0.2em] transition-all duration-300 transform hover:scale-105 relative group ${
+                    isActive("/tours") 
+                      ? "text-metal-red bg-metal-red/10 border border-metal-red shadow-lg shadow-metal-red/25" 
+                      : "text-gray-300 hover:text-white hover:bg-metal-red/20 hover:border-metal-red hover:shadow-md hover:shadow-metal-red/30 border border-transparent"
                   }`}>
-                    Tours
+                    TOURS
+                    <div className="absolute inset-0 bg-gradient-to-r from-metal-red/0 via-metal-red/10 to-metal-red/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </span>
                 </Link>
                 <Link href="/photos" data-testid="link-photos">
-                  <span className={`px-3 py-2 text-sm font-bold uppercase tracking-wider transition-colors ${
-                    isActive("/photos") ? "text-metal-red" : "text-gray-400 hover:text-metal-red"
+                  <span className={`px-4 py-3 text-sm font-black uppercase tracking-[0.2em] transition-all duration-300 transform hover:scale-105 relative group ${
+                    isActive("/photos") 
+                      ? "text-metal-red bg-metal-red/10 border border-metal-red shadow-lg shadow-metal-red/25" 
+                      : "text-gray-300 hover:text-white hover:bg-metal-red/20 hover:border-metal-red hover:shadow-md hover:shadow-metal-red/30 border border-transparent"
                   }`}>
-                    Photos
+                    PHOTOS
+                    <div className="absolute inset-0 bg-gradient-to-r from-metal-red/0 via-metal-red/10 to-metal-red/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </span>
                 </Link>
                 <Link href="/messages" data-testid="link-messages">
-                  <span className={`px-3 py-2 text-sm font-bold uppercase tracking-wider transition-colors ${
-                    isActive("/messages") ? "text-metal-red" : "text-gray-400 hover:text-metal-red"
+                  <span className={`px-4 py-3 text-sm font-black uppercase tracking-[0.2em] transition-all duration-300 transform hover:scale-105 relative group ${
+                    isActive("/messages") 
+                      ? "text-metal-red bg-metal-red/10 border border-metal-red shadow-lg shadow-metal-red/25" 
+                      : "text-gray-300 hover:text-white hover:bg-metal-red/20 hover:border-metal-red hover:shadow-md hover:shadow-metal-red/30 border border-transparent"
                   }`}>
-                    The Pit
+                    THE PIT
+                    <div className="absolute inset-0 bg-gradient-to-r from-metal-red/0 via-metal-red/10 to-metal-red/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </span>
                 </Link>
               </div>
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <form onSubmit={handleSearch} className="relative hidden md:block">
+          <div className="flex items-center space-x-6">
+            <form onSubmit={handleSearch} className="relative hidden md:block group">
               <Input
                 type="text"
-                placeholder="Search bands, albums..."
+                placeholder="SEARCH THE DEPTHS..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-card-dark border-metal-gray text-white placeholder-gray-300 focus:border-metal-red w-64 pl-10"
+                className="bg-black/50 border-2 border-metal-gray text-white placeholder-gray-400 focus:border-metal-red focus:shadow-lg focus:shadow-metal-red/30 w-72 pl-12 h-12 font-bold uppercase tracking-wider transition-all duration-300 group-hover:border-metal-red/50"
                 data-testid="input-search"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 w-4 h-4" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-metal-red w-5 h-5 group-hover:animate-pulse" />
+              <div className="absolute inset-0 bg-gradient-to-r from-metal-red/0 via-metal-red/5 to-metal-red/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded"></div>
             </form>
             
             {isAuthenticated && (
               <Link href="/photos" data-testid="button-upload">
-                <Button className="bg-metal-red hover:bg-metal-red-bright text-white font-bold uppercase tracking-wider">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload Photo
+                <Button className="bg-gradient-to-r from-metal-red to-red-700 hover:from-red-700 hover:to-metal-red text-white font-black uppercase tracking-[0.15em] px-6 py-3 shadow-lg shadow-metal-red/30 hover:shadow-xl hover:shadow-metal-red/50 transition-all duration-300 transform hover:scale-105 border border-metal-red/50">
+                  <Upload className="w-5 h-5 mr-2" />
+                  UPLOAD
                 </Button>
               </Link>
             )}
             
             {!isLoading && (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-4">
                 {isAuthenticated ? (
                   <>
-                    <a href="/profile" className="flex items-center space-x-2 text-white hover:text-metal-red-bright transition-colors" data-testid="link-profile">
-                      <User className="w-4 h-4" />
-                      <span className="text-sm">
-                        {(user as any)?.stagename || (user as any)?.firstName || (user as any)?.email || 'Member'}
+                    <a href="/profile" className="flex items-center space-x-3 text-gray-300 hover:text-metal-red transition-all duration-300 group px-4 py-2 border border-transparent hover:border-metal-red/30 hover:bg-metal-red/10 rounded" data-testid="link-profile">
+                      <User className="w-5 h-5 group-hover:animate-pulse" />
+                      <span className="text-sm font-bold uppercase tracking-wider">
+                        {(user as any)?.stagename || (user as any)?.firstName || (user as any)?.email || 'MEMBER'}
                       </span>
                     </a>
                     <a href="/api/logout" data-testid="button-logout">
-                      <Button variant="outline" className="border-metal-gray text-white hover:bg-metal-gray hover:text-white font-semibold">
-                        <LogOut className="w-4 h-4 mr-2" />
-                        Logout
+                      <Button variant="outline" className="border-2 border-metal-red text-metal-red hover:bg-metal-red hover:text-black font-black uppercase tracking-[0.15em] px-4 py-3 shadow-lg shadow-metal-red/20 hover:shadow-xl hover:shadow-metal-red/40 transition-all duration-300 transform hover:scale-105">
+                        <LogOut className="w-5 h-5 mr-2" />
+                        LOGOUT
                       </Button>
                     </a>
                   </>
                 ) : (
                   <a href="/api/login" data-testid="button-login">
-                    <Button className="bg-metal-red hover:bg-metal-red-bright text-white font-bold uppercase tracking-wider">
-                      <LogIn className="w-4 h-4 mr-2" />
-                      Login
+                    <Button className="bg-gradient-to-r from-metal-red to-red-700 hover:from-red-700 hover:to-metal-red text-white font-black uppercase tracking-[0.15em] px-6 py-3 shadow-lg shadow-metal-red/30 hover:shadow-xl hover:shadow-metal-red/50 transition-all duration-300 transform hover:scale-105 border border-metal-red/50">
+                      <LogIn className="w-5 h-5 mr-2" />
+                      ENTER
                     </Button>
                   </a>
                 )}
