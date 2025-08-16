@@ -63,7 +63,7 @@ const reviewTypes = ["band", "album", "concert"];
 export default function Search() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [activeTab, setActiveTab] = useState("bands");
+  const [activeTab, setActiveTab] = useState("web");
   const [showWebResults, setShowWebResults] = useState(true);
   const [selectedGenre, setSelectedGenre] = useState("");
   const [selectedPhotoCategory, setSelectedPhotoCategory] = useState("");
@@ -308,12 +308,12 @@ export default function Search() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-5 bg-card-dark border border-metal-gray mb-6">
                 <TabsTrigger 
-                  value="bands" 
+                  value="web" 
                   className="data-[state=active]:bg-metal-red data-[state=active]:text-white text-gray-400"
-                  data-testid="tab-bands"
+                  data-testid="tab-web"
                 >
-                  <Music className="w-4 h-4 mr-2" />
-                  Bands ({counts.bands})
+                  <Globe className="w-4 h-4 mr-2" />
+                  Web ({counts.webResults})
                 </TabsTrigger>
                 <TabsTrigger 
                   value="tours" 
@@ -340,12 +340,12 @@ export default function Search() {
                   Photos ({counts.photos})
                 </TabsTrigger>
                 <TabsTrigger 
-                  value="web" 
+                  value="bands" 
                   className="data-[state=active]:bg-metal-red data-[state=active]:text-white text-gray-400"
-                  data-testid="tab-web"
+                  data-testid="tab-bands"
                 >
-                  <Globe className="w-4 h-4 mr-2" />
-                  Web ({counts.webResults})
+                  <Music className="w-4 h-4 mr-2" />
+                  Bands ({counts.bands})
                 </TabsTrigger>
               </TabsList>
 
