@@ -130,7 +130,7 @@ export default function Header() {
                       </span>
                     </a>
                     <a href="/api/logout" data-testid="button-logout">
-                      <Button variant="outline" className="border-2 border-metal-red text-metal-red hover:bg-metal-red hover:text-black font-black uppercase tracking-[0.15em] px-4 py-3 shadow-lg shadow-metal-red/20 hover:shadow-xl hover:shadow-metal-red/40 transition-all duration-300 transform hover:scale-105">
+                      <Button className="bg-gradient-to-r from-metal-red to-red-700 hover:from-red-700 hover:to-metal-red text-white font-black uppercase tracking-[0.15em] px-4 py-3 shadow-lg shadow-metal-red/30 hover:shadow-xl hover:shadow-metal-red/50 transition-all duration-300 transform hover:scale-105 border border-metal-red/50">
                         <LogOut className="w-5 h-5 mr-2" />
                         LOGOUT
                       </Button>
