@@ -94,10 +94,10 @@ export function InstallPrompt() {
     return null;
   }
   
-  // TEMPORARY: Force show for testing
-  // if (!showPrompt && !showManualGuide) {
-  //   return null;
-  // }
+  // Only show if we have a prompt to show OR manual guide should be shown
+  if (!showPrompt && !showManualGuide) {
+    return null;
+  }
 
   return (
     <Card className="fixed bottom-4 left-4 right-4 z-[9999] bg-red-900 border-4 border-yellow-400 shadow-2xl md:left-auto md:right-4 md:max-w-sm" style={{zIndex: 99999}}>
