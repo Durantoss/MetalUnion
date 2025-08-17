@@ -47,6 +47,11 @@ export function ModernNavigation({
 
   const navItems = [
     { id: 'bands', label: 'DISCOVER', icon: '🎸' },
+    { id: 'social', label: 'SOCIAL HUB', icon: '🌐' },
+    { id: 'feed', label: 'ACTIVITY', icon: '⚡' },
+    { id: 'gamification', label: 'LEADERBOARD', icon: '🏆' },
+    { id: 'events', label: 'EVENTS', icon: '🎪' },
+    { id: 'polls', label: 'POLLS', icon: '🗳️' },
     { id: 'tours', label: 'LIVE', icon: '🎫' },
     { id: 'reviews', label: 'ANALYZE', icon: '⭐' },
     { id: 'photos', label: 'CAPTURE', icon: '📸' },
