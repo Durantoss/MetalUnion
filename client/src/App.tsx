@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { BandComparison } from './components/BandComparison';
-import { Navigation } from './components/Navigation';
+import { ModernNavigation } from './components/ModernNavigation';
 import { ToursSection } from './components/ToursSection';
 import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
 import { ThePit } from './components/ThePit';
-import { LandingPage } from './components/LandingPage';
-import { MobileLandingTest } from './components/MobileLandingTest';
+import { ModernLandingPage } from './components/ModernLandingPage';
 import { Band } from './types';
 
 
@@ -57,25 +56,20 @@ const App = () => {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        backgroundColor: '#111827',
-        color: 'white',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'Arial, sans-serif'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <h1 style={{
-            fontSize: '3rem',
-            color: '#dc2626',
-            fontWeight: 'bold',
-            marginBottom: '1rem'
-          }}>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="text-center max-w-md mx-auto">
+          <h1 className="text-6xl font-black gradient-text-neon mb-6 glow-text font-mono">
             MOSHUNION
           </h1>
-          <p style={{ color: '#9ca3af' }}>Loading bands...</p>
+          <div className="glass neo-border rounded-2xl p-6 mb-6 font-mono">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <div className="w-3 h-3 rounded-full bg-neon-cyan animate-pulse"></div>
+              <div className="w-3 h-3 rounded-full bg-neon-purple animate-pulse delay-100"></div>
+              <div className="w-3 h-3 rounded-full bg-neon-pink animate-pulse delay-200"></div>
+            </div>
+            <p className="text-neon-cyan text-sm">$ system --initialize</p>
+            <p className="text-muted-foreground">Loading neural networks...</p>
+          </div>
         </div>
       </div>
     );
@@ -149,11 +143,11 @@ const App = () => {
       const isMobile = window.innerWidth <= 768;
       if (isMobile && bands.length === 0) {
         console.log('Using mobile test component');
-        return <MobileLandingTest onSectionChange={setCurrentSection} />;
+        return <ModernLandingPage onSectionChange={setCurrentSection} bands={[]} />;
       }
       
       return (
-        <LandingPage 
+        <ModernLandingPage 
           onSectionChange={setCurrentSection}
           bands={bands}
         />
@@ -354,32 +348,16 @@ const App = () => {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#111827',
-      color: 'white',
-      fontFamily: 'Arial, sans-serif',
-      width: '100%',
-      position: 'relative'
-    }}>
-      {/* Mobile Debug Info */}
-      <div style={{
-        position: 'fixed',
-        top: '10px',
-        right: '10px',
-        zIndex: 1000,
-        background: 'rgba(220, 38, 38, 0.9)',
-        color: 'white',
-        padding: '4px 8px',
-        borderRadius: '4px',
-        fontSize: '10px',
-        fontWeight: 'bold'
-      }}>
-        {currentSection || 'landing'} | {bands?.length || 0}
-      </div>
+    <div className="min-h-screen bg-background text-foreground font-sans">
+      {/* Debug Info (Development Only) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed top-3 right-3 z-[100] glass neo-border px-3 py-1 rounded-lg font-mono text-xs font-bold">
+          {currentSection || 'landing'} | {bands?.length || 0}
+        </div>
+      )}
       
       {currentSection !== 'landing' && (
-        <Navigation
+        <ModernNavigation
           currentSection={currentSection}
           onSectionChange={setCurrentSection}
           onShowComparison={() => setShowComparison(true)}
@@ -388,20 +366,18 @@ const App = () => {
         />
       )}
       
-      <div style={{ 
-        maxWidth: currentSection === 'landing' ? '100%' : '1200px', 
-        margin: '0 auto',
-        width: '100%'
-      }}>
+      <main className={`w-full ${currentSection === 'landing' ? '' : 'max-w-7xl mx-auto px-6'}`}>
         {renderContent()}
         
         {showComparison && (
-          <BandComparison 
-            bands={bands} 
-            onClose={() => setShowComparison(false)} 
-          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 backdrop-blur-lg">
+            <BandComparison 
+              bands={bands} 
+              onClose={() => setShowComparison(false)} 
+            />
+          </div>
         )}
-      </div>
+      </main>
     </div>
   );
 };
