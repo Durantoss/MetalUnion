@@ -8,13 +8,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { MetalLoader } from "@/components/ui/metal-loader";
 import LighterRating from "@/components/ui/star-rating";
-import { Search, Filter, X, Calendar, MapPin, ExternalLink, Clock } from "lucide-react";
+import { WebSearchResults, type WebSearchResult } from "@/components/WebSearchResults";
+import { Search, Filter, X, Calendar, MapPin, ExternalLink, Clock, Globe, Database } from "lucide-react";
 import type { Band, Tour } from "@shared/schema";
 
 // Extended type to include upcoming tours
 type BandWithTours = Band & {
   upcomingTours?: Tour[];
 };
+
+interface EnhancedSearchResponse {
+  query: string;
+  databaseResults: BandWithTours[];
+  webResults: WebSearchResult[];
+  totalDatabaseResults: number;
+  totalWebResults: number;
+}
 
 export default function Bands() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,8 +32,11 @@ export default function Bands() {
   const [showFilters, setShowFilters] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [includeWebResults, setIncludeWebResults] = useState(false);
+  const [searchMode, setSearchMode] = useState<'database' | 'enhanced'>('database');
 
-  const { data: allBands = [], isLoading } = useQuery<BandWithTours[]>({
+  // Regular database search
+  const { data: allBands = [], isLoading: bandsLoading } = useQuery<BandWithTours[]>({
     queryKey: ["/api/bands", searchQuery],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -37,7 +49,27 @@ export default function Bands() {
       }
       return response.json();
     },
+    enabled: searchMode === 'database' || !searchQuery,
   });
+
+  // Enhanced search with web results
+  const { data: enhancedResults, isLoading: enhancedLoading } = useQuery<EnhancedSearchResponse>({
+    queryKey: ["/api/bands/search", searchQuery, includeWebResults],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        q: searchQuery,
+        includeWeb: includeWebResults.toString()
+      });
+      const response = await fetch(`/api/bands/search?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to perform enhanced search');
+      }
+      return response.json();
+    },
+    enabled: searchMode === 'enhanced' && !!searchQuery,
+  });
+
+  const isLoading = searchMode === 'database' ? bandsLoading : enhancedLoading;
 
   // Extract unique genres for filter dropdown
   const availableGenres = useMemo(() => {
@@ -45,17 +77,22 @@ export default function Bands() {
     return Array.from(new Set(genres)).sort();
   }, [allBands]);
 
-  // Filter bands by genre (search is handled by backend)
-  const bands = useMemo(() => {
-    let filtered = allBands;
-
+  // Get the appropriate bands data based on search mode
+  const currentBands = useMemo(() => {
+    const bandsData = searchMode === 'enhanced' && enhancedResults 
+      ? enhancedResults.databaseResults 
+      : allBands;
+    
     // Genre filter (only applied locally for better UX)
     if (selectedGenre && selectedGenre !== "all") {
-      filtered = filtered.filter(band => band.genre === selectedGenre);
+      return bandsData.filter(band => band.genre === selectedGenre);
     }
 
-    return filtered;
-  }, [allBands, selectedGenre]);
+    return bandsData;
+  }, [allBands, enhancedResults, selectedGenre, searchMode]);
+
+  // Get web results if available
+  const webResults = enhancedResults?.webResults || [];
 
   // Helper functions for tour display
   const formatDate = (date: string | Date) => {
@@ -94,7 +131,11 @@ export default function Bands() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setSearchQuery(searchInput);
+    if (searchInput.trim()) {
+      setSearchQuery(searchInput.trim());
+      // Switch to enhanced mode when searching
+      setSearchMode(includeWebResults ? 'enhanced' : 'database');
+    }
     setShowSuggestions(false);
   };
 
@@ -102,6 +143,8 @@ export default function Bands() {
     setSearchQuery("");
     setSearchInput("");
     setSelectedGenre("all");
+    setSearchMode('database');
+    setIncludeWebResults(false);
   };
 
   const selectSuggestion = (suggestion: string) => {
@@ -171,6 +214,26 @@ export default function Bands() {
               </Select>
             </div>
 
+            {/* Web Search Toggle */}
+            <div className="flex items-center gap-2 p-3 border border-metal-gray rounded-lg bg-black/50 min-w-full sm:min-w-40">
+              <Globe className="w-4 h-4 text-metal-red" />
+              <label className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider cursor-pointer flex-1">
+                Web Search
+              </label>
+              <input
+                type="checkbox"
+                checked={includeWebResults}
+                onChange={(e) => {
+                  setIncludeWebResults(e.target.checked);
+                  if (searchQuery) {
+                    setSearchMode(e.target.checked ? 'enhanced' : 'database');
+                  }
+                }}
+                className="w-4 h-4 text-metal-red bg-black border-metal-gray rounded focus:ring-metal-red"
+                data-testid="checkbox-web-search"
+              />
+            </div>
+
             <Button
               type="button"
               onClick={() => setShowFilters(!showFilters)}
@@ -224,7 +287,7 @@ export default function Bands() {
         {(searchQuery || selectedGenre) && (
           <div className="flex items-center justify-between mb-4 sm:mb-6 bg-metal-red/10 border border-metal-red/30 px-3 sm:px-4 py-3">
             <p className="text-gray-300 font-bold uppercase tracking-wider text-sm sm:text-base">
-              {isLoading ? "SEARCHING THE DEPTHS..." : `${bands.length} BANDS FOUND`}
+              {isLoading ? "SEARCHING THE DEPTHS..." : `${currentBands.length} BANDS FOUND`}
               {searchQuery && ` MATCHING "${searchQuery}"`}
               {selectedGenre && ` IN ${selectedGenre}`}
             </p>
@@ -236,7 +299,7 @@ export default function Bands() {
         <div className="flex items-center justify-center min-h-96">
           <MetalLoader size="lg" variant="flame" text="SUMMONING BANDS..." />
         </div>
-      ) : bands.length === 0 ? (
+      ) : currentBands.length === 0 ? (
         <Card className="bg-card-dark border-metal-gray">
           <CardContent className="p-12 text-center">
             <div className="mb-6">
@@ -267,7 +330,7 @@ export default function Bands() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {bands.map((band) => (
+          {currentBands.map((band: BandWithTours) => (
             <Card key={band.id} className="bg-card-dark border-metal-gray hover:border-metal-red transition-colors group" data-testid={`card-band-${band.id}`}>
               {band.imageUrl && (
                 <img 
@@ -297,7 +360,7 @@ export default function Bands() {
                       </h4>
                     </div>
                     <div className="space-y-2 sm:space-y-3">
-                      {band.upcomingTours.map((tour) => (
+                      {band.upcomingTours.map((tour: Tour) => (
                         <div 
                           key={tour.id} 
                           className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2 border-b border-metal-red/20 last:border-b-0 last:pb-0"
@@ -390,6 +453,17 @@ export default function Bands() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+
+      {/* Web Search Results Section */}
+      {searchQuery && includeWebResults && searchMode === 'enhanced' && (
+        <div className="mt-8 pt-8 border-t border-metal-gray">
+          <WebSearchResults
+            results={webResults}
+            query={searchQuery}
+            isLoading={isLoading && searchMode === 'enhanced'}
+          />
         </div>
       )}
     </main>

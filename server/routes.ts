@@ -514,6 +514,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced band search with Google integration
+  app.get("/api/bands/search", async (req, res) => {
+    try {
+      const { q, includeWeb } = req.query;
+      const query = q as string;
+      const shouldIncludeWeb = includeWeb === 'true';
+      
+      if (!query || query.trim() === '') {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+      
+      // Get database results
+      const databaseBands = await storage.searchBands(query);
+      const bandsWithTours = await Promise.all(
+        databaseBands.map(async (band) => {
+          const upcomingTours = await storage.getToursByBand(band.id);
+          const now = new Date();
+          const currentTours = upcomingTours.filter(tour => 
+            new Date(tour.date) > now && 
+            tour.status !== 'cancelled'
+          ).slice(0, 3);
+          
+          return {
+            ...band,
+            upcomingTours: currentTours
+          };
+        })
+      );
+      
+      // Get web results if requested
+      let webResults: EnhancedSearchResult[] = [];
+      if (shouldIncludeWeb) {
+        try {
+          webResults = await googleSearchService.searchMetalBands(query, 8);
+        } catch (error) {
+          console.error('Google search failed:', error);
+          // Continue without web results
+        }
+      }
+      
+      res.json({
+        query,
+        databaseResults: bandsWithTours,
+        webResults,
+        totalDatabaseResults: bandsWithTours.length,
+        totalWebResults: webResults.length
+      });
+    } catch (error) {
+      console.error("Error in enhanced band search:", error);
+      res.status(500).json({ message: "Failed to search bands" });
+    }
+  });
+
   // Bands routes
   app.get("/api/bands", async (req, res) => {
     try {
