@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { insertMessageSchema } from "@shared/schema";
 import { MessageCircle, Heart, Plus, User, Calendar } from "lucide-react";
@@ -29,7 +29,7 @@ type MessageFormData = z.infer<typeof messageFormSchema>;
 export default function Messages() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [showForm, setShowForm] = useState(false);
-  const { toast } = useToast();
+  // const { toast } = useToast();
   const { isAuthenticated, user } = useAuth();
 
   const { data: allMessages = [], isLoading } = useQuery<Message[]>({
@@ -54,19 +54,12 @@ export default function Messages() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
-      toast({
-        title: "Message posted!",
-        description: "Your message has been shared with the community.",
-      });
+      console.log("Message posted successfully");
       form.reset();
       setShowForm(false);
     },
     onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to post message. Please try again.",
-        variant: "destructive",
-      });
+      console.error("Failed to post message");
       console.error("Message creation error:", error);
     },
   });
@@ -80,11 +73,7 @@ export default function Messages() {
       queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
     },
     onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to like message.",
-        variant: "destructive",
-      });
+      console.error("Failed to like message");
     },
   });
 

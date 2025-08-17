@@ -9,7 +9,7 @@ import LighterRating from "@/components/ui/star-rating";
 import ReviewForm from "@/components/forms/review-form";
 import { User, ThumbsUp, MessageCircle, Calendar, Search, Filter, X, SlidersHorizontal, Star } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import type { Review } from "@shared/schema";
 
 export default function Reviews() {
@@ -25,7 +25,7 @@ export default function Reviews() {
   const [dateTo, setDateTo] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('date-desc');
   
-  const { toast } = useToast();
+  // const { toast } = useToast();
 
   const { data: allReviews = [], isLoading } = useQuery<Review[]>({
     queryKey: ["/api/reviews"],
@@ -134,17 +134,10 @@ export default function Reviews() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/reviews"] });
-      toast({
-        title: "Review liked!",
-        description: "Thanks for your feedback.",
-      });
+      console.log("Review liked successfully");
     },
     onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to like review. Please try again.",
-        variant: "destructive",
-      });
+      console.error("Failed to like review");
     },
   });
 

@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { MetalLoader } from "@/components/ui/metal-loader";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { 
   User, 
@@ -48,7 +48,7 @@ interface UserStats {
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { toast } = useToast();
+  // const { toast } = useToast();
 
   const { data: userStats, isLoading: statsLoading } = useQuery<UserStats>({
     queryKey: ["/api/user/stats"],
@@ -86,18 +86,11 @@ export default function Profile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      toast({
-        title: "Profile Updated",
-        description: "Your profile has been updated successfully!",
-      });
+      console.log("Profile updated successfully");
       setIsEditing(false);
     },
     onError: (error: Error) => {
-      toast({
-        title: "Update Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Profile update failed:", error.message);
     },
   });
 

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import LighterRating from "@/components/ui/star-rating";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
 import { insertReviewSchema } from "@shared/schema";
@@ -29,7 +29,7 @@ interface ReviewFormProps {
 
 export default function ReviewForm({ onSuccess, defaultBandId }: ReviewFormProps) {
   const [selectedRating, setSelectedRating] = useState(0);
-  const { toast } = useToast();
+  // const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
@@ -67,20 +67,13 @@ export default function ReviewForm({ onSuccess, defaultBandId }: ReviewFormProps
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/reviews"] });
-      toast({
-        title: "Review submitted!",
-        description: "Thanks for sharing your thoughts with the community.",
-      });
+      console.log("Review submitted successfully!");
       form.reset();
       setSelectedRating(0);
       onSuccess?.();
     },
     onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to submit review. Please try again.",
-        variant: "destructive",
-      });
+      console.error("Failed to submit review");
       console.error("Review submission error:", error);
     },
   });

@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { MetalLoader } from "@/components/ui/metal-loader";
 import BandSubmission from "@/components/forms/band-submission";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Guitar, Plus, Edit, Eye, Clock, CheckCircle, XCircle, Globe, Instagram } from "lucide-react";
 import type { Band } from "@shared/schema";
@@ -21,7 +21,7 @@ interface BandWithStatus extends Band {
 export default function MyBands() {
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { toast } = useToast();
+  // const { toast } = useToast();
 
   const { data: myBands = [], isLoading, refetch } = useQuery<BandWithStatus[]>({
     queryKey: ["/api/my-bands"],
@@ -38,17 +38,10 @@ export default function MyBands() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/my-bands"] });
       queryClient.invalidateQueries({ queryKey: ["/api/bands"] });
-      toast({
-        title: "Band Deleted",
-        description: "Your band has been removed successfully.",
-      });
+      console.log("Band deleted successfully");
     },
     onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to delete band. Please try again.",
-        variant: "destructive",
-      });
+      console.error("Failed to delete band");
     },
   });
 

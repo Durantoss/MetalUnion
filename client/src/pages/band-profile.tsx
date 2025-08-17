@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import LighterRating from "@/components/ui/star-rating";
 import { ArrowLeft, ExternalLink, Calendar, Users, Music, User, ThumbsUp, Instagram, Heart, Share2, MapPin, Clock, Star, Play, Globe, Mail, Youtube, Facebook, Twitter } from "lucide-react";
 import type { Band, Review, Photo, Tour } from "@shared/schema";
@@ -16,7 +16,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 export default function BandProfile() {
   const { id } = useParams();
-  const { toast } = useToast();
+  // const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
@@ -79,17 +79,10 @@ export default function BandProfile() {
     },
     onSuccess: () => {
       setIsFollowing(!isFollowing);
-      toast({
-        title: isFollowing ? "Unfollowed" : "Following",
-        description: `You ${isFollowing ? 'unfollowed' : 'are now following'} ${band?.name}`,
-      });
+      console.log(`${isFollowing ? 'Unfollowed' : 'Now following'} ${band?.name}`);
     },
     onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update follow status",
-        variant: "destructive",
-      });
+      console.error("Failed to update follow status");
     }
   });
   
@@ -107,10 +100,7 @@ export default function BandProfile() {
     } else {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Link Copied",
-        description: "Band profile link copied to clipboard",
-      });
+      console.log("Band profile link copied to clipboard");
     }
   };
 

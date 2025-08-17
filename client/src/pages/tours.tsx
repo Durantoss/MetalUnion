@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MetalLoader } from "@/components/ui/metal-loader";
 import TourSubmission from "@/components/forms/tour-submission";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { 
   Calendar, 
@@ -73,7 +73,7 @@ export default function Tours() {
   const [sortBy, setSortBy] = useState<string>('date');
   
   const { user, isAuthenticated } = useAuth();
-  const { toast } = useToast();
+  // const { toast } = useToast();
 
   // Fetch tours with band information
   const { data: tours = [], isLoading: toursLoading, refetch: refetchTours } = useQuery<TourWithBand[]>({
@@ -102,17 +102,10 @@ export default function Tours() {
       queryClient.invalidateQueries({ queryKey: ["/api/tours"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tours/enhanced"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tours/stats"] });
-      toast({
-        title: "Tour Database Updated!",
-        description: `Found ${data.stats.upcomingTours} upcoming tours from ${data.stats.bandsOnTour} bands.`,
-      });
+      console.log(`Tour database updated: ${data.stats.upcomingTours} upcoming tours from ${data.stats.bandsOnTour} bands`);
     },
     onError: () => {
-      toast({
-        title: "Update Failed",
-        description: "Failed to refresh tour database. Please try again.",
-        variant: "destructive",
-      });
+      console.error("Failed to refresh tour database");
     },
   });
 

@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import { 
   Crown, 
   ArrowRight, 
@@ -49,7 +49,7 @@ const metalGenres = [
 
 export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
   const [currentStep, setCurrentStep] = useState(1);
-  const { toast } = useToast();
+  // const { toast } = useToast();
 
   const form = useForm<OnboardingFormData>({
     resolver: zodResolver(onboardingSchema),
@@ -77,18 +77,11 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      toast({
-        title: "Welcome to MetalHub!",
-        description: "Your account has been set up successfully. Rock on! 🤘",
-      });
+      console.log("Onboarding completed successfully");
       onComplete();
     },
     onError: (error: Error) => {
-      toast({
-        title: "Onboarding Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Onboarding failed:", error.message);
     },
   });
 

@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MetalLoader } from "@/components/ui/metal-loader";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import { RememberLogin } from "@/components/remember-login";
 import { useAuth } from "@/hooks/useAuth";
 import { 
@@ -55,7 +55,7 @@ export default function Settings() {
   const [isLoading, setIsLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { toast } = useToast();
+  // const { toast } = useToast();
 
   const { data: preferences, isLoading: preferencesLoading } = useQuery<UserPreferences>({
     queryKey: ["/api/user/preferences"],
@@ -117,19 +117,12 @@ export default function Settings() {
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Account Deleted",
-        description: "Your account has been permanently deleted.",
-      });
+      console.log("Account deleted successfully");
       // Redirect to home page
       window.location.href = "/";
     },
     onError: (error: Error) => {
-      toast({
-        title: "Delete Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Account deletion failed:", error.message);
     },
   });
 

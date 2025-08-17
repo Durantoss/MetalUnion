@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { insertPhotoSchema } from "@shared/schema";
 import { Upload, X, ImageIcon } from "lucide-react";
@@ -31,7 +31,7 @@ export default function PhotoUpload({ onSuccess, defaultBandId }: PhotoUploadPro
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+  // const { toast } = useToast();
   const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
@@ -85,21 +85,14 @@ export default function PhotoUpload({ onSuccess, defaultBandId }: PhotoUploadPro
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/photos"] });
-      toast({
-        title: "Photo uploaded!",
-        description: "Your photo has been shared with the community.",
-      });
+      console.log("Photo uploaded successfully!");
       form.reset();
       setSelectedFile(null);
       setPreviewUrl(null);
       onSuccess?.();
     },
     onError: (error) => {
-      toast({
-        title: "Upload failed",
-        description: "Failed to upload photo. Please try again.",
-        variant: "destructive",
-      });
+      console.error("Photo upload failed");
       console.error("Photo upload error:", error);
     },
   });
@@ -109,21 +102,13 @@ export default function PhotoUpload({ onSuccess, defaultBandId }: PhotoUploadPro
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        toast({
-          title: "Invalid file type",
-          description: "Please select an image file (JPG, PNG, GIF, WebP).",
-          variant: "destructive",
-        });
+        console.error("Invalid file type - please select an image file");
         return;
       }
 
       // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Please select an image smaller than 5MB.",
-          variant: "destructive",
-        });
+        console.error("File too large - please select an image smaller than 5MB");
         return;
       }
 
@@ -150,11 +135,7 @@ export default function PhotoUpload({ onSuccess, defaultBandId }: PhotoUploadPro
 
   const onSubmit = (data: PhotoUploadData) => {
     if (!selectedFile) {
-      toast({
-        title: "No file selected",
-        description: "Please select an image to upload.",
-        variant: "destructive",
-      });
+      console.error("No file selected - please select an image to upload");
       return;
     }
 

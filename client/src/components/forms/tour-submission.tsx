@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import { insertTourSchema, type InsertTour } from "@shared/schema";
 import { Calendar, MapPin, Ticket, DollarSign } from "lucide-react";
 
@@ -17,7 +17,7 @@ interface TourSubmissionProps {
 }
 
 export default function TourSubmission({ onSuccess }: TourSubmissionProps) {
-  const { toast } = useToast();
+  // const { toast } = useToast();
   
   // Get user's bands for the dropdown
   const { data: userBands = [] } = useQuery<any[]>({
@@ -56,19 +56,12 @@ export default function TourSubmission({ onSuccess }: TourSubmissionProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/tours"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tours/enhanced"] });
       queryClient.invalidateQueries({ queryKey: ["/api/search"] });
-      toast({
-        title: "Tour Added!",
-        description: "Your tour date has been added successfully.",
-      });
+      console.log("Tour added successfully");
       form.reset();
       onSuccess?.();
     },
     onError: (error: any) => {
-      toast({
-        title: "Submission Failed",
-        description: error.message || "Failed to add tour. Please try again.",
-        variant: "destructive",
-      });
+      console.error("Failed to add tour:", error.message);
     },
   });
 

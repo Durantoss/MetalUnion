@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import { insertBandSchema, type InsertBand } from "@shared/schema";
 import { Plus, X, Guitar, Globe, Instagram } from "lucide-react";
 
@@ -30,7 +30,7 @@ export default function BandSubmission({ onSuccess }: BandSubmissionProps) {
   const [albums, setAlbums] = useState<string[]>([]);
   const [newMember, setNewMember] = useState("");
   const [newAlbum, setNewAlbum] = useState("");
-  const { toast } = useToast();
+  // const { toast } = useToast();
 
   const form = useForm<InsertBand>({
     resolver: zodResolver(insertBandSchema),
@@ -58,21 +58,14 @@ export default function BandSubmission({ onSuccess }: BandSubmissionProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bands"] });
-      toast({
-        title: "Band Submitted!",
-        description: "Your band submission is under review. We'll notify you once it's approved.",
-      });
+      console.log("Band submission successful - under review");
       form.reset();
       setMembers([]);
       setAlbums([]);
       onSuccess?.();
     },
     onError: (error: any) => {
-      toast({
-        title: "Submission Failed",
-        description: error.message || "Failed to submit band. Please try again.",
-        variant: "destructive",
-      });
+      console.error("Band submission failed:", error.message || "Unknown error");
     },
   });
 
