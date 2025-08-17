@@ -22,13 +22,21 @@ export function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [isDismissedState, setIsDismissedState] = useState(false);
 
   useEffect(() => {
+    // Check if already dismissed
+    const dismissed = sessionStorage.getItem('installPromptDismissed') === 'true';
+    setIsDismissedState(dismissed);
+    
     // Check if app is already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
       return;
     }
+
+    // Don't set up listeners if already dismissed
+    if (dismissed) return;
 
     // Listen for the beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: BeforeInstallPromptEvent) => {
@@ -71,17 +79,26 @@ export function InstallPrompt() {
   };
 
   const handleDismiss = () => {
+    console.log('Dismissing install prompt'); // Debug log
     setShowPrompt(false);
+    setIsDismissedState(true);
     // Hide for this session
     sessionStorage.setItem('installPromptDismissed', 'true');
   };
 
   // Show manual install guide if PWA prompt not available but not installed
-  const showManualGuide = !isInstalled && !deferredPrompt && !sessionStorage.getItem('installPromptDismissed');
+  const showManualGuide = !isInstalled && !deferredPrompt && !isDismissedState;
   
+  console.log('InstallPrompt state:', { 
+    isInstalled, 
+    isDismissedState, 
+    showPrompt, 
+    showManualGuide, 
+    deferredPrompt: !!deferredPrompt 
+  }); // Debug log
   
   // Don't show anything if already installed or dismissed
-  if (isInstalled || sessionStorage.getItem('installPromptDismissed')) {
+  if (isInstalled || isDismissedState) {
     return null;
   }
   
@@ -138,10 +155,11 @@ export function InstallPrompt() {
                 onClick={handleDismiss}
                 variant="ghost"
                 size="sm"
-                className="text-gray-400 hover:text-white text-xs p-1"
+                className="text-gray-400 hover:text-white hover:bg-gray-700/50 text-xs p-2 ml-2"
                 data-testid="button-dismiss-install"
+                title="Close notification"
               >
-                <X className="w-3 h-3" />
+                <X className="w-4 h-4" />
               </Button>
             </div>
           </div>
