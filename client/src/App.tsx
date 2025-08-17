@@ -109,348 +109,343 @@ function App() {
   }
 
   return (
-    <div 
-      className="responsive-container"
-      style={{ 
-        minHeight: '100vh', 
-        backgroundColor: '#000000', 
-        color: '#ffffff', 
-        padding: '32px',
-        fontFamily: 'system-ui, sans-serif'
-      }}
-    >
-      <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
-        <div 
-          className="responsive-header"
-          style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            marginBottom: '24px',
-            flexDirection: 'row',
-            gap: '16px'
-          }}
-        >
-          <h1 
-            className="responsive-title"
-            style={{ 
-              fontSize: '2.5rem', 
-              fontWeight: 'bold', 
-              color: '#dc2626', 
-              margin: 0,
-              lineHeight: '1.2'
-            }}
-          >
-            🤘 MetalHub Band Database
-          </h1>
-          
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '12px', 
-            flexWrap: 'wrap',
-            justifyContent: 'flex-end'
-          }}>
-            {isAuthenticated ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                {user?.profileImageUrl && (
-                  <img 
-                    src={user.profileImageUrl}
-                    alt="Profile"
-                    style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      objectFit: 'cover'
-                    }}
-                  />
-                )}
-                <span 
-                  className="responsive-text-sm"
-                  style={{ 
-                    fontSize: '0.875rem', 
-                    color: '#9ca3af' 
-                  }}
-                >
-                  {user?.firstName || user?.email || 'User'}
-                </span>
-                <button
-                  className="responsive-btn-sm"
-                  onClick={() => setShowLoginPage(true)}
+    <div style={{ 
+      minHeight: '100vh', 
+      backgroundColor: '#0a0a0a', 
+      color: '#ffffff',
+      fontFamily: 'system-ui, sans-serif'
+    }}>
+      {/* Header Navigation */}
+      <header style={{ 
+        padding: '16px 24px',
+        borderBottom: '1px solid #333',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <div style={{ 
+          fontSize: '1.5rem', 
+          fontWeight: 'bold', 
+          color: '#dc2626' 
+        }}>
+          METALHUB
+        </div>
+        <nav style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
+          <span style={{ color: '#999', fontSize: '0.9rem', cursor: 'pointer' }}>BANDS</span>
+          <span style={{ color: '#999', fontSize: '0.9rem', cursor: 'pointer' }}>REVIEWS</span>
+          <span style={{ color: '#999', fontSize: '0.9rem', cursor: 'pointer' }}>TOURS</span>
+          <span style={{ color: '#999', fontSize: '0.9rem', cursor: 'pointer' }}>PHOTOS</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input
+              type="text"
+              placeholder="Search bands, albums..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: '#1a1a1a',
+                border: '1px solid #333',
+                borderRadius: '4px',
+                color: '#fff',
+                fontSize: '0.875rem',
+                width: '200px'
+              }}
+            />
+          </div>
+          {isAuthenticated ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {user?.profileImageUrl && (
+                <img 
+                  src={user.profileImageUrl}
+                  alt="Profile"
                   style={{
-                    padding: '6px 12px',
-                    backgroundColor: '#374151',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '0.75rem',
-                    cursor: 'pointer'
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    objectFit: 'cover'
                   }}
-                >
-                  Settings
-                </button>
-              </div>
-            ) : (
+                />
+              )}
               <button
                 onClick={() => setShowLoginPage(true)}
                 style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#dc2626',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
+                  padding: '4px 8px',
+                  backgroundColor: 'transparent',
+                  color: '#999',
+                  border: '1px solid #333',
+                  borderRadius: '4px',
+                  fontSize: '0.75rem',
                   cursor: 'pointer'
                 }}
               >
-                Login to MetalHub
+                Account
               </button>
-            )}
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div style={{ marginBottom: '24px' }}>
-          <input
-            type="text"
-            placeholder="Search bands by name, genre, or description..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              backgroundColor: '#1f2937',
-              border: '1px solid #374151',
-              borderRadius: '6px',
-              color: '#ffffff',
-              fontSize: '1rem',
-              outline: 'none'
-            }}
-          />
-        </div>
-        {/* Authentication Status */}
-        <div style={{ 
-          backgroundColor: '#1f2937', 
-          padding: '16px', 
-          borderRadius: '8px', 
-          marginBottom: '24px' 
-        }}>
-          <h3 style={{ 
-            fontSize: '1rem', 
-            color: '#f87171', 
-            marginBottom: '12px'
-          }}>
-            Authentication Status
-          </h3>
-          {isAuthenticated ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <p style={{ color: '#10b981', fontSize: '0.875rem' }}>✓ Logged in as {user?.firstName || user?.email || 'User'}</p>
-              <p style={{ color: '#10b981', fontSize: '0.875rem' }}>✓ Session active with persistent login</p>
-              <div style={{ marginTop: '8px' }}>
-                <button
-                  onClick={() => window.location.href = '/api/logout'}
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: 'transparent',
-                    color: '#9ca3af',
-                    border: '1px solid #374151',
-                    borderRadius: '4px',
-                    fontSize: '0.75rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Logout
-                </button>
-              </div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <p style={{ color: '#fbbf24', fontSize: '0.875rem' }}>⚠ Not logged in</p>
-              <p style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Login to access all features</p>
-            </div>
-          )}
-        </div>
-        
-        {/* Error Display */}
-        {error && (
-          <div style={{ 
-            backgroundColor: '#7f1d1d', 
-            padding: '16px', 
-            borderRadius: '8px', 
-            marginBottom: '24px' 
-          }}>
-            <p style={{ color: '#fca5a5' }}>Error: {error}</p>
-          </div>
-        )}
-        
-        {/* Band Results Section */}
-        <div style={{ marginBottom: '24px' }}>
-          <h2 style={{ 
-            fontSize: '1.25rem', 
-            color: '#f87171', 
-            marginBottom: '16px' 
-          }}>
-            Band Search Results ({loading ? '...' : `${filteredBands.length} of ${bands.length}`} bands)
-          </h2>
-          
-          {loading ? (
-            <div style={{ 
-              backgroundColor: '#1f2937', 
-              padding: '24px', 
-              borderRadius: '8px', 
-              textAlign: 'center' 
-            }}>
-              <p style={{ color: '#9ca3af' }}>Loading bands...</p>
-            </div>
-          ) : filteredBands.length === 0 ? (
-            <div style={{ 
-              backgroundColor: '#1f2937', 
-              padding: '24px', 
-              borderRadius: '8px', 
-              textAlign: 'center' 
-            }}>
-              <p style={{ color: '#9ca3af' }}>
-                {searchQuery ? `No bands found for "${searchQuery}"` : 'No bands found'}
-              </p>
-            </div>
-          ) : (
-            <div 
-              className="responsive-grid"
-              style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', 
-                gap: '16px'
+            <button
+              onClick={() => setShowLoginPage(true)}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: '#dc2626',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '0.875rem',
+                cursor: 'pointer'
               }}
             >
-              {filteredBands.map((band, index) => (
-                <div 
-                  key={`${band.id}-${index}`}
-                  className="responsive-card"
-                  style={{ 
-                    backgroundColor: '#1f2937', 
-                    padding: '16px', 
-                    borderRadius: '8px', 
-                    display: 'flex',
-                    gap: '12px',
-                    alignItems: 'flex-start'
-                  }}
-                >
-                  <div 
-                    className="responsive-avatar"
-                    style={{ 
-                      width: '60px', 
-                      height: '60px', 
-                      backgroundColor: '#374151', 
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0
-                    }}
-                  >
-                    {band.imageUrl ? (
-                      <img 
-                        src={band.imageUrl} 
-                        alt={band.name}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          borderRadius: '8px'
-                        }}
-                      />
-                    ) : (
-                      <div style={{ 
-                        fontSize: '12px', 
-                        color: '#9ca3af' 
-                      }}>
-                        🎸
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3 style={{ 
-                      fontSize: '1.125rem', 
-                      fontWeight: '600',
-                      margin: '0 0 4px 0',
-                      lineHeight: '1.2'
-                    }}>
-                      {band.name}
-                    </h3>
-                    <p 
-                      className="responsive-text-sm"
-                      style={{ 
-                        color: '#9ca3af', 
-                        fontSize: '0.875rem',
-                        margin: '0 0 4px 0'
-                      }}
-                    >
-                      {band.genre}
-                    </p>
-                    <p 
-                      className="responsive-text-xs"
-                      style={{ 
-                        color: '#6b7280', 
-                        fontSize: '0.75rem',
-                        margin: '0 0 8px 0',
-                        lineHeight: '1.3',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: 'vertical'
-                      }}
-                    >
-                      {band.description}
-                    </p>
-                    
-                    {band.founded && (
-                      <p 
-                        className="responsive-text-xs"
-                        style={{ 
-                          color: '#6b7280', 
-                          fontSize: '0.75rem', 
-                          margin: '2px 0'
-                        }}
-                      >
-                        Founded: {band.founded}
-                      </p>
-                    )}
-                    
-                    {band.members && band.members.length > 0 && (
-                      <p 
-                        className="responsive-text-xs"
-                        style={{ 
-                          color: '#6b7280', 
-                          fontSize: '0.75rem', 
-                          margin: '2px 0'
-                        }}
-                      >
-                        Members: {band.members.slice(0, 2).join(', ')}
-                        {band.members.length > 2 && ` +${band.members.length - 2} more`}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    className="responsive-btn-sm"
-                    style={{ 
-                      padding: '4px 12px', 
-                      backgroundColor: '#dc2626', 
-                      borderRadius: '4px', 
-                      fontSize: '0.875rem',
-                      border: 'none',
-                      color: 'white',
-                      cursor: 'pointer',
-                      flexShrink: 0
-                    }}
-                    onClick={() => console.log('Selected band:', band.name)}
-                  >
-                    View
-                  </button>
-                </div>
-              ))}
+              Login
+            </button>
+          )}
+        </nav>
+      </header>
+
+      {/* Hero Section */}
+      <div style={{
+        backgroundImage: 'linear-gradient(135deg, #1a1a1a 0%, #333 50%, #1a1a1a 100%)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        padding: '80px 24px',
+        textAlign: 'center',
+        position: 'relative'
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.6)'
+        }}></div>
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
+          <h1 style={{
+            fontSize: '4rem',
+            fontWeight: 'bold',
+            marginBottom: '16px',
+            lineHeight: '1.1'
+          }}>
+            DISCOVER THE <span style={{ color: '#dc2626' }}>UNDERGROUND</span>
+          </h1>
+          <p style={{
+            fontSize: '1.25rem',
+            color: '#ccc',
+            marginBottom: '32px',
+            lineHeight: '1.6'
+          }}>
+            Reviews, photos, and tour dates for the heaviest bands on the planet
+          </p>
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+            <button style={{
+              padding: '12px 24px',
+              backgroundColor: '#dc2626',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}>
+              EXPLORE BANDS
+            </button>
+            <button style={{
+              padding: '12px 24px',
+              backgroundColor: 'transparent',
+              color: 'white',
+              border: '2px solid #666',
+              borderRadius: '6px',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}>
+              WRITE REVIEW
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Featured Bands Section */}
+      <div style={{ padding: '60px 24px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            marginBottom: '40px'
+          }}>
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 'bold',
+              color: '#fff'
+            }}>
+              FEATURED BANDS
+            </h2>
+            <a href="#" style={{
+              color: '#dc2626',
+              fontSize: '0.9rem',
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}>
+              VIEW ALL →
+            </a>
+          </div>
+
+          {loading && (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px',
+              color: '#9ca3af' 
+            }}>
+              Loading bands...
             </div>
+          )}
+
+          {error && (
+            <div style={{ 
+              backgroundColor: '#7f1d1d', 
+              padding: '16px', 
+              borderRadius: '8px', 
+              marginBottom: '24px' 
+            }}>
+              <p style={{ color: '#fca5a5' }}>Error: {error}</p>
+            </div>
+          )}
+          
+          {!loading && !error && (
+            filteredBands.length === 0 ? (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '40px',
+                color: '#9ca3af' 
+              }}>
+                <p>
+                  {searchQuery ? `No bands found for "${searchQuery}"` : 'No bands found'}
+                </p>
+              </div>
+            ) : (
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', 
+                gap: '24px'
+              }}>
+                {filteredBands.slice(0, 6).map((band, index) => (
+                  <div 
+                    key={`${band.id}-${index}`}
+                    style={{ 
+                      backgroundColor: '#1a1a1a', 
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      position: 'relative',
+                      aspectRatio: '16/10'
+                    }}
+                  >
+                    {/* Band Image Background */}
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundImage: band.imageUrl ? `url(${band.imageUrl})` : 'linear-gradient(135deg, #333 0%, #1a1a1a 100%)',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
+                    }}>
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 100%)'
+                      }}></div>
+                    </div>
+
+                    {/* Band Info Overlay */}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      padding: '24px',
+                      color: 'white'
+                    }}>
+                      <h3 style={{
+                        fontSize: '1.5rem',
+                        fontWeight: 'bold',
+                        marginBottom: '4px',
+                        color: 'white'
+                      }}>
+                        {band.name.toUpperCase()}
+                      </h3>
+                      <p style={{
+                        color: '#ccc',
+                        fontSize: '0.9rem',
+                        marginBottom: '8px'
+                      }}>
+                        {band.genre}
+                      </p>
+                      
+                      {/* Rating Stars */}
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '8px',
+                        marginBottom: '12px'
+                      }}>
+                        <div style={{ color: '#dc2626' }}>
+                          ⭐⭐⭐⭐⭐
+                        </div>
+                        <span style={{ 
+                          fontSize: '0.8rem', 
+                          color: '#999' 
+                        }}>
+                          ({Math.floor(Math.random() * 500) + 50} reviews)
+                        </span>
+                      </div>
+
+                      <p style={{
+                        fontSize: '0.85rem',
+                        color: '#bbb',
+                        lineHeight: '1.4',
+                        marginBottom: '12px',
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical'
+                      }}>
+                        {band.description}
+                      </p>
+
+                      <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <button style={{
+                          padding: '8px 16px',
+                          backgroundColor: '#dc2626',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '0.875rem',
+                          fontWeight: '600',
+                          cursor: 'pointer'
+                        }}>
+                          VIEW PROFILE
+                        </button>
+                        <span style={{ 
+                          fontSize: '0.8rem', 
+                          color: '#999' 
+                        }}>
+                          NEXT TOUR: {band.founded ? 'DEC 2024' : 'JAN 2025'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
           )}
         </div>
       </div>
