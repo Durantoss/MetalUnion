@@ -277,13 +277,13 @@ export default function Bands() {
                 />
               )}
               <CardContent className="p-4 sm:p-6">
-                <h3 className="text-lg sm:text-xl font-black mb-2" data-testid={`text-band-name-${band.id}`}>{band.name}</h3>
-                <p className="text-gray-200 font-medium mb-3" data-testid={`text-band-genre-${band.id}`}>{band.genre}</p>
+                <h3 className="band-name mb-3" data-testid={`text-band-name-${band.id}`}>{band.name}</h3>
+                <p className="text-metal-red font-bold uppercase tracking-wider mb-3 text-sm" data-testid={`text-band-genre-${band.id}`}>{band.genre}</p>
                 <div className="flex items-center mb-3">
                   <LighterRating rating={5} size="sm" />
-                  <span className="text-xs sm:text-sm text-gray-300 ml-2">(Reviews coming soon)</span>
+                  <span className="text-xs sm:text-sm text-secondary ml-2 font-medium">(Reviews coming soon)</span>
                 </div>
-                <p className="text-sm text-gray-200 mb-4 line-clamp-2 sm:line-clamp-3" data-testid={`text-band-description-${band.id}`}>
+                <p className="text-readable mb-4 line-clamp-2 sm:line-clamp-3" data-testid={`text-band-description-${band.id}`}>
                   {band.description}
                 </p>
 
@@ -292,7 +292,7 @@ export default function Bands() {
                   <div className="mb-4 p-3 sm:p-4 bg-metal-red/10 border border-metal-red/30 rounded-lg">
                     <div className="flex items-center mb-3">
                       <Calendar className="w-4 h-4 text-metal-red mr-2" />
-                      <h4 className="text-sm sm:text-base font-bold text-metal-red uppercase tracking-wider">
+                      <h4 className="heading-enhanced text-sm sm:text-base text-metal-red uppercase tracking-wider">
                         Upcoming Shows
                       </h4>
                     </div>
@@ -305,7 +305,7 @@ export default function Bands() {
                         >
                           <div className="flex-1 min-w-0">
                             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-1">
-                              <span className="font-bold text-white text-xs sm:text-sm truncate" data-testid={`text-tour-name-${tour.id}`}>
+                              <span className="heading-enhanced text-white text-xs sm:text-sm truncate" data-testid={`text-tour-name-${tour.id}`}>
                                 {tour.tourName}
                               </span>
                               <div className="flex items-center text-gray-400 text-xs">
@@ -376,8 +376,8 @@ export default function Bands() {
                 )}
 
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-                  <Link href={`/bands/${band.id}`} data-testid={`button-view-profile-${band.id}`} className="flex-1">
-                    <Button className="bg-metal-red hover:bg-metal-red-bright text-sm font-bold uppercase tracking-wider w-full sm:w-auto min-h-[44px]">
+                  <Link href={`/bands/${band.id}`} data-testid={`button-view-profile-${band.id}`} className="flex-1 clickable-link no-underline">
+                    <Button className="bg-metal-red hover:bg-metal-red-bright heading-enhanced text-sm uppercase tracking-wider w-full sm:w-auto min-h-[44px]">
                       View Profile
                     </Button>
                   </Link>

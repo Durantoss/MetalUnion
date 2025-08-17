@@ -56,20 +56,20 @@ export default function Home() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent" />
         <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-8 text-left">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 sm:mb-6 leading-tight">
+          <h1 className="heading-enhanced text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-4 sm:mb-6 leading-tight text-shadow-lg">
             MOBILIZE THE <span className="text-metal-red">MASSES</span>
           </h1>
-          <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-6 sm:mb-8 font-medium">
+          <p className="text-readable text-lg sm:text-xl md:text-2xl mb-6 sm:mb-8">
             Reviews, photos, and tour dates for the heaviest bands on the planet
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <Link href="/bands" data-testid="button-explore-bands" className="w-full sm:w-auto">
-              <Button className="bg-metal-red hover:bg-metal-red-bright px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold uppercase tracking-wider w-full sm:w-auto min-h-[48px]">
+            <Link href="/bands" data-testid="button-explore-bands" className="w-full sm:w-auto clickable-link no-underline">
+              <Button className="bg-metal-red hover:bg-metal-red-bright px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg heading-enhanced uppercase tracking-wider w-full sm:w-auto min-h-[48px]">
                 Explore Bands
               </Button>
             </Link>
-            <Link href="/reviews" data-testid="button-write-review" className="w-full sm:w-auto">
-              <Button variant="outline" className="border-white text-white hover:bg-white hover:text-black px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold uppercase tracking-wider w-full sm:w-auto min-h-[48px]">
+            <Link href="/reviews" data-testid="button-write-review" className="w-full sm:w-auto clickable-link no-underline">
+              <Button variant="outline" className="border-white text-white hover:bg-white hover:text-black px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg heading-enhanced uppercase tracking-wider w-full sm:w-auto min-h-[48px]">
                 Write Review
               </Button>
             </Link>
@@ -82,9 +82,9 @@ export default function Home() {
         {/* Featured Bands Section */}
         <section className="mb-12 sm:mb-16">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
-            <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-wider">Featured Bands</h2>
-            <Link href="/bands" data-testid="link-view-all-bands">
-              <Button variant="ghost" className="text-metal-red hover:text-metal-red-bright font-bold uppercase text-sm tracking-wider self-start">
+            <h2 className="heading-enhanced text-2xl sm:text-3xl uppercase tracking-wider">Featured Bands</h2>
+            <Link href="/bands" data-testid="link-view-all-bands" className="clickable-link">
+              <Button variant="ghost" className="text-metal-red hover:text-metal-red-bright heading-enhanced uppercase text-sm tracking-wider self-start">
                 View All <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </Link>
@@ -115,16 +115,16 @@ export default function Home() {
                     />
                   )}
                   <CardContent className="p-4 sm:p-6">
-                    <h3 className="text-lg sm:text-xl font-black mb-2" data-testid={`text-band-name-${band.id}`}>{band.name}</h3>
-                    <p className="text-gray-400 mb-3" data-testid={`text-band-genre-${band.id}`}>{band.genre}</p>
+                    <h3 className="band-name mb-2" data-testid={`text-band-name-${band.id}`}>{band.name}</h3>
+                    <p className="text-metal-red font-bold uppercase tracking-wider mb-3 text-sm" data-testid={`text-band-genre-${band.id}`}>{band.genre}</p>
                     <div className="flex items-center mb-3">
                       <LighterRating rating={5} size="sm" />
-                      <span className="text-xs sm:text-sm text-gray-400 ml-2">(Reviews coming soon)</span>
+                      <span className="text-xs sm:text-sm text-secondary ml-2 font-medium">(Reviews coming soon)</span>
                     </div>
-                    <p className="text-sm text-gray-300 mb-4 line-clamp-2" data-testid={`text-band-description-${band.id}`}>{band.description}</p>
+                    <p className="text-readable mb-4 line-clamp-2" data-testid={`text-band-description-${band.id}`}>{band.description}</p>
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-                      <Link href={`/bands/${band.id}`} data-testid={`button-view-profile-${band.id}`} className="flex-1">
-                        <Button className="bg-metal-red hover:bg-metal-red-bright text-sm font-bold uppercase tracking-wider w-full sm:w-auto min-h-[44px]">
+                      <Link href={`/bands/${band.id}`} data-testid={`button-view-profile-${band.id}`} className="flex-1 clickable-link no-underline">
+                        <Button className="bg-metal-red hover:bg-metal-red-bright text-sm heading-enhanced uppercase tracking-wider w-full sm:w-auto min-h-[44px]">
                           View Profile
                         </Button>
                       </Link>
@@ -143,7 +143,7 @@ export default function Home() {
 
         {/* Latest Reviews Section */}
         <section className="mb-12 sm:mb-16">
-          <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-wider mb-6 sm:mb-8">Latest Reviews</h2>
+          <h2 className="heading-enhanced text-2xl sm:text-3xl uppercase tracking-wider mb-6 sm:mb-8">Latest Reviews</h2>
           
           {reviewsLoading ? (
             <div className="space-y-6">
