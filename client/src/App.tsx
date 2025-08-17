@@ -160,7 +160,10 @@ const App = () => {
               Sign in with Replit
             </button>
             <button 
-              onClick={() => setShowComparison(true)}
+              onClick={() => {
+                console.log('Compare Bands button clicked');
+                setShowComparison(true);
+              }}
               style={{
                 backgroundColor: '#059669',
                 color: 'white',
@@ -169,7 +172,16 @@ const App = () => {
                 borderRadius: '8px',
                 fontSize: '1rem',
                 cursor: 'pointer',
-                fontWeight: '600'
+                fontWeight: '600',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#047857';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#059669';
+                e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
               Compare Bands
@@ -252,6 +264,10 @@ const App = () => {
                   href={band.website}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={(e) => {
+                    console.log(`Opening ${band.name} website: ${band.website}`);
+                    // Let the default behavior continue
+                  }}
                   style={{
                     display: 'inline-block',
                     backgroundColor: '#dc2626',
@@ -261,10 +277,20 @@ const App = () => {
                     textDecoration: 'none',
                     fontSize: '0.9rem',
                     fontWeight: '600',
-                    marginRight: '0.5rem'
+                    marginRight: '0.5rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#b91c1c';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#dc2626';
+                    e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
-                  Website
+                  Website ↗
                 </a>
               )}
               {band.instagram && (
@@ -272,6 +298,10 @@ const App = () => {
                   href={band.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={(e) => {
+                    console.log(`Opening ${band.name} Instagram: ${band.instagram}`);
+                    // Let the default behavior continue
+                  }}
                   style={{
                     display: 'inline-block',
                     backgroundColor: '#7c3aed',
@@ -280,10 +310,20 @@ const App = () => {
                     borderRadius: '6px',
                     textDecoration: 'none',
                     fontSize: '0.9rem',
-                    fontWeight: '600'
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#6d28d9';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#7c3aed';
+                    e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
-                  Instagram
+                  Instagram ↗
                 </a>
               )}
             </div>

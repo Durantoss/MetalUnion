@@ -382,6 +382,9 @@ export function BandComparison({ bands, onClose }: BandComparisonProps) {
                       href={band.website}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={(e) => {
+                        console.log(`Opening ${band.name} website: ${band.website}`);
+                      }}
                       style={{
                         backgroundColor: '#dc2626',
                         color: 'white',
@@ -389,10 +392,18 @@ export function BandComparison({ bands, onClose }: BandComparisonProps) {
                         borderRadius: '6px',
                         textDecoration: 'none',
                         fontSize: '0.8rem',
-                        fontWeight: '600'
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#b91c1c';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#dc2626';
                       }}
                     >
-                      Website
+                      Website ↗
                     </a>
                   )}
                   {band.instagram && (
@@ -400,6 +411,9 @@ export function BandComparison({ bands, onClose }: BandComparisonProps) {
                       href={band.instagram}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={(e) => {
+                        console.log(`Opening ${band.name} Instagram: ${band.instagram}`);
+                      }}
                       style={{
                         backgroundColor: '#7c3aed',
                         color: 'white',
@@ -407,10 +421,18 @@ export function BandComparison({ bands, onClose }: BandComparisonProps) {
                         borderRadius: '6px',
                         textDecoration: 'none',
                         fontSize: '0.8rem',
-                        fontWeight: '600'
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#6d28d9';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#7c3aed';
                       }}
                     >
-                      Instagram
+                      Instagram ↗
                     </a>
                   )}
                 </div>
