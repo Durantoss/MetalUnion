@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from 'react';
+
 interface Band {
   id: string;
   name: string;
@@ -26,11 +28,9 @@ interface SectionStats {
   posts: number;
 }
 
-import { useState, useEffect } from 'react';
-
 export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendlyLandingProps) {
   const featuredBands = bands?.slice(0, 3) || [];
-  const [stats, setStats] = useState<SectionStats>({
+  const [stats, setStats] = React.useState<SectionStats>({
     bands: bands.length,
     reviews: 0,
     photos: 0,
@@ -39,10 +39,10 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
     events: 0,
     posts: 0
   });
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = React.useState(new Date());
 
   // Update real-time stats
-  useEffect(() => {
+  React.useEffect(() => {
     const updateStats = () => {
       setStats(prev => ({
         bands: bands.length,
@@ -71,6 +71,14 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
     const interval = setInterval(updateStats, 3000);
     return () => clearInterval(interval);
   }, [bands.length]);
+
+  // Update time every second
+  React.useEffect(() => {
+    const timeInterval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timeInterval);
+  }, []);
 
   return (
     <div style={{

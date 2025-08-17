@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Heart, MessageCircle, Edit2, Trash2, Send, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
-import type { Comment, InsertComment } from '@shared/schema';
+import type { Comment, InsertComment, User } from '@shared/schema';
 
 interface CommentSectionProps {
   targetType: string;
@@ -25,7 +25,7 @@ interface CommentItemProps {
 function CommentItem({ comment, onEdit, onDelete, onReact }: CommentItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
-  const { user } = useAuth();
+  const { user } = useAuth() as { user: User & { stagename: string } };
 
   const handleEdit = () => {
     if (editContent.trim() && onEdit) {
@@ -156,7 +156,7 @@ function CommentItem({ comment, onEdit, onDelete, onReact }: CommentItemProps) {
 export function CommentSection({ targetType, targetId, targetTitle }: CommentSectionProps) {
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth() as { user: User & { stagename: string }, isAuthenticated: boolean };
   const queryClient = useQueryClient();
 
   // Fetch comments
@@ -167,7 +167,7 @@ export function CommentSection({ targetType, targetId, targetTitle }: CommentSec
 
   // Create comment mutation
   const createCommentMutation = useMutation({
-    mutationFn: (commentData: InsertComment) => apiRequest('/api/comments', {
+    mutationFn: (commentData: any) => apiRequest('/api/comments', {
       method: 'POST',
       body: JSON.stringify(commentData),
     }),
