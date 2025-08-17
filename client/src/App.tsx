@@ -5,7 +5,7 @@ import { ToursSection } from './components/ToursSection';
 import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
 import { ThePit } from './components/ThePit';
-import { SimpleLanding } from './components/SimpleLanding';
+import { MobileFriendlyLanding } from './components/MobileFriendlyLanding';
 import { EnhancedSocialHub } from './components/EnhancedSocialHub';
 import { EnhancedEventsPage } from './components/EnhancedEventsPage';
 import { UserProfile } from './components/UserProfile';
@@ -155,7 +155,7 @@ const App = () => {
       console.log('Rendering MobileFriendlyLanding component');
       
       return (
-        <SimpleLanding 
+        <MobileFriendlyLanding 
           onSectionChange={setCurrentSection}
           bands={bands}
         />
@@ -379,8 +379,15 @@ const App = () => {
         />
       )}
       
-      <main className={`w-full ${currentSection === 'landing' ? '' : 'max-w-7xl mx-auto px-6'}`}>
-        {renderContent()}
+      <main className={`w-full ${currentSection === 'landing' ? '' : 'max-w-7xl mx-auto px-6'} transition-all duration-500 ease-out`} style={{
+        animation: 'fadeInUp 0.4s ease-out',
+        animationFillMode: 'both'
+      }}>
+        <div style={{
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+        }}>
+          {renderContent()}
+        </div>
         
         {showComparison && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 backdrop-blur-lg">
@@ -445,6 +452,62 @@ const App = () => {
           </button>
         </div>
       )}
+
+      {/* Global CSS animations for smooth transitions */}
+      <style jsx global>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes slideInFromLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        
+        .section-transition {
+          animation: fadeInUp 0.4s ease-out;
+        }
+        
+        .smooth-card {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .smooth-card:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 20px 40px rgba(220, 38, 38, 0.3);
+        }
+        
+        .page-enter {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        
+        .page-enter-active {
+          opacity: 1;
+          transform: translateY(0);
+          transition: all 0.4s ease-out;
+        }
+        
+        /* Ensure consistent background colors */
+        .unified-section {
+          background: rgba(0, 0, 0, 0.95);
+          min-height: 100vh;
+          color: white;
+        }
+      `}</style>
     </div>
   );
 };
