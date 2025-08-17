@@ -104,6 +104,12 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
+    // Store the 'remember' parameter in session for post-login handling
+    const rememberUser = req.query.remember === 'true';
+    if (req.session) {
+      (req.session as any).rememberUser = rememberUser;
+    }
+    
     passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
@@ -111,20 +117,58 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/callback", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/api/login",
+    passport.authenticate(`replitauth:${req.hostname}`, (err: any, user: any) => {
+      if (err || !user) {
+        return res.redirect("/api/login");
+      }
+      
+      req.logIn(user, (err) => {
+        if (err) {
+          return res.redirect("/api/login");
+        }
+        
+        // Handle remember me functionality
+        const rememberUser = (req.session as any)?.rememberUser;
+        if (rememberUser && req.session) {
+          // Extend session for remember me (90 days)
+          const extendedTtl = 90 * 24 * 60 * 60 * 1000;
+          req.session.cookie.maxAge = extendedTtl;
+        }
+        
+        // Clean up the remember flag
+        if (req.session) {
+          delete (req.session as any).rememberUser;
+        }
+        
+        const returnTo = (req.session as any)?.returnTo || "/";
+        if (req.session) {
+          delete (req.session as any).returnTo;
+        }
+        
+        res.redirect(returnTo);
+      });
     })(req, res, next);
   });
 
   app.get("/api/logout", (req, res) => {
+    const clearRemember = req.query.clear === 'true';
+    
     req.logout(() => {
-      res.redirect(
-        client.buildEndSessionUrl(config, {
-          client_id: process.env.REPL_ID!,
-          post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
-        }).href
-      );
+      // Clear session
+      if (req.session) {
+        req.session.destroy(() => {
+          res.clearCookie('connect.sid');
+          
+          const logoutUrl = client.buildEndSessionUrl(config, {
+            client_id: process.env.REPL_ID!,
+            post_logout_redirect_uri: `${req.protocol}://${req.hostname}${clearRemember ? '?clear=true' : ''}`,
+          }).href;
+          
+          res.redirect(logoutUrl);
+        });
+      } else {
+        res.redirect("/");
+      }
     });
   });
 }

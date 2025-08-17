@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { MetalLoader } from "@/components/ui/metal-loader";
+// import { SessionStatus } from "@/components/session-status";
+// import { LoginPrompt } from "@/components/login-prompt";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 // import { useToast } from "@/hooks/use-toast";
@@ -136,9 +138,18 @@ export default function Profile() {
           <CardContent className="p-8 text-center">
             <h1 className="text-2xl font-bold text-white mb-4">Login Required</h1>
             <p className="text-gray-400 mb-6">You need to be logged in to view your profile.</p>
-            <a href="/api/login">
-              <Button className="bg-metal-red hover:bg-metal-red-bright">Login</Button>
-            </a>
+            <div className="space-y-4">
+              <a href="/api/login?remember=true">
+                <Button className="bg-metal-red hover:bg-metal-red-bright w-full">
+                  Sign In (Remember Me)
+                </Button>
+              </a>
+              <a href="/api/login">
+                <Button variant="ghost" className="w-full text-gray-400 hover:text-white">
+                  Sign In (Session Only)
+                </Button>
+              </a>
+            </div>
           </CardContent>
         </Card>
       </main>
@@ -429,6 +440,32 @@ export default function Profile() {
                   Account Settings
                 </Button>
               </a>
+            </CardContent>
+          </Card>
+
+          {/* Session Status - Enhanced Login System */}
+          <Card className="bg-card-dark border-metal-gray">
+            <CardHeader>
+              <div className="flex items-center space-x-3">
+                <Shield className="w-5 h-5 text-metal-red" />
+                <h3 className="font-bold text-white">Session Status</h3>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {user?.email && (
+                <div className="text-sm">
+                  <p className="text-gray-400">Signed in as:</p>
+                  <p className="text-white font-medium">{user.email}</p>
+                </div>
+              )}
+              <div className="flex flex-col gap-3">
+                <a href="/api/logout">
+                  <Button variant="ghost" size="sm" className="w-full text-red-400 hover:text-red-300 hover:bg-red-600/10">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </a>
+              </div>
             </CardContent>
           </Card>
 
