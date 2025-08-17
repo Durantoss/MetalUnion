@@ -5,7 +5,7 @@ import { ToursSection } from './components/ToursSection';
 import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
 import { ThePit } from './components/ThePit';
-import { SimpleLandingPage } from './components/SimpleLandingPage';
+import { MobileFriendlyLanding } from './components/MobileFriendlyLanding';
 import { EnhancedSocialHub } from './components/EnhancedSocialHub';
 import { UserProfile } from './components/UserProfile';
 import { NotificationCenter } from './components/NotificationCenter';
@@ -151,17 +151,10 @@ const App = () => {
     
     // Force landing page display for mobile debugging
     if (currentSection === 'landing' || !currentSection || currentSection === '' || currentSection === undefined) {
-      console.log('Rendering SimpleLandingPage component');
-      
-      // Mobile test mode - use simplified component
-      const isMobile = window.innerWidth <= 768;
-      if (isMobile && bands.length === 0) {
-        console.log('Using mobile test component');
-        return <SimpleLandingPage onSectionChange={setCurrentSection} bands={[]} />;
-      }
+      console.log('Rendering MobileFriendlyLanding component');
       
       return (
-        <SimpleLandingPage 
+        <MobileFriendlyLanding 
           onSectionChange={setCurrentSection}
           bands={bands}
         />

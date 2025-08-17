@@ -20,42 +20,94 @@ export function SimpleLandingPage({ onSectionChange, bands }: SimpleLandingPageP
   const featuredBands = bands?.slice(0, 4) || [];
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-gray-900 relative overflow-hidden" style={{ minHeight: '100vh', backgroundColor: '#1a1a1a' }}>
       {/* Animated Background */}
       <div className="fixed inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-void-black via-void-black to-fire-red/10"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(220,38,38,0.1),transparent_70%)]"></div>
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #2d1b1b 100%)' }}></div>
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at 50% 50%, rgba(220,38,38,0.1), transparent 70%)' }}></div>
       </div>
 
       {/* Navigation */}
-      <nav className="relative z-20 flex justify-between items-center p-6">
-        <div className="text-3xl font-black font-mono gradient-text-fire">
+      <nav className="relative z-20 flex justify-between items-center p-4 md:p-6" style={{ position: 'relative', zIndex: 20 }}>
+        <div 
+          className="text-2xl md:text-3xl font-black font-mono"
+          style={{ 
+            color: '#dc2626', 
+            fontWeight: 900, 
+            fontFamily: 'monospace',
+            fontSize: window.innerWidth < 768 ? '1.5rem' : '1.875rem'
+          }}
+        >
           MOSHUNION
         </div>
-        <div className="flex gap-6">
+        <div className="flex gap-2 md:gap-6">
           <button
             onClick={() => onSectionChange('bands')}
-            className="px-6 py-2 bg-fire-red/20 border border-fire-red rounded-lg font-mono text-fire-red hover:bg-fire-red hover:text-white transition-all"
+            className="px-3 py-2 md:px-6 md:py-2 text-xs md:text-sm rounded-lg font-mono transition-all"
+            style={{
+              backgroundColor: 'rgba(220, 38, 38, 0.2)',
+              border: '1px solid #dc2626',
+              color: '#dc2626',
+              fontFamily: 'monospace'
+            }}
             data-testid="button-discover"
           >
             DISCOVER
           </button>
           <button
             onClick={() => onSectionChange('social')}
-            className="px-6 py-2 bg-electric-yellow/20 border border-electric-yellow rounded-lg font-mono text-electric-yellow hover:bg-electric-yellow hover:text-void-black transition-all"
+            className="px-3 py-2 md:px-6 md:py-2 text-xs md:text-sm rounded-lg font-mono transition-all"
+            style={{
+              backgroundColor: 'rgba(251, 191, 36, 0.2)',
+              border: '1px solid #fbbf24',
+              color: '#fbbf24',
+              fontFamily: 'monospace'
+            }}
             data-testid="button-social"
           >
-            SOCIAL HUB
+            SOCIAL
           </button>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-[80vh] px-6 text-center">
-        <h1 className="text-6xl md:text-8xl font-black font-mono gradient-text-fire mb-6 tracking-wider">
+      <div 
+        className="relative z-10 flex flex-col items-center justify-center px-4 md:px-6 text-center"
+        style={{ 
+          position: 'relative', 
+          zIndex: 10, 
+          minHeight: '70vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          padding: '1rem'
+        }}
+      >
+        <h1 
+          className="font-black font-mono mb-4 md:mb-6 tracking-wider"
+          style={{
+            fontSize: window.innerWidth < 768 ? '2.5rem' : '4rem',
+            fontWeight: 900,
+            fontFamily: 'monospace',
+            color: '#dc2626',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+            marginBottom: '1.5rem'
+          }}
+        >
           METAL UNITED
         </h1>
-        <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl">
+        <p 
+          className="mb-6 md:mb-8 max-w-2xl"
+          style={{
+            fontSize: window.innerWidth < 768 ? '1rem' : '1.25rem',
+            color: '#9ca3af',
+            marginBottom: '2rem',
+            maxWidth: '32rem',
+            lineHeight: '1.5'
+          }}
+        >
           The ultimate social platform for metal and rock music communities
         </p>
         
