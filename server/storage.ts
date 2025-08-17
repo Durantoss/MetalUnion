@@ -455,11 +455,48 @@ export class MemStorage implements IStorage {
   }
 
   // User operations (stub implementations)
-  async getUserByStagename(stagename: string): Promise<User | undefined> { return undefined; }
-  async checkStagenameAvailable(stagename: string): Promise<boolean> { return true; }
-  async updateUserStagename(id: string, stagename: string): Promise<User | undefined> { return undefined; }
-  async createBandSubmission(band: InsertBand & { ownerId: string }): Promise<Band> { throw new Error("Not implemented"); }
-  async getBandsByOwner(ownerId: string): Promise<Band[]> { return []; }
+  async getUserByStagename(stagename: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.stagename === stagename);
+  }
+
+  async checkStagenameAvailable(stagename: string): Promise<boolean> {
+    const user = await this.getUserByStagename(stagename);
+    return !user;
+  }
+
+  async updateUserStagename(id: string, stagename: string): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    const updatedUser = { ...user, stagename, updatedAt: new Date() };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async createBandSubmission(bandData: InsertBand & { ownerId: string }): Promise<Band> {
+    const id = randomUUID();
+    const band: Band = {
+      ...bandData,
+      id,
+      status: "pending",
+      submittedAt: new Date(),
+      approvedAt: null,
+      createdAt: new Date(),
+      imageUrl: bandData.imageUrl || null,
+      founded: bandData.founded || null,
+      members: bandData.members || null,
+      albums: bandData.albums || null,
+      website: bandData.website || null,
+      instagram: bandData.instagram || null,
+    };
+    this.bands.set(id, band);
+    return band;
+  }
+
+  async getBandsByOwner(ownerId: string): Promise<Band[]> {
+    return Array.from(this.bands.values())
+      .filter(band => band.ownerId === ownerId)
+      .sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime());
+  }
 
   // Messages (stub implementations - not used since we use DatabaseStorage)
   async getMessages(): Promise<Message[]> { return []; }

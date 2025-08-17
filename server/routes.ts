@@ -651,6 +651,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/bands/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.claims?.sub;
+      const bandId = req.params.id;
+      
+      // Check if user owns this band
+      const band = await storage.getBand(bandId);
+      if (!band || band.ownerId !== userId) {
+        return res.status(403).json({ message: "You don't have permission to update this band" });
+      }
+      
+      const parsed = insertBandSchema.partial().parse(req.body);
+      const updatedBand = await storage.updateBand(bandId, parsed);
+      res.json(updatedBand);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid band data" });
+    }
+  });
+
   app.delete("/api/bands/:id", isAuthenticated, async (req, res) => {
     try {
       const userId = (req.user as any)?.claims?.sub;

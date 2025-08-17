@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { MetalLoader } from "@/components/ui/metal-loader";
 import BandSubmission from "@/components/forms/band-submission";
+import BandEdit from "@/components/forms/band-edit";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 // import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,6 +21,7 @@ interface BandWithStatus extends Band {
 
 export default function MyBands() {
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
+  const [editingBandId, setEditingBandId] = useState<string | null>(null);
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   // // const { toast } = useToast();
 
@@ -177,8 +179,19 @@ export default function MyBands() {
         </Card>
       ) : (
         <div className="space-y-6">
-          {myBands.map((band) => (
-            <Card key={band.id} className="bg-card-dark border-metal-gray" data-testid={`card-my-band-${band.id}`}>
+          {myBands.map((band) => 
+            editingBandId === band.id ? (
+              <BandEdit
+                key={`edit-${band.id}`}
+                band={band}
+                onSuccess={() => {
+                  setEditingBandId(null);
+                  refetch();
+                }}
+                onCancel={() => setEditingBandId(null)}
+              />
+            ) : (
+              <Card key={band.id} className="bg-card-dark border-metal-gray" data-testid={`card-my-band-${band.id}`}>
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-4 sm:space-y-0">
                   <div className="flex items-center space-x-4">
@@ -305,6 +318,7 @@ export default function MyBands() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      onClick={() => setEditingBandId(band.id)}
                       className="text-gray-400 hover:text-metal-red text-sm h-9 sm:h-8"
                       data-testid={`button-edit-band-${band.id}`}
                     >
@@ -343,8 +357,9 @@ export default function MyBands() {
                   </div>
                 )}
               </CardContent>
-            </Card>
-          ))}
+              </Card>
+            )
+          )}
         </div>
       )}
     </main>
