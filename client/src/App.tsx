@@ -1,27 +1,50 @@
-import { BandListPage } from './components/BandListPage';
-import { LoginPage } from './components/LoginPage';
-
-function App() {
-  // Simple hardcoded auth state to test if the basic structure works
-  const isAuthenticated = false;
-  const isLoading = false;
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-2xl mb-4 text-red-600">METALHUB</div>
-          <div className="animate-pulse">Loading...</div>
-        </div>
-      </div>
-    );
-  }
-
+// Clean test component
+const App = () => {
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      {isAuthenticated ? <BandListPage /> : <LoginPage />}
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#111827',
+      color: 'white',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      <div style={{ textAlign: 'center' }}>
+        <h1 style={{
+          fontSize: '3rem',
+          color: '#dc2626',
+          fontWeight: 'bold',
+          marginBottom: '1rem'
+        }}>
+          METALHUB
+        </h1>
+        <p style={{
+          fontSize: '1.2rem',
+          color: '#9ca3af',
+          marginBottom: '2rem'
+        }}>
+          Metal Community Platform
+        </p>
+        <button 
+          onClick={() => window.location.href = '/api/login'}
+          style={{
+            backgroundColor: '#dc2626',
+            color: 'white',
+            padding: '12px 24px',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '1rem',
+            cursor: 'pointer',
+            fontWeight: '600'
+          }}
+        >
+          Sign in with Replit
+        </button>
+        <div style={{ fontSize: '2rem', marginTop: '2rem' }}>🤘</div>
+      </div>
     </div>
   );
-}
+};
 
 export default App;
