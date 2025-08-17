@@ -12,7 +12,7 @@ import { UserProfile } from './components/UserProfile';
 import { NotificationCenter } from './components/NotificationCenter';
 import { ActivityFeed } from './components/ActivityFeed';
 import { GameficationDashboard } from './components/GameficationDashboard';
-import { EventsHub } from './components/EventsHub';
+// Removed EventsHub - using EnhancedEventsPage instead
 import { InteractivePolls } from './components/InteractivePolls';
 import { Band } from './types';
 

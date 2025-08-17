@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ActivityFeed } from './ActivityFeed';
 import { InteractivePolls } from './InteractivePolls';
-import { EventsHub } from './EventsHub';
+// EventsHub removed - will use inline events display
 import { GameficationDashboard } from './GameficationDashboard';
 import { InteractiveMap } from './InteractiveMap';
 import { UserProfile } from './UserProfile';
@@ -320,7 +320,24 @@ export function EnhancedSocialHub({ userId, initialTab = 'feed' }: SocialHubProp
                   </TabsContent>
 
                   <TabsContent value="events" className="mt-0">
-                    <EventsHub featured={false} />
+                    <div className="space-y-4">
+                      <div className="text-center p-8">
+                        <Calendar className="w-12 h-12 mx-auto text-electric-yellow mb-4" />
+                        <h3 className="text-lg font-semibold text-fire-red mb-2">
+                          Community Events Coming Soon
+                        </h3>
+                        <p className="text-muted-foreground">
+                          Check out the dedicated Event Discovery section for AI-powered concert recommendations!
+                        </p>
+                        <Button 
+                          className="mt-4 bg-fire-red/20 border-fire-red/50 text-fire-red hover:bg-fire-red/30"
+                          onClick={() => setActiveTab('feed')}
+                        >
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Explore Event Discovery
+                        </Button>
+                      </div>
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="leaderboard" className="mt-0">
