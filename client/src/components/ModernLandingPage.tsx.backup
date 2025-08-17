@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
 interface Band {
   id: string;
@@ -22,27 +21,6 @@ interface ModernLandingPageProps {
 export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [hoveredSection, setHoveredSection] = useState<string | null>(null);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const containerRef = useRef<HTMLDivElement>(null);
-  
-  // Mouse tracking for parallax effects
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const mouseX = useSpring(x, { stiffness: 500, damping: 100 });
-  const mouseY = useSpring(y, { stiffness: 500, damping: 100 });
-
-  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    x.set((event.clientX - centerX) / 10);
-    y.set((event.clientY - centerY) / 10);
-    
-    setMousePosition({
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
-    });
-  };
 
   // Stats with enhanced loading
   const [stats, setStats] = useState({
