@@ -51,7 +51,7 @@ function App() {
               {bands.map(band => (
                 <div key={band.id} className="bg-gray-900 p-4 rounded-lg flex items-center gap-4">
                   <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
-                    {band.imageUrl ? (
+                    {band.imageUrl && (
                       <img 
                         src={band.imageUrl}
                         alt={band.name}
@@ -59,13 +59,11 @@ function App() {
                         onError={(e) => {
                           const target = e.currentTarget as HTMLImageElement;
                           target.style.display = 'none';
-                          const fallback = target.nextElementSibling as HTMLElement;
-                          if (fallback) fallback.style.display = 'flex';
                         }}
                       />
-                    ) : null}
+                    )}
                     <div className={`text-xs text-gray-400 ${band.imageUrl ? 'hidden' : 'flex'} items-center justify-center w-full h-full`}>
-                      No Photo
+                      🎸
                     </div>
                   </div>
                   <div className="flex-1">
