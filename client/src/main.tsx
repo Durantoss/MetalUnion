@@ -1,22 +1,22 @@
-import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import App from './App';
-import SimpleTest from './SimpleTest';
-import './index.css';
+import MinimalTest from './MinimalTest';
 
-console.log('Starting MOSHUNION app...');
+console.log('MOSHUNION: Starting app...');
 
 const container = document.getElementById('root');
 if (!container) {
+  console.error('MOSHUNION: Root element not found!');
   throw new Error('Root element not found in HTML');
 }
 
-// Always use simple test to debug
-console.log('Using SimpleTest component for debugging');
+console.log('MOSHUNION: Root element found, creating React root...');
 
-const root = createRoot(container);
-root.render(
-  <StrictMode>
-    <SimpleTest />
-  </StrictMode>
-);
+try {
+  const root = createRoot(container);
+  console.log('MOSHUNION: React root created, rendering...');
+  
+  root.render(<MinimalTest />);
+  console.log('MOSHUNION: Component rendered successfully!');
+} catch (error) {
+  console.error('MOSHUNION: Error during rendering:', error);
+}
