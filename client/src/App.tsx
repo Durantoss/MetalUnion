@@ -5,29 +5,20 @@ import { ToursSection } from './components/ToursSection';
 import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
 import { ThePit } from './components/ThePit';
+import { LandingPage } from './components/LandingPage';
+import { Band } from './types';
 
-interface Band {
-  id: string;
-  name: string;
-  genre: string;
-  description: string;
-  imageUrl?: string;
-  founded?: number;
-  members?: string[];
-  albums?: string[];
-  website?: string;
-  instagram?: string;
-}
+
 
 const App = () => {
   const [bands, setBands] = useState<Band[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showComparison, setShowComparison] = useState(false);
-  const [currentSection, setCurrentSection] = useState('bands');
+  const [currentSection, setCurrentSection] = useState('landing');
 
   const handleReturnHome = () => {
-    setCurrentSection('bands');
+    setCurrentSection('landing');
     setShowComparison(false);
   };
 
@@ -137,6 +128,13 @@ const App = () => {
 
   const renderContent = () => {
     switch (currentSection) {
+      case 'landing':
+        return (
+          <LandingPage 
+            onSectionChange={setCurrentSection}
+            bands={bands}
+          />
+        );
       case 'bands':
         return (
           <div>
@@ -336,15 +334,20 @@ const App = () => {
       color: 'white',
       fontFamily: 'Arial, sans-serif'
     }}>
-      <Navigation
-        currentSection={currentSection}
-        onSectionChange={setCurrentSection}
-        onShowComparison={() => setShowComparison(true)}
-        onShowLogin={handleLogin}
-        onReturnHome={handleReturnHome}
-      />
+      {currentSection !== 'landing' && (
+        <Navigation
+          currentSection={currentSection}
+          onSectionChange={setCurrentSection}
+          onShowComparison={() => setShowComparison(true)}
+          onShowLogin={handleLogin}
+          onReturnHome={handleReturnHome}
+        />
+      )}
       
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ 
+        maxWidth: currentSection === 'landing' ? '100%' : '1200px', 
+        margin: '0 auto' 
+      }}>
         {renderContent()}
         
         {showComparison && (
