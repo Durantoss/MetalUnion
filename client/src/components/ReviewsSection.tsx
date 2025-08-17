@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { SearchBar } from './SearchBar';
+import { CommentSection } from './CommentSection';
 
 interface Review {
   id: string;
@@ -234,7 +235,8 @@ export function ReviewsSection() {
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center'
+                alignItems: 'center',
+                marginBottom: '1.5rem'
               }}>
                 <button
                   style={{
@@ -256,6 +258,15 @@ export function ReviewsSection() {
                 >
                   👍 {review.likes}
                 </button>
+              </div>
+
+              {/* Comment Section for each review */}
+              <div style={{ borderTop: '1px solid #374151', paddingTop: '1rem' }}>
+                <CommentSection 
+                  targetType="review" 
+                  targetId={review.id} 
+                  targetTitle={review.title}
+                />
               </div>
             </div>
           ))}

@@ -7,7 +7,9 @@ import {
   type User, type UpsertUser,
   type PitMessage, type InsertPitMessage,
   type PitReply, type InsertPitReply,
-  users, bands, reviews, photos, tours, messages, pitMessages, pitReplies 
+  type Comment, type InsertComment,
+  type CommentReaction, type InsertCommentReaction,
+  users, bands, reviews, photos, tours, messages, pitMessages, pitReplies, comments, commentReactions 
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
@@ -92,6 +94,13 @@ export interface IStorage {
   getPitReplies(messageId: string): Promise<PitReply[]>;
   createPitReply(reply: InsertPitReply): Promise<PitReply>;
   incrementPitReplyLikes(id: string): Promise<void>;
+
+  // Comments system
+  getComments(targetType: string, targetId: string): Promise<Comment[]>;
+  createComment(comment: InsertComment): Promise<Comment>;
+  updateComment(id: string, content: string): Promise<Comment>;
+  deleteComment(id: string, reason: string): Promise<void>;
+  createCommentReaction(reaction: InsertCommentReaction): Promise<CommentReaction>;
 }
 
 export class MemStorage implements IStorage {
@@ -1009,6 +1018,105 @@ export class DatabaseStorage implements IStorage {
         .where(eq(pitReplies.id, id));
     } catch (error) {
       console.error("Error incrementing pit reply likes:", error);
+      throw error;
+    }
+  }
+
+  // Comments system implementation
+  async getComments(targetType: string, targetId: string): Promise<Comment[]> {
+    try {
+      const result = await db.select()
+        .from(comments)
+        .where(sql`${comments.targetType} = ${targetType} AND ${comments.targetId} = ${targetId} AND ${comments.isDeleted} = false`)
+        .orderBy(comments.createdAt);
+      return result;
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      return [];
+    }
+  }
+
+  async createComment(commentData: InsertComment): Promise<Comment> {
+    try {
+      const [comment] = await db.insert(comments).values({
+        ...commentData,
+        id: randomUUID()
+      }).returning();
+      return comment;
+    } catch (error) {
+      console.error("Error creating comment:", error);
+      throw error;
+    }
+  }
+
+  async updateComment(id: string, content: string): Promise<Comment> {
+    try {
+      const [comment] = await db.update(comments)
+        .set({ 
+          content, 
+          isEdited: true, 
+          updatedAt: new Date() 
+        })
+        .where(eq(comments.id, id))
+        .returning();
+      return comment;
+    } catch (error) {
+      console.error("Error updating comment:", error);
+      throw error;
+    }
+  }
+
+  async deleteComment(id: string, reason: string): Promise<void> {
+    try {
+      await db.update(comments)
+        .set({ 
+          isDeleted: true, 
+          deletedReason: reason,
+          updatedAt: new Date()
+        })
+        .where(eq(comments.id, id));
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      throw error;
+    }
+  }
+
+  async createCommentReaction(reactionData: InsertCommentReaction): Promise<CommentReaction> {
+    try {
+      // First, check if user already reacted to this comment
+      const existingReaction = await db.select()
+        .from(commentReactions)
+        .where(sql`${commentReactions.commentId} = ${reactionData.commentId} AND ${commentReactions.userId} = ${reactionData.userId}`);
+      
+      if (existingReaction.length > 0) {
+        // Update existing reaction
+        const [reaction] = await db.update(commentReactions)
+          .set({ reactionType: reactionData.reactionType })
+          .where(sql`${commentReactions.commentId} = ${reactionData.commentId} AND ${commentReactions.userId} = ${reactionData.userId}`)
+          .returning();
+        return reaction;
+      } else {
+        // Create new reaction
+        const [reaction] = await db.insert(commentReactions).values({
+          ...reactionData,
+          id: randomUUID()
+        }).returning();
+        
+        // Update comment reaction counts
+        if (reactionData.reactionType === 'like') {
+          await db.update(comments)
+            .set({ likes: sql`likes + 1` })
+            .where(eq(comments.id, reactionData.commentId));
+        } else if (reactionData.reactionType === 'dislike') {
+          await db.update(comments)
+            .set({ dislikes: sql`dislikes + 1` })
+            .where(eq(comments.id, reactionData.commentId));
+        }
+        
+        return reaction;
+      }
+    } catch (error) {
+      console.error("Error creating comment reaction:", error);
       throw error;
     }
   }

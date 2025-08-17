@@ -110,10 +110,45 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Comments system for reviews, bands, and other content
+export const comments = pgTable("comments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  content: text("content").notNull(),
+  authorId: varchar("author_id").notNull().references(() => users.id),
+  authorStagename: text("author_stagename").notNull(),
+  // Polymorphic relationships - comment can be on different types of content
+  targetType: text("target_type").notNull(), // 'review', 'band', 'photo', 'tour', 'message'
+  targetId: varchar("target_id").notNull(), // ID of the target (review ID, band ID, etc.)
+  // Thread support for nested comments
+  parentCommentId: varchar("parent_comment_id").references(() => comments.id),
+  // Engagement metrics
+  likes: integer("likes").default(0),
+  dislikes: integer("dislikes").default(0),
+  // Status and moderation
+  isEdited: boolean("is_edited").default(false),
+  isDeleted: boolean("is_deleted").default(false),
+  deletedReason: text("deleted_reason"),
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Comment reactions for more detailed engagement
+export const commentReactions = pgTable("comment_reactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  commentId: varchar("comment_id").notNull().references(() => comments.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  reactionType: text("reaction_type").notNull(), // 'like', 'dislike', 'love', 'angry', 'laugh'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Enhanced Relations
 export const usersRelations = relations(users, ({ many }) => ({
   ownedBands: many(bands),
   messages: many(messages),
+  // Comments system
+  comments: many(comments),
+  commentReactions: many(commentReactions),
   // Following system
   following: many(userFollows, { relationName: "follower" }),
   followers: many(userFollows, { relationName: "following" }),
@@ -174,6 +209,32 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   }),
 }));
 
+// Comment relations
+export const commentsRelations = relations(comments, ({ one, many }) => ({
+  author: one(users, {
+    fields: [comments.authorId],
+    references: [users.id],
+  }),
+  parentComment: one(comments, {
+    fields: [comments.parentCommentId],
+    references: [comments.id],
+    relationName: "parentChild",
+  }),
+  replies: many(comments, { relationName: "parentChild" }),
+  reactions: many(commentReactions),
+}));
+
+export const commentReactionsRelations = relations(commentReactions, ({ one }) => ({
+  comment: one(comments, {
+    fields: [commentReactions.commentId],
+    references: [comments.id],
+  }),
+  user: one(users, {
+    fields: [commentReactions.userId],
+    references: [users.id],
+  }),
+}));
+
 export const insertBandSchema = createInsertSchema(bands).omit({
   id: true,
   ownerId: true,
@@ -204,6 +265,22 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   createdAt: true,
 });
 
+export const insertCommentSchema = createInsertSchema(comments).omit({
+  id: true,
+  likes: true,
+  dislikes: true,
+  isEdited: true,
+  isDeleted: true,
+  deletedReason: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCommentReactionSchema = createInsertSchema(commentReactions).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type Band = typeof bands.$inferSelect;
 export type InsertBand = z.infer<typeof insertBandSchema>;
 export type Review = typeof reviews.$inferSelect;
@@ -214,6 +291,10 @@ export type Tour = typeof tours.$inferSelect;
 export type InsertTour = z.infer<typeof insertTourSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type Comment = typeof comments.$inferSelect;
+export type InsertComment = z.infer<typeof insertCommentSchema>;
+export type CommentReaction = typeof commentReactions.$inferSelect;
+export type InsertCommentReaction = z.infer<typeof insertCommentReactionSchema>;
 
 export const upsertUserSchema = createInsertSchema(users);
 export type UpsertUser = typeof users.$inferInsert;

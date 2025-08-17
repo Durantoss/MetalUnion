@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertBandSchema, insertReviewSchema, insertPhotoSchema, insertTourSchema, insertMessageSchema, insertPitMessageSchema, insertPitReplySchema } from "@shared/schema";
+import { insertBandSchema, insertReviewSchema, insertPhotoSchema, insertTourSchema, insertMessageSchema, insertPitMessageSchema, insertPitReplySchema, insertCommentSchema, insertCommentReactionSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./simpleAuth";
 import { performGoogleSearch } from "./googleSearch";
 import { tourDataService } from "./tourDataService";
@@ -610,6 +610,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error liking pit reply:", error);
       res.status(500).json({ message: "Failed to like pit reply" });
+    }
+  });
+
+  // Comment system routes
+  app.get('/api/comments/:targetType/:targetId', async (req, res) => {
+    try {
+      const { targetType, targetId } = req.params;
+      const comments = await storage.getComments(targetType, targetId);
+      res.json(comments);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      res.status(500).json({ message: "Failed to fetch comments" });
+    }
+  });
+
+  app.post('/api/comments', async (req, res) => {
+    try {
+      const validatedData = insertCommentSchema.parse(req.body);
+      const comment = await storage.createComment(validatedData);
+      res.status(201).json(comment);
+    } catch (error) {
+      console.error("Error creating comment:", error);
+      res.status(500).json({ message: "Failed to create comment" });
+    }
+  });
+
+  app.put('/api/comments/:commentId', async (req, res) => {
+    try {
+      const { commentId } = req.params;
+      const { content } = req.body;
+      const comment = await storage.updateComment(commentId, content);
+      res.json(comment);
+    } catch (error) {
+      console.error("Error updating comment:", error);
+      res.status(500).json({ message: "Failed to update comment" });
+    }
+  });
+
+  app.delete('/api/comments/:commentId', async (req, res) => {
+    try {
+      const { commentId } = req.params;
+      const { reason } = req.body;
+      await storage.deleteComment(commentId, reason || 'Deleted by user');
+      res.json({ message: 'Comment deleted successfully' });
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      res.status(500).json({ message: "Failed to delete comment" });
+    }
+  });
+
+  app.post('/api/comments/:commentId/react', async (req, res) => {
+    try {
+      const { commentId } = req.params;
+      const validatedData = insertCommentReactionSchema.parse({ ...req.body, commentId });
+      const reaction = await storage.createCommentReaction(validatedData);
+      res.status(201).json(reaction);
+    } catch (error) {
+      console.error("Error creating comment reaction:", error);
+      res.status(500).json({ message: "Failed to react to comment" });
     }
   });
 
