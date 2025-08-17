@@ -8,7 +8,7 @@ import { ThePit } from './components/ThePit';
 import { MobileFriendlyLanding } from './components/MobileFriendlyLanding';
 import { EnhancedSocialHub } from './components/EnhancedSocialHub';
 import { EnhancedEventsPage } from './components/EnhancedEventsPage';
-import { EnhancedToursPage } from './components/EnhancedToursPage';
+import { SimpleToursPage } from './components/SimpleToursPage';
 import { UserProfile } from './components/UserProfile';
 import { NotificationCenter } from './components/NotificationCenter';
 import { ActivityFeed } from './components/ActivityFeed';
@@ -338,7 +338,7 @@ const App = () => {
       case 'polls':
         return <InteractivePolls />;
       case 'tours':
-        return <EnhancedToursPage />;
+        return <SimpleToursPage />;
       case 'reviews':
         return (
           <div style={{ padding: '0 2rem' }}>
