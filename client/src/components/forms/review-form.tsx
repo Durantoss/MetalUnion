@@ -29,7 +29,7 @@ interface ReviewFormProps {
 
 export default function ReviewForm({ onSuccess, defaultBandId }: ReviewFormProps) {
   const [selectedRating, setSelectedRating] = useState(0);
-  // const { toast } = useToast();
+  // // const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {

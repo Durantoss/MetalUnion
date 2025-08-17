@@ -48,7 +48,7 @@ interface UserStats {
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  // const { toast } = useToast();
+  // // const { toast } = useToast();
 
   const { data: userStats, isLoading: statsLoading } = useQuery<UserStats>({
     queryKey: ["/api/user/stats"],

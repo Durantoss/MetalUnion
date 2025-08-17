@@ -21,7 +21,7 @@ interface BandWithStatus extends Band {
 export default function MyBands() {
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  // const { toast } = useToast();
+  // // const { toast } = useToast();
 
   const { data: myBands = [], isLoading, refetch } = useQuery<BandWithStatus[]>({
     queryKey: ["/api/my-bands"],

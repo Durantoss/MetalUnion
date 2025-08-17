@@ -17,7 +17,7 @@ interface TourSubmissionProps {
 }
 
 export default function TourSubmission({ onSuccess }: TourSubmissionProps) {
-  // const { toast } = useToast();
+  // // const { toast } = useToast();
   
   // Get user's bands for the dropdown
   const { data: userBands = [] } = useQuery<any[]>({

@@ -31,7 +31,7 @@ export default function PhotoUpload({ onSuccess, defaultBandId }: PhotoUploadPro
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // const { toast } = useToast();
+  // // const { toast } = useToast();
   const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {

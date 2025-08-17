@@ -30,7 +30,7 @@ export default function BandSubmission({ onSuccess }: BandSubmissionProps) {
   const [albums, setAlbums] = useState<string[]>([]);
   const [newMember, setNewMember] = useState("");
   const [newAlbum, setNewAlbum] = useState("");
-  // const { toast } = useToast();
+  // // const { toast } = useToast();
 
   const form = useForm<InsertBand>({
     resolver: zodResolver(insertBandSchema),

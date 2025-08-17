@@ -49,7 +49,7 @@ const metalGenres = [
 
 export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
   const [currentStep, setCurrentStep] = useState(1);
-  // const { toast } = useToast();
+  // // const { toast } = useToast();
 
   const form = useForm<OnboardingFormData>({
     resolver: zodResolver(onboardingSchema),

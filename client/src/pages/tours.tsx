@@ -73,7 +73,7 @@ export default function Tours() {
   const [sortBy, setSortBy] = useState<string>('date');
   
   const { user, isAuthenticated } = useAuth();
-  // const { toast } = useToast();
+  // // const { toast } = useToast();
 
   // Fetch tours with band information
   const { data: tours = [], isLoading: toursLoading, refetch: refetchTours } = useQuery<TourWithBand[]>({

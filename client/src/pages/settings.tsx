@@ -55,7 +55,7 @@ export default function Settings() {
   const [isLoading, setIsLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  // const { toast } = useToast();
+  // // const { toast } = useToast();
 
   const { data: preferences, isLoading: preferencesLoading } = useQuery<UserPreferences>({
     queryKey: ["/api/user/preferences"],

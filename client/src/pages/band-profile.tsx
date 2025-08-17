@@ -16,7 +16,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 export default function BandProfile() {
   const { id } = useParams();
-  // const { toast } = useToast();
+  // // const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
