@@ -2,7 +2,7 @@
 
 ## Overview
 
-MetalHub is a full-stack web application built for metal and rock music enthusiasts. It serves as a community platform where users can discover bands, write reviews, upload photos, and track tour information. The application features a modern React frontend with a Node.js/Express backend, utilizing PostgreSQL for data persistence through Drizzle ORM.
+MetalHub is a comprehensive full-stack music community platform designed for metal and rock enthusiasts. Beyond band discovery, it provides a complete social ecosystem where users can write reviews, upload concert photos, track tour dates, and connect with fellow metalheads. The platform combines modern React frontend architecture with a robust Node.js/Express backend, using PostgreSQL for reliable data persistence through Drizzle ORM.
 
 ## Recent Changes (August 17, 2025)
 
