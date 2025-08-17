@@ -450,7 +450,7 @@ export function EnhancedEventsPage() {
         )}
 
         {/* Demo Events Notice */}
-        {!isLoading && events.length > 0 && events[0].id.startsWith('demo-') && (
+        {!isLoading && events.length > 0 && events[0].id?.startsWith('demo-') && (
           <div style={{
             backgroundColor: 'rgba(234, 179, 8, 0.1)',
             border: '1px solid rgba(234, 179, 8, 0.3)',

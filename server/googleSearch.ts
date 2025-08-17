@@ -58,7 +58,11 @@ export async function searchConcerts(
     );
     
     if (!response.ok) {
-      console.error('Google Custom Search API error:', response.status, response.statusText);
+      if (response.status === 429) {
+        console.log('Google API rate limit reached, will retry later');
+      } else {
+        console.error('Google Custom Search API error:', response.status, response.statusText);
+      }
       return [];
     }
     
