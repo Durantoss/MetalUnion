@@ -99,8 +99,8 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
       description: 'Decrypt underground resistance networks',
       icon: '▼',
       stats: `${stats.bands}`,
-      gradient: 'from-neon-cyan via-electric-blue to-neon-purple',
-      glowColor: 'neon-cyan'
+      gradient: 'from-fire-red via-lava-orange to-electric-yellow',
+      glowColor: 'fire-red'
     },
     {
       id: 'tours',
@@ -109,8 +109,8 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
       description: 'Monitor live field activities',
       icon: '◉',
       stats: `${stats.tours}`,
-      gradient: 'from-neon-purple via-neon-pink to-cyber-red',
-      glowColor: 'neon-purple'
+      gradient: 'from-electric-yellow via-amber to-fire-red',
+      glowColor: 'electric-yellow'
     },
     {
       id: 'reviews',
@@ -119,8 +119,8 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
       description: 'Decode sonic warfare patterns',
       icon: '◈',
       stats: `${stats.reviews}`,
-      gradient: 'from-electric-blue via-neon-cyan to-toxic-yellow',
-      glowColor: 'electric-blue'
+      gradient: 'from-fire-red via-crimson to-lava-orange',
+      glowColor: 'fire-red'
     },
     {
       id: 'photos',
@@ -129,8 +129,8 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
       description: 'Visual surveillance data',
       icon: '◆',
       stats: `${stats.photos}`,
-      gradient: 'from-toxic-yellow via-rust-orange to-neon-pink',
-      glowColor: 'toxic-yellow'
+      gradient: 'from-amber via-golden-yellow to-electric-yellow',
+      glowColor: 'electric-yellow'
     },
     {
       id: 'pit',
@@ -139,8 +139,8 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
       description: 'Neural mesh convergence',
       icon: '⬢',
       stats: '∞',
-      gradient: 'from-rust-orange via-neon-pink to-void-purple',
-      glowColor: 'rust-orange'
+      gradient: 'from-lava-orange via-fire-red to-blood-red',
+      glowColor: 'lava-orange'
     }
   ];
 
@@ -200,31 +200,42 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
         whileTap={{ scale: 0.95 }}
         data-testid="button-floating-nav"
       >
-        <svg className="w-6 h-6 text-neon-cyan group-hover:text-neon-pink transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-6 h-6 text-electric-yellow group-hover:text-fire-red transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </motion.button>
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Animated Background Grid */}
-        <div className="absolute inset-0 opacity-20">
+        {/* Ultra Dynamic Background Grid */}
+        <div className="absolute inset-0 opacity-25">
           <div 
             className="absolute inset-0"
             style={{
               backgroundImage: `
-                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px)
+                linear-gradient(rgba(255, 0, 0, 0.15) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 0, 0.1) 1px, transparent 1px)
               `,
-              backgroundSize: '50px 50px',
+              backgroundSize: '40px 40px',
               transform: `translateX(${mousePosition.x * 0.02}px) translateY(${mousePosition.y * 0.02}px)`
+            }}
+          />
+          {/* Dynamic scanning lines */}
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(180deg, 
+                transparent 0%, 
+                rgba(255, 255, 0, 0.05) 50%, 
+                transparent 100%)`,
+              animation: 'scan-lines 2s ease-in-out infinite alternate'
             }}
           />
         </div>
 
-        {/* Floating Orbs */}
+        {/* Floating Energy Orbs */}
         <motion.div
-          className="absolute top-20 left-20 w-32 h-32 rounded-full bg-neon-cyan opacity-20 blur-xl"
+          className="absolute top-20 left-20 w-32 h-32 rounded-full bg-fire-red opacity-30 blur-xl"
           animate={{
             x: [0, 100, 0],
             y: [0, -50, 0],
@@ -241,7 +252,7 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
         />
         
         <motion.div
-          className="absolute bottom-32 right-32 w-24 h-24 rounded-full bg-neon-purple opacity-30 blur-lg"
+          className="absolute bottom-32 right-32 w-24 h-24 rounded-full bg-electric-yellow opacity-40 blur-lg"
           animate={{
             x: [0, -80, 0],
             y: [0, 60, 0],
@@ -278,7 +289,7 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
-            <span className="text-neon-cyan">&gt;</span> DYSTOPIAN METAL GRID <span className="text-neon-cyan cyberpunk-flicker">_</span>
+            <span className="text-electric-yellow">&gt;</span> DYSTOPIAN METAL GRID <span className="text-fire-red cyberpunk-flicker">_</span>
           </motion.p>
           
           <motion.p 
@@ -287,8 +298,8 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
           >
-            Corporate overlords have fallen. Underground metal networks rise from the digital ashes. 
-            Connect through encrypted channels, track resistance shows, analyze sonic warfare.
+            The machine empire burns. Metal warriors rise from molten ashes, forged in electric fury. 
+            Join the lightning revolution. Track fire shows. Analyze thunderous warfare.
           </motion.p>
 
           {/* Featured Band Terminal */}
@@ -300,18 +311,18 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
               transition={{ delay: 1 }}
             >
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-3 h-3 rounded-full bg-neon-cyan"></div>
-                <div className="w-3 h-3 rounded-full bg-neon-yellow"></div>
-                <div className="w-3 h-3 rounded-full bg-neon-pink"></div>
+                <div className="w-3 h-3 rounded-full bg-fire-red"></div>
+                <div className="w-3 h-3 rounded-full bg-electric-yellow"></div>
+                <div className="w-3 h-3 rounded-full bg-void-black border border-fire-red"></div>
                 <span className="text-muted-foreground text-sm ml-2">~/featured-band</span>
               </div>
               <div className="text-left">
-                <p className="text-neon-cyan text-sm">$ band --current</p>
+                <p className="text-electric-yellow text-sm">$ band --fire-scan</p>
                 <p className="text-foreground text-xl font-bold break-words">
                   {featuredBands[currentImageIndex]?.name}
                 </p>
-                <p className="text-neon-purple">
-                  Genre: <span className="text-neon-pink">{featuredBands[currentImageIndex]?.genre}</span>
+                <p className="text-fire-red">
+                  Genre: <span className="text-electric-yellow">{featuredBands[currentImageIndex]?.genre}</span>
                 </p>
               </div>
             </motion.div>

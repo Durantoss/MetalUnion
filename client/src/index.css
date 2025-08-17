@@ -5,66 +5,66 @@
 
 @layer base {
   :root {
-    /* Cyberpunk Dystopian Theme */
-    --background: hsl(240, 15%, 2%);
-    --foreground: hsl(180, 30%, 85%);
-    --card: hsl(240, 20%, 4%);
-    --card-foreground: hsl(180, 20%, 90%);
-    --popover: hsl(240, 25%, 3%);
-    --popover-foreground: hsl(180, 30%, 85%);
-    --primary: hsl(180, 100%, 50%);
-    --primary-foreground: hsl(240, 15%, 2%);
-    --secondary: hsl(260, 40%, 8%);
-    --secondary-foreground: hsl(180, 20%, 70%);
-    --muted: hsl(250, 30%, 6%);
-    --muted-foreground: hsl(180, 15%, 55%);
-    --accent: hsl(330, 100%, 60%);
-    --accent-foreground: hsl(240, 15%, 2%);
-    --destructive: hsl(340, 100%, 45%);
-    --destructive-foreground: hsl(180, 30%, 85%);
-    --border: hsl(260, 40%, 12%);
-    --input: hsl(250, 30%, 6%);
-    --ring: hsl(180, 100%, 50%);
-    --radius: 0.125rem;
+    /* Ultra Dynamic Red, Yellow, Black Theme */
+    --background: hsl(0, 0%, 4%);
+    --foreground: hsl(50, 100%, 95%);
+    --card: hsl(0, 0%, 8%);
+    --card-foreground: hsl(50, 100%, 90%);
+    --popover: hsl(0, 0%, 6%);
+    --popover-foreground: hsl(50, 100%, 95%);
+    --primary: hsl(0, 100%, 55%);
+    --primary-foreground: hsl(60, 100%, 5%);
+    --secondary: hsl(15, 100%, 8%);
+    --secondary-foreground: hsl(45, 100%, 75%);
+    --muted: hsl(5, 50%, 10%);
+    --muted-foreground: hsl(40, 80%, 60%);
+    --accent: hsl(55, 100%, 50%);
+    --accent-foreground: hsl(0, 0%, 4%);
+    --destructive: hsl(0, 100%, 40%);
+    --destructive-foreground: hsl(60, 100%, 95%);
+    --border: hsl(10, 80%, 15%);
+    --input: hsl(5, 50%, 10%);
+    --ring: hsl(0, 100%, 55%);
+    --radius: 0.25rem;
     
-    /* Cyberpunk Color Palette */
-    --neon-cyan: hsl(180, 100%, 50%);
-    --neon-purple: hsl(270, 100%, 50%);
-    --neon-pink: hsl(330, 100%, 60%);
-    --cyber-red: hsl(340, 100%, 45%);
-    --electric-blue: hsl(210, 100%, 50%);
-    --matrix-green: hsl(120, 100%, 40%);
-    --toxic-yellow: hsl(60, 100%, 50%);
-    --void-purple: hsl(280, 60%, 25%);
-    --rust-orange: hsl(20, 85%, 35%);
-    --plasma-pink: hsl(320, 100%, 70%);
+    /* Ultra Dynamic Color Palette */
+    --fire-red: hsl(0, 100%, 55%);
+    --blood-red: hsl(0, 100%, 40%);
+    --crimson: hsl(348, 100%, 47%);
+    --electric-yellow: hsl(55, 100%, 50%);
+    --golden-yellow: hsl(48, 100%, 60%);
+    --amber: hsl(42, 100%, 55%);
+    --void-black: hsl(0, 0%, 4%);
+    --charcoal: hsl(0, 0%, 12%);
+    --shadow-black: hsl(0, 0%, 8%);
+    --lava-orange: hsl(15, 100%, 50%);
     
-    /* Glass morphism for dystopian look */
-    --glass-bg: hsla(240, 20%, 4%, 0.6);
-    --glass-border: hsla(180, 100%, 50%, 0.2);
-    --glass-shadow: hsla(180, 100%, 50%, 0.1);
+    /* Glass morphism with red/yellow accents */
+    --glass-bg: hsla(0, 0%, 8%, 0.7);
+    --glass-border: hsla(0, 100%, 55%, 0.3);
+    --glass-shadow: hsla(55, 100%, 50%, 0.15);
   }
 
   .dark {
-    --background: hsl(240, 15%, 2%);
-    --foreground: hsl(180, 30%, 85%);
-    --card: hsl(240, 20%, 4%);
-    --card-foreground: hsl(180, 20%, 90%);
-    --popover: hsl(240, 25%, 3%);
-    --popover-foreground: hsl(180, 30%, 85%);
-    --primary: hsl(180, 100%, 50%);
-    --primary-foreground: hsl(240, 15%, 2%);
-    --secondary: hsl(260, 40%, 8%);
-    --secondary-foreground: hsl(180, 20%, 70%);
-    --muted: hsl(250, 30%, 6%);
-    --muted-foreground: hsl(180, 15%, 55%);
-    --accent: hsl(330, 100%, 60%);
-    --accent-foreground: hsl(240, 15%, 2%);
-    --destructive: hsl(340, 100%, 45%);
-    --destructive-foreground: hsl(180, 30%, 85%);
-    --border: hsl(260, 40%, 12%);
-    --input: hsl(250, 30%, 6%);
-    --ring: hsl(180, 100%, 50%);
+    --background: hsl(0, 0%, 4%);
+    --foreground: hsl(50, 100%, 95%);
+    --card: hsl(0, 0%, 8%);
+    --card-foreground: hsl(50, 100%, 90%);
+    --popover: hsl(0, 0%, 6%);
+    --popover-foreground: hsl(50, 100%, 95%);
+    --primary: hsl(0, 100%, 55%);
+    --primary-foreground: hsl(60, 100%, 5%);
+    --secondary: hsl(15, 100%, 8%);
+    --secondary-foreground: hsl(45, 100%, 75%);
+    --muted: hsl(5, 50%, 10%);
+    --muted-foreground: hsl(40, 80%, 60%);
+    --accent: hsl(55, 100%, 50%);
+    --accent-foreground: hsl(0, 0%, 4%);
+    --destructive: hsl(0, 100%, 40%);
+    --destructive-foreground: hsl(60, 100%, 95%);
+    --border: hsl(10, 80%, 15%);
+    --input: hsl(5, 50%, 10%);
+    --ring: hsl(0, 100%, 55%);
   }
 
   * {
@@ -119,12 +119,12 @@
     box-shadow: 0 12px 40px hsla(180, 100%, 50%, 0.15);
   }
 
-  /* Cyberpunk gradient text effects */
+  /* Ultra Dynamic gradient text effects */
   .gradient-text-primary {
     background: linear-gradient(135deg, 
-      hsl(var(--neon-cyan)) 0%, 
-      hsl(var(--electric-blue)) 50%, 
-      hsl(var(--plasma-pink)) 100%);
+      hsl(var(--fire-red)) 0%, 
+      hsl(var(--lava-orange)) 50%, 
+      hsl(var(--golden-yellow)) 100%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -132,30 +132,31 @@
 
   .gradient-text-neon {
     background: linear-gradient(45deg, 
-      hsl(var(--neon-cyan)) 0%,
-      hsl(var(--toxic-yellow)) 25%,
-      hsl(var(--neon-purple)) 50%,
-      hsl(var(--cyber-red)) 75%,
-      hsl(var(--neon-cyan)) 100%);
+      hsl(var(--fire-red)) 0%,
+      hsl(var(--electric-yellow)) 25%,
+      hsl(var(--crimson)) 50%,
+      hsl(var(--amber)) 75%,
+      hsl(var(--fire-red)) 100%);
     background-size: 400% 400%;
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: gradient-shift 4s ease infinite;
+    animation: gradient-shift 3s ease infinite;
   }
 
   /* Modern glow effects */
   .glow-primary {
-    box-shadow: 0 0 20px hsl(var(--primary)),
-                0 0 40px hsl(var(--primary)),
-                0 0 80px hsl(var(--primary));
+    box-shadow: 0 0 10px hsl(var(--fire-red)),
+                0 0 20px hsl(var(--fire-red)),
+                0 0 40px hsl(var(--fire-red)),
+                0 0 80px hsl(var(--fire-red));
   }
 
   .glow-neon {
-    box-shadow: 0 0 5px hsl(var(--neon-cyan)),
-                0 0 10px hsl(var(--neon-cyan)),
-                0 0 20px hsl(var(--neon-cyan)),
-                0 0 40px hsl(var(--neon-cyan));
+    box-shadow: 0 0 5px hsl(var(--electric-yellow)),
+                0 0 10px hsl(var(--electric-yellow)),
+                0 0 20px hsl(var(--electric-yellow)),
+                0 0 40px hsl(var(--electric-yellow));
   }
 
   .glow-text {
@@ -165,18 +166,18 @@
                  0 0 40px currentColor;
   }
 
-  .glow-cyber {
-    box-shadow: 0 0 5px hsl(var(--cyber-red)),
-                0 0 10px hsl(var(--cyber-red)),
-                0 0 20px hsl(var(--cyber-red));
-    border: 1px solid hsl(var(--cyber-red));
+  .glow-fire {
+    box-shadow: 0 0 5px hsl(var(--fire-red)),
+                0 0 10px hsl(var(--fire-red)),
+                0 0 20px hsl(var(--fire-red));
+    border: 1px solid hsl(var(--fire-red));
   }
 
-  .glow-matrix {
-    box-shadow: 0 0 5px hsl(var(--matrix-green)),
-                0 0 10px hsl(var(--matrix-green)),
-                0 0 20px hsl(var(--matrix-green));
-    border: 1px solid hsl(var(--matrix-green));
+  .glow-lightning {
+    box-shadow: 0 0 5px hsl(var(--electric-yellow)),
+                0 0 10px hsl(var(--electric-yellow)),
+                0 0 20px hsl(var(--electric-yellow));
+    border: 1px solid hsl(var(--electric-yellow));
   }
 
   /* Animated gradients */
@@ -213,12 +214,12 @@
 
   .animated-gradient {
     background: linear-gradient(45deg, 
-      hsl(var(--neon-cyan)),
-      hsl(var(--neon-purple)), 
-      hsl(var(--neon-pink)),
-      hsl(var(--electric-blue)));
+      hsl(var(--fire-red)),
+      hsl(var(--electric-yellow)), 
+      hsl(var(--lava-orange)),
+      hsl(var(--amber)));
     background-size: 400% 400%;
-    animation: gradient-shift 6s ease infinite;
+    animation: gradient-shift 4s ease infinite;
   }
 
   /* Hover effects */
