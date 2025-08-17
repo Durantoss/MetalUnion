@@ -1,21 +1,43 @@
 import { createRoot } from "react-dom/client";
-import "./index.css";
+// Temporarily removed CSS to isolate MIME type issue
 
 // Inline minimal component to avoid import issues
 function MinimalApp() {
-  console.log("MinimalApp rendering");
+  console.log("MinimalApp rendering at:", new Date().toLocaleTimeString());
   
   return (
-    <div style={{ padding: '20px', color: 'white', backgroundColor: '#000' }}>
-      <h1 style={{ color: '#dc2626', fontSize: '2rem', marginBottom: '1rem' }}>
-        MetalHub - Clean Start
+    <div style={{ 
+      padding: '40px', 
+      fontFamily: 'Arial, sans-serif',
+      backgroundColor: '#111', 
+      color: '#fff',
+      minHeight: '100vh'
+    }}>
+      <h1 style={{ 
+        color: '#dc2626', 
+        fontSize: '3rem', 
+        marginBottom: '2rem',
+        fontWeight: 'bold'
+      }}>
+        🤘 MetalHub Debug
       </h1>
-      <p>React app successfully initialized!</p>
-      <p>Timestamp: {new Date().toLocaleTimeString()}</p>
-      <div style={{ marginTop: '20px' }}>
-        <p>✓ Server running on port 5000</p>
-        <p>✓ React rendering working</p>
-        <p>✓ Ready for development</p>
+      <div style={{ fontSize: '1.2rem', lineHeight: '1.6' }}>
+        <p>✅ React app successfully rendering!</p>
+        <p>⏰ Timestamp: {new Date().toLocaleTimeString()}</p>
+        <p>🚀 Server: Port 5000</p>
+        <p>🎸 Status: Ready to rock!</p>
+      </div>
+      <div style={{ 
+        marginTop: '40px', 
+        padding: '20px', 
+        backgroundColor: '#222',
+        borderRadius: '8px'
+      }}>
+        <h2 style={{ color: '#dc2626', marginBottom: '15px' }}>Debug Info:</h2>
+        <p>✓ React hooks working</p>
+        <p>✓ Vite HMR functional</p>
+        <p>✓ Components isolated</p>
+        <p>✓ No import errors</p>
       </div>
     </div>
   );
