@@ -47,7 +47,7 @@ export default function Home() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative h-[70vh] sm:h-[80vh] lg:h-96 flex items-center justify-center overflow-hidden">
+      <section className="relative safe-top min-h-[70vh] sm:h-[80vh] lg:h-96 flex items-center justify-center overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat" 
           style={{
@@ -55,21 +55,21 @@ export default function Home() {
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent" />
-        <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-8 text-left">
-          <h1 className="heading-enhanced text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-4 sm:mb-6 leading-tight text-shadow-lg">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 safe-left safe-right text-center sm:text-left">
+          <h1 className="mobile-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-4 sm:mb-6 leading-tight text-shadow-lg font-black">
             MOBILIZE THE <span className="text-metal-red">MASSES</span>
           </h1>
-          <p className="text-readable text-lg sm:text-xl md:text-2xl mb-6 sm:mb-8">
+          <p className="mobile-text text-lg sm:text-xl md:text-2xl mb-6 sm:mb-8 text-gray-200 max-w-2xl mx-auto sm:mx-0">
             Reviews, photos, and tour dates for the heaviest bands on the planet
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <Link href="/bands" data-testid="button-explore-bands" className="w-full sm:w-auto clickable-link no-underline">
-              <Button className="bg-metal-red hover:bg-metal-red-bright px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg heading-enhanced uppercase tracking-wider w-full sm:w-auto min-h-[48px]">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center">
+            <Link href="/bands" data-testid="button-explore-bands" className="w-full sm:w-auto">
+              <Button className="mobile-button bg-metal-red hover:bg-metal-red-bright text-white font-bold uppercase tracking-wider w-full sm:w-auto min-h-[52px] active-scale focus-visible-metal" size="lg">
                 Explore Bands
               </Button>
             </Link>
-            <Link href="/reviews" data-testid="button-write-review" className="w-full sm:w-auto clickable-link no-underline">
-              <Button variant="outline" className="border-white text-white hover:bg-white hover:text-black px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg heading-enhanced uppercase tracking-wider w-full sm:w-auto min-h-[48px]">
+            <Link href="/reviews" data-testid="button-write-review" className="w-full sm:w-auto">
+              <Button variant="outline" className="mobile-button border-2 border-white text-white hover:bg-white hover:text-black font-bold uppercase tracking-wider w-full sm:w-auto min-h-[52px] active-scale focus-visible-metal" size="lg">
                 Write Review
               </Button>
             </Link>
