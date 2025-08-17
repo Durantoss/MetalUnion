@@ -6,6 +6,7 @@ import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
 import { ThePit } from './components/ThePit';
 import { LandingPage } from './components/LandingPage';
+import { MobileLandingTest } from './components/MobileLandingTest';
 import { Band } from './types';
 
 
@@ -16,6 +17,15 @@ const App = () => {
   const [error, setError] = useState<string | null>(null);
   const [showComparison, setShowComparison] = useState(false);
   const [currentSection, setCurrentSection] = useState('landing');
+  
+  // Force landing page on mobile for debugging
+  useEffect(() => {
+    console.log('App useEffect - currentSection:', currentSection);
+    if (!currentSection || currentSection === '') {
+      console.log('Setting currentSection to landing');
+      setCurrentSection('landing');
+    }
+  }, [currentSection]);
 
   const handleReturnHome = () => {
     console.log('handleReturnHome called');
@@ -129,9 +139,19 @@ const App = () => {
 
   const renderContent = () => {
     console.log('Rendering section:', currentSection, 'with', bands.length, 'bands');
+    console.log('Landing page should render for:', currentSection === 'landing' || !currentSection);
     
-    // Always start with landing page
-    if (currentSection === 'landing' || !currentSection) {
+    // Force landing page display for mobile debugging
+    if (currentSection === 'landing' || !currentSection || currentSection === '' || currentSection === undefined) {
+      console.log('Rendering LandingPage component');
+      
+      // Mobile test mode - use simplified component
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile && bands.length === 0) {
+        console.log('Using mobile test component');
+        return <MobileLandingTest onSectionChange={setCurrentSection} />;
+      }
+      
       return (
         <LandingPage 
           onSectionChange={setCurrentSection}

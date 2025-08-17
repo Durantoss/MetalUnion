@@ -24,46 +24,44 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [hoveredSection, setHoveredSection] = useState<string | null>(null);
   const [stats, setStats] = useState({
-    bands: 0,
+    bands: bands?.length || 0,
     tours: 0,
     reviews: 0,
     photos: 0
   });
 
-  // Featured bands for the hero carousel - use bands with images first
-  const featuredBands = bands.filter(band => band.imageUrl).slice(0, 3);
+  // Featured bands - simplified for mobile
+  const featuredBands = bands?.slice(0, 3) || [];
   
-  // Fetch real stats from API
+  // Simplified stats fetching with error handling
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [bandsRes, toursRes, reviewsRes, photosRes] = await Promise.all([
-          fetch('/api/bands'),
-          fetch('/api/tours'),
-          fetch('/api/reviews'),
-          fetch('/api/photos')
+        // Use bands count from props immediately
+        setStats(prev => ({ ...prev, bands: bands?.length || 0 }));
+        
+        // Optional: Try to fetch other stats
+        const responses = await Promise.allSettled([
+          fetch('/api/tours').then(r => r.json()).catch(() => []),
+          fetch('/api/reviews').then(r => r.json()).catch(() => []),
+          fetch('/api/photos').then(r => r.json()).catch(() => [])
         ]);
         
-        const [bandsData, toursData, reviewsData, photosData] = await Promise.all([
-          bandsRes.json(),
-          toursRes.json(),
-          reviewsRes.json(),
-          photosRes.json()
-        ]);
-        
-        setStats({
-          bands: bandsData.length,
-          tours: toursData.length,
-          reviews: reviewsData.length,
-          photos: photosData.length
-        });
+        setStats(prev => ({
+          ...prev,
+          tours: responses[0].status === 'fulfilled' ? responses[0].value?.length || 0 : 0,
+          reviews: responses[1].status === 'fulfilled' ? responses[1].value?.length || 0 : 0,
+          photos: responses[2].status === 'fulfilled' ? responses[2].value?.length || 0 : 0
+        }));
       } catch (error) {
         console.error('Error fetching stats:', error);
+        // Use fallback stats
+        setStats(prev => ({ ...prev, bands: bands?.length || 0 }));
       }
     };
     
     fetchStats();
-  }, []);
+  }, [bands]);
 
   useEffect(() => {
     if (featuredBands.length > 0) {
@@ -122,16 +120,54 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
     }
   ];
 
-  // Fallback content if no bands are available
+  // Mobile-first fallback with immediate display
   if (!bands || bands.length === 0) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-        <div className="text-center">
-          <h1 className="text-4xl sm:text-6xl font-black text-red-500 mb-4">MOSHUNION</h1>
-          <p className="text-gray-400 mb-8">Loading the ultimate metal community...</p>
+      <div 
+        className="min-h-screen bg-black text-white flex items-center justify-center p-4"
+        style={{ 
+          minHeight: '100vh', 
+          width: '100%', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          position: 'relative',
+          zIndex: 1
+        }}
+      >
+        <div className="text-center max-w-md mx-auto">
+          <h1 
+            className="text-4xl sm:text-6xl font-black text-red-500 mb-4"
+            style={{ 
+              color: '#dc2626', 
+              fontWeight: 900,
+              textAlign: 'center',
+              marginBottom: '1rem'
+            }}
+          >
+            MOSHUNION
+          </h1>
+          <p className="text-gray-400 mb-8 text-base sm:text-lg">
+            Loading the ultimate metal community...
+          </p>
           <button 
-            onClick={() => onSectionChange('bands')} 
-            className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg font-bold transition-all"
+            onClick={() => {
+              console.log('Mobile fallback - Enter Anyway clicked');
+              onSectionChange('bands');
+            }}
+            className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg font-bold transition-all w-full sm:w-auto"
+            style={{
+              backgroundColor: '#dc2626',
+              color: 'white',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              border: 'none',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              fontSize: '16px',
+              minHeight: '48px',
+              touchAction: 'manipulation'
+            }}
           >
             Enter Anyway
           </button>
