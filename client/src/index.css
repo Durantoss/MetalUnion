@@ -3,6 +3,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Force permanent dark mode at the highest level */
+:root {
+  color-scheme: dark only;
+}
+
 @layer base {
   :root {
     /* Ultra Dynamic Red, Yellow, Black Theme */
@@ -81,6 +86,16 @@
 
   .font-mono {
     font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Monaco, 'Consolas', monospace;
+  }
+  
+  /* Force permanent dark mode */
+  html {
+    color-scheme: dark;
+  }
+  
+  html:not(.light),
+  html.dark {
+    color-scheme: dark;
   }
 }
 

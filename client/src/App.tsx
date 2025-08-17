@@ -35,6 +35,10 @@ const App = () => {
   useEffect(() => {
     console.log('App component mounted - React is working!');
     
+    // Ensure dark mode is always applied
+    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('light');
+    
     fetch('/api/bands')
       .then(response => {
         if (!response.ok) {

@@ -5,6 +5,10 @@ import './index.css';
 
 console.log('MOSHUNION: Starting full app...');
 
+// Force permanent dark mode
+document.documentElement.classList.add('dark');
+document.body.style.backgroundColor = 'hsl(0, 0%, 4%)';
+
 const container = document.getElementById('root');
 if (!container) {
   throw new Error('Root element not found in HTML');
