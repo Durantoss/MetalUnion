@@ -12,6 +12,7 @@ import { MetalLoader } from "@/components/ui/metal-loader";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { RememberLogin } from "@/components/remember-login";
 import { useAuth } from "@/hooks/useAuth";
 import { 
   Settings as SettingsIcon, 
@@ -361,6 +362,11 @@ export default function Settings() {
               />
             </CardContent>
           </Card>
+
+          {/* Session Management */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <RememberLogin />
+          </div>
 
           {/* Music Preferences */}
           <Card className="bg-card-dark border-metal-gray">

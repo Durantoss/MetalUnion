@@ -23,7 +23,7 @@ const getOidcConfig = memoize(
 );
 
 export function getSession() {
-  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const sessionTtl = 30 * 24 * 60 * 60 * 1000; // 30 days for better persistence
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
@@ -36,10 +36,12 @@ export function getSession() {
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    rolling: true, // Extend session on activity
     cookie: {
       httpOnly: true,
       secure: true,
       maxAge: sessionTtl,
+      sameSite: 'lax', // Better compatibility for auth flows
     },
   });
 }
@@ -135,7 +137,10 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   }
 
   const now = Math.floor(Date.now() / 1000);
-  if (now <= user.expires_at) {
+  // Give some buffer time (5 minutes) before token expires
+  const bufferTime = 5 * 60; // 5 minutes in seconds
+  
+  if (now <= (user.expires_at - bufferTime)) {
     return next();
   }
 
@@ -149,8 +154,13 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     const config = await getOidcConfig();
     const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
     updateUserSession(user, tokenResponse);
+    
+    // Update the user in database to keep their profile fresh
+    await upsertUser(tokenResponse.claims());
+    
     return next();
   } catch (error) {
+    console.error('Token refresh failed:', error);
     res.status(401).json({ message: "Unauthorized" });
     return;
   }

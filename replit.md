@@ -34,8 +34,10 @@ Preferred communication style: Simple, everyday language.
 - **Migrations**: Drizzle Kit for database schema migrations and management
 
 ### Authentication and Authorization
-- **Session-based Authentication**: Uses express-session with PostgreSQL session store (connect-pg-simple)
-- **No Authentication Required**: Current implementation allows anonymous access to all features
+- **Session-based Authentication**: Uses express-session with PostgreSQL session store (connect-pg-simple) 
+- **Persistent Login**: Extended session duration to 30 days with automatic token refresh and rolling sessions
+- **Replit OAuth Integration**: Full authentication flow with user profile management and "Remember Me" functionality
+- **Session Management UI**: User-friendly session status display with manual refresh capabilities
 
 ### API Design
 - **RESTful Endpoints**: Standard CRUD operations for all entities
