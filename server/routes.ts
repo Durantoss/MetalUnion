@@ -1150,7 +1150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // In a real app, you'd have a user preferences table
       // For now, infer preferences from user activity
       const userBands = await storage.getBandsByOwner(userId);
-      const genres = [...new Set(userBands.map(band => band.genre))];
+      const genres = Array.from(new Set(userBands.map(band => band.genre)));
       
       const defaultPreferences = {
         favoriteGenres: genres.length > 0 ? genres : ['Metal', 'Rock'],
