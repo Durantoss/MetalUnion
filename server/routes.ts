@@ -1,9 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertBandSchema, insertReviewSchema, insertPhotoSchema, insertTourSchema, insertMessageSchema } from "@shared/schema";
+import { insertBandSchema, insertReviewSchema, insertPhotoSchema, insertTourSchema, insertMessageSchema, insertPitMessageSchema, insertPitReplySchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./simpleAuth";
-import { googleSearchService, type EnhancedSearchResult } from "./googleSearch";
+import { performGoogleSearch } from "./googleSearch";
 import { tourDataService } from "./tourDataService";
 import { aiService, type BandRecommendation, type ChatResponse } from "./aiService";
 import { concertRecommendationService, type ConcertRecommendation, type ConcertRecommendationRequest } from "./concertRecommendationService";
@@ -289,6 +289,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bands endpoints
+  app.get('/api/bands', async (req, res) => {
+    try {
+      // Explicitly set JSON headers to prevent Vite middleware interference
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-cache');
+      
+      const bands = await storage.getBands();
+      res.json(bands);
+    } catch (error) {
+      console.error("Error fetching bands:", error);
+      res.status(500).json({ message: "Failed to fetch bands" });
+    }
+  });
+
+  app.get('/api/bands/:id', async (req, res) => {
+    try {
+      res.setHeader('Content-Type', 'application/json');
+      const { id } = req.params;
+      const band = await storage.getBand(id);
+      if (!band) {
+        return res.status(404).json({ message: "Band not found" });
+      }
+      res.json(band);
+    } catch (error) {
+      console.error("Error fetching band:", error);
+      res.status(500).json({ message: "Failed to fetch band" });
+    }
+  });
+
+  app.post('/api/bands', isAuthenticated, async (req: any, res) => {
+    try {
+      res.setHeader('Content-Type', 'application/json');
+      const validatedData = insertBandSchema.parse(req.body);
+      const userId = req.user.claims.sub;
+      
+      const band = await storage.createBandSubmission({ ...validatedData, ownerId: userId });
+      res.status(201).json(band);
+    } catch (error) {
+      console.error("Error creating band:", error);
+      res.status(500).json({ message: "Failed to create band" });
+    }
+  });
+
   app.put('/api/user/profile', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -474,867 +518,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enhanced search endpoint with Google integration
   app.get("/api/search", async (req, res) => {
     try {
-      const query = req.query.q as string;
-      const genre = req.query.genre as string;
-      const photoCategory = req.query.photoCategory as string;
-      const reviewType = req.query.reviewType as string;
-      const country = req.query.country as string;
-      const dateRange = req.query.dateRange as string;
-      const includeWeb = req.query.includeWeb !== 'false'; // Default to true
+      const { q: query, section } = req.query;
       
-      if (!query || query.length < 2) {
-        return res.json({ bands: [], tours: [], reviews: [], photos: [], webResults: [] });
-      }
-      
-      // Run both database and Google searches in parallel
-      const [dbResults, webResults] = await Promise.all([
-        storage.searchAll(query, {
-          genre: genre === 'all' ? undefined : genre,
-          photoCategory: photoCategory === 'all' ? undefined : photoCategory,
-          reviewType: reviewType === 'all' ? undefined : reviewType,
-          country: country === 'all' ? undefined : country,
-          dateRange: dateRange === 'all' ? undefined : dateRange
-        }),
-        includeWeb ? getWebSearchResults(query) : Promise.resolve([])
-      ]);
-      
-      // Add upcoming tours for each band in search results
-      const bandsWithTours = await Promise.all(
-        dbResults.bands.map(async (band) => {
-          const upcomingTours = await storage.getToursByBand(band.id);
-          const now = new Date();
-          const currentTours = upcomingTours.filter(tour => 
-            new Date(tour.date) > now && 
-            tour.status !== 'cancelled'
-          ).slice(0, 3);
-          
-          return {
-            ...band,
-            upcomingTours: currentTours
-          };
-        })
-      );
-      
-      res.json({
-        ...dbResults,
-        bands: bandsWithTours,
-        webResults
-      });
-    } catch (error) {
-      console.error("Error performing search:", error);
-      res.status(500).json({ message: "Failed to perform search" });
-    }
-  });
-
-  // Helper function to get web search results
-  async function getWebSearchResults(query: string): Promise<EnhancedSearchResult[]> {
-    try {
-      const [bandResults, tourResults, newsResults] = await Promise.all([
-        googleSearchService.searchMetalBands(query, 3),
-        googleSearchService.searchMetalTours(query, 3), 
-        googleSearchService.searchMetalNews(query, 3)
-      ]);
-      
-      return [...bandResults, ...tourResults, ...newsResults];
-    } catch (error) {
-      console.error("Error fetching web search results:", error);
-      return [];
-    }
-  }
-
-  // Google search endpoint for web results only
-  app.get("/api/search/web", async (req, res) => {
-    try {
-      const query = req.query.q as string;
-      const type = req.query.type as string || 'general';
-      
-      if (!query || query.length < 2) {
-        return res.json([]);
-      }
-      
-      let results: EnhancedSearchResult[] = [];
-      
-      switch (type) {
-        case 'bands':
-          results = await googleSearchService.searchMetalBands(query, 5);
-          break;
-        case 'tours':
-          results = await googleSearchService.searchMetalTours(query, 5);
-          break;
-        case 'news':
-          results = await googleSearchService.searchMetalNews(query, 5);
-          break;
-        default:
-          results = await googleSearchService.searchGeneral(query, 5);
-          break;
-      }
-      
-      res.json(results);
-    } catch (error) {
-      console.error("Error performing web search:", error);
-      res.status(500).json({ message: "Failed to perform web search" });
-    }
-  });
-
-  // Enhanced band search with Google integration
-  app.get("/api/bands/search", async (req, res) => {
-    try {
-      const { q, includeWeb } = req.query;
-      const query = q as string;
-      const shouldIncludeWeb = includeWeb === 'true';
-      
-      if (!query || query.trim() === '') {
-        return res.status(400).json({ message: "Search query is required" });
-      }
-      
-      // Get database results
-      const databaseBands = await storage.searchBands(query);
-      const bandsWithTours = await Promise.all(
-        databaseBands.map(async (band) => {
-          const upcomingTours = await storage.getToursByBand(band.id);
-          const now = new Date();
-          const currentTours = upcomingTours.filter(tour => 
-            new Date(tour.date) > now && 
-            tour.status !== 'cancelled'
-          ).slice(0, 3);
-          
-          return {
-            ...band,
-            upcomingTours: currentTours
-          };
-        })
-      );
-      
-      // Get web results if requested
-      let webResults: EnhancedSearchResult[] = [];
-      if (shouldIncludeWeb) {
-        try {
-          webResults = await googleSearchService.searchMetalBands(query, 8);
-        } catch (error) {
-          console.error('Google search failed:', error);
-          // Continue without web results
-        }
-      }
-      
-      res.json({
-        query,
-        databaseResults: bandsWithTours,
-        webResults,
-        totalDatabaseResults: bandsWithTours.length,
-        totalWebResults: webResults.length
-      });
-    } catch (error) {
-      console.error("Error in enhanced band search:", error);
-      res.status(500).json({ message: "Failed to search bands" });
-    }
-  });
-
-  // Bands routes
-  app.get("/api/bands", async (req, res) => {
-    try {
-      const { search } = req.query;
-      let bands;
-      
-      if (search && typeof search === 'string') {
-        bands = await storage.searchBands(search);
-      } else {
-        bands = await storage.getBands();
-      }
-      
-      // Get upcoming tours for each band
-      const bandsWithTours = await Promise.all(
-        bands.map(async (band) => {
-          const upcomingTours = await storage.getToursByBand(band.id);
-          const now = new Date();
-          const currentTours = upcomingTours.filter(tour => 
-            new Date(tour.date) > now && 
-            tour.status !== 'cancelled'
-          ).slice(0, 3); // Get max 3 upcoming tours
-          
-          return {
-            ...band,
-            upcomingTours: currentTours
-          };
-        })
-      );
-      
-      res.json(bandsWithTours);
-    } catch (error) {
-      console.error('Error fetching bands with tours:', error);
-      res.status(500).json({ message: "Failed to fetch bands" });
-    }
-  });
-
-  app.get("/api/bands/:id", async (req, res) => {
-    try {
-      const band = await storage.getBand(req.params.id);
-      if (!band) {
-        return res.status(404).json({ message: "Band not found" });
-      }
-      
-      // Get tours for this band
-      const tours = await storage.getToursByBand(req.params.id);
-      
-      // Add ticket URLs to tours
-      const toursWithTickets = await ticketmasterService.getUpcomingToursWithTickets(band, tours);
-      
-      res.json({
-        ...band,
-        upcomingTours: toursWithTickets
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch band" });
-    }
-  });
-
-  app.post("/api/bands", async (req, res) => {
-    try {
-      const parsed = insertBandSchema.parse(req.body);
-      const band = await storage.createBand(parsed);
-      res.status(201).json(band);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid band data" });
-    }
-  });
-
-  // Band submission routes
-  app.post("/api/bands/submit", isAuthenticated, async (req, res) => {
-    try {
-      const userId = (req.user as any)?.claims?.sub;
-      const parsed = insertBandSchema.parse(req.body);
-      const band = await storage.createBandSubmission({
-        ...parsed,
-        ownerId: userId,
-      });
-      res.status(201).json(band);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid band data" });
-    }
-  });
-
-  app.get("/api/my-bands", isAuthenticated, async (req, res) => {
-    try {
-      const userId = (req.user as any)?.claims?.sub;
-      const bands = await storage.getBandsByOwner(userId);
-      res.json(bands);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch your bands" });
-    }
-  });
-
-  app.put("/api/bands/:id", isAuthenticated, async (req, res) => {
-    try {
-      const userId = (req.user as any)?.claims?.sub;
-      const bandId = req.params.id;
-      
-      // Check if user owns this band
-      const band = await storage.getBand(bandId);
-      if (!band || band.ownerId !== userId) {
-        return res.status(403).json({ message: "You don't have permission to update this band" });
-      }
-      
-      const parsed = insertBandSchema.partial().parse(req.body);
-      const updatedBand = await storage.updateBand(bandId, parsed);
-      res.json(updatedBand);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid band data" });
-    }
-  });
-
-  app.delete("/api/bands/:id", isAuthenticated, async (req, res) => {
-    try {
-      const userId = (req.user as any)?.claims?.sub;
-      const bandId = req.params.id;
-      
-      // Check if user owns this band
-      const band = await storage.getBand(bandId);
-      if (!band || band.ownerId !== userId) {
-        return res.status(403).json({ message: "You don't have permission to delete this band" });
-      }
-      
-      await storage.deleteBand(bandId);
-      res.status(204).send();
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete band" });
-    }
-  });
-
-  // Reviews routes
-  app.get("/api/reviews", async (req, res) => {
-    try {
-      const { bandId } = req.query;
-      let reviews;
-      
-      if (bandId && typeof bandId === 'string') {
-        reviews = await storage.getReviewsByBand(bandId);
-      } else {
-        reviews = await storage.getReviews();
-      }
-      
-      res.json(reviews);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch reviews" });
-    }
-  });
-
-  app.post("/api/reviews", async (req, res) => {
-    try {
-      const parsed = insertReviewSchema.parse(req.body);
-      const review = await storage.createReview(parsed);
-      res.status(201).json(review);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid review data" });
-    }
-  });
-
-  app.post("/api/reviews/:id/like", async (req, res) => {
-    try {
-      const review = await storage.likeReview(req.params.id);
-      if (!review) {
-        return res.status(404).json({ message: "Review not found" });
-      }
-      res.json(review);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to like review" });
-    }
-  });
-
-  // Photos routes
-  app.get("/api/photos", async (req, res) => {
-    try {
-      const { bandId, category } = req.query;
-      let photos;
-      
-      if (bandId && typeof bandId === 'string') {
-        photos = await storage.getPhotosByBand(bandId);
-      } else if (category && typeof category === 'string') {
-        photos = await storage.getPhotosByCategory(category);
-      } else {
-        photos = await storage.getPhotos();
-      }
-      
-      res.json(photos);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch photos" });
-    }
-  });
-
-  app.post("/api/photos", upload.single('image'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No image file provided" });
+      if (!query || !section) {
+        return res.status(400).json({ error: 'Query and section parameters are required' });
       }
 
-      // In a real app, you'd upload to cloud storage and get a URL
-      const imageUrl = `/uploads/${req.file.filename}`;
+      console.log(`Search request: "${query}" in section "${section}"`);
       
-      const photoData = {
-        ...req.body,
-        imageUrl,
-      };
+      // Perform Google search (will fallback to local if no API keys)
+      const googleResults = await performGoogleSearch(query as string, section as string);
       
-      const parsed = insertPhotoSchema.parse(photoData);
-      const photo = await storage.createPhoto(parsed);
-      res.status(201).json(photo);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid photo data" });
-    }
-  });
-
-  // Tours routes
-  app.get("/api/tours", async (req, res) => {
-    try {
-      const { bandId, upcoming } = req.query;
-      let tours;
-      
-      if (bandId && typeof bandId === 'string') {
-        tours = await storage.getToursByBand(bandId);
-      } else if (upcoming === 'true') {
-        tours = await storage.getUpcomingTours();
-      } else {
-        tours = await storage.getTours();
-      }
-      
-      res.json(tours);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch tours" });
-    }
-  });
-
-  app.post("/api/tours", async (req, res) => {
-    try {
-      const parsed = insertTourSchema.parse(req.body);
-      const tour = await storage.createTour(parsed);
-      res.status(201).json(tour);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid tour data" });
-    }
-  });
-
-  // Tour data management routes
-  app.post("/api/tours/refresh", async (req, res) => {
-    try {
-      console.log('Manual tour data refresh requested');
-      await tourDataService.refreshTourDatabase();
-      const stats = await tourDataService.getTourStats();
       res.json({ 
-        message: "Tour database refreshed successfully", 
-        stats 
+        query: query,
+        section: section,
+        googleResults: googleResults,
+        message: googleResults ? 'Google search results' : 'Using local search fallback',
+        timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Tour refresh error:', error);
-      res.status(500).json({ message: "Failed to refresh tour database" });
+      console.error('Search error:', error);
+      res.status(500).json({ error: 'Search failed' });
     }
   });
 
-  app.get("/api/tours/stats", async (req, res) => {
+  // The Pit message board routes
+  app.get('/api/pit/messages', async (req, res) => {
     try {
-      const stats = await tourDataService.getTourStats();
-      res.json(stats);
-    } catch (error) {
-      console.error('Tour stats error:', error);
-      res.status(500).json({ message: "Failed to get tour statistics" });
-    }
-  });
-
-  // Get tours with enhanced data including band information
-  app.get("/api/tours/enhanced", async (req, res) => {
-    try {
-      const { upcoming, limit } = req.query;
-      let tours;
-      
-      if (upcoming === 'true') {
-        tours = await storage.getUpcomingTours();
-      } else {
-        tours = await storage.getTours();
-      }
-      
-      // Get band information for each tour
-      const toursWithBands = await Promise.all(
-        tours.map(async (tour) => {
-          const band = await storage.getBand(tour.bandId);
-          return {
-            ...tour,
-            band: band ? {
-              id: band.id,
-              name: band.name,
-              genre: band.genre,
-              imageUrl: band.imageUrl
-            } : null
-          };
-        })
-      );
-      
-      // Filter out tours without valid bands and sort by date
-      const validTours = toursWithBands
-        .filter(tour => tour.band !== null)
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      
-      // Apply limit if specified
-      const limitNum = limit ? parseInt(limit as string, 10) : undefined;
-      const result = limitNum ? validTours.slice(0, limitNum) : validTours;
-      
-      res.json(result);
-    } catch (error) {
-      console.error('Enhanced tours error:', error);
-      res.status(500).json({ message: "Failed to fetch enhanced tour data" });
-    }
-  });
-
-  // Messages routes
-  app.get("/api/messages", async (req, res) => {
-    try {
-      const { category } = req.query;
-      let messages;
-      
-      if (category && typeof category === 'string') {
-        messages = await storage.getMessagesByCategory(category);
-      } else {
-        messages = await storage.getMessages();
-      }
-      
+      const messages = await storage.getPitMessages();
       res.json(messages);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch messages" });
+      console.error("Error fetching pit messages:", error);
+      res.status(500).json({ message: "Failed to fetch pit messages" });
     }
   });
 
-  app.post("/api/messages", isAuthenticated, async (req: any, res) => {
+  app.post('/api/pit/messages', async (req, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(401).json({ message: "User not found" });
-      }
-      
-      const messageData = {
-        ...req.body,
-        authorId: userId,
-        authorStagename: user.firstName || user.email || 'Anonymous'
-      };
-      
-      const parsed = insertMessageSchema.parse(messageData);
-      const message = await storage.createMessage(parsed);
+      const validatedData = insertPitMessageSchema.parse(req.body);
+      const message = await storage.createPitMessage(validatedData);
       res.status(201).json(message);
     } catch (error) {
-      console.error("Message creation error:", error);
-      res.status(400).json({ message: "Invalid message data" });
+      console.error("Error creating pit message:", error);
+      res.status(500).json({ message: "Failed to create pit message" });
     }
   });
 
-  app.post("/api/messages/:id/like", async (req, res) => {
+  app.get('/api/pit/messages/:messageId/replies', async (req, res) => {
     try {
-      const message = await storage.likeMessage(req.params.id);
-      if (!message) {
-        return res.status(404).json({ message: "Message not found" });
-      }
-      res.json(message);
+      const { messageId } = req.params;
+      const replies = await storage.getPitReplies(messageId);
+      res.json(replies);
     } catch (error) {
-      res.status(500).json({ message: "Failed to like message" });
+      console.error("Error fetching pit replies:", error);
+      res.status(500).json({ message: "Failed to fetch pit replies" });
     }
   });
 
-  // Serve uploaded files
-  app.use('/uploads', (req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    next();
-  });
-
-  // Object Storage Routes for Band Photos
-  app.get("/public-objects/:filePath(*)", async (req, res) => {
-    const filePath = req.params.filePath;
-    const { ObjectStorageService } = await import("./objectStorage");
-    const objectStorageService = new ObjectStorageService();
+  app.post('/api/pit/messages/:messageId/replies', async (req, res) => {
     try {
-      const file = await objectStorageService.searchPublicObject(filePath);
-      if (!file) {
-        return res.status(404).json({ error: "File not found" });
-      }
-      objectStorageService.downloadObject(file, res);
+      const { messageId } = req.params;
+      const validatedData = insertPitReplySchema.parse({ ...req.body, messageId });
+      const reply = await storage.createPitReply(validatedData);
+      
+      // Update reply count
+      await storage.incrementPitMessageReplies(messageId);
+      
+      res.status(201).json(reply);
     } catch (error) {
-      console.error("Error searching for public object:", error);
-      return res.status(500).json({ error: "Internal server error" });
+      console.error("Error creating pit reply:", error);
+      res.status(500).json({ message: "Failed to create pit reply" });
     }
   });
 
-  app.post("/api/objects/upload", async (req, res) => {
-    const { ObjectStorageService } = await import("./objectStorage");
-    const objectStorageService = new ObjectStorageService();
+  app.post('/api/pit/messages/:messageId/like', async (req, res) => {
     try {
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      res.json({ uploadURL });
+      const { messageId } = req.params;
+      await storage.incrementPitMessageLikes(messageId);
+      res.json({ message: 'Like added successfully' });
     } catch (error) {
-      console.error("Error getting upload URL:", error);
-      res.status(500).json({ error: "Failed to get upload URL" });
+      console.error("Error liking pit message:", error);
+      res.status(500).json({ message: "Failed to like pit message" });
     }
   });
 
-  app.put("/api/bands/:id/photo", async (req, res) => {
+  app.post('/api/pit/replies/:replyId/like', async (req, res) => {
     try {
-      const { photoURL } = req.body;
-      const bandId = req.params.id;
-      
-      if (!photoURL) {
-        return res.status(400).json({ error: "photoURL is required" });
-      }
-
-      const { ObjectStorageService } = await import("./objectStorage");
-      const objectStorageService = new ObjectStorageService();
-      
-      // Set ACL policy for public band photo
-      const objectPath = objectStorageService.normalizeObjectEntityPath(photoURL);
-      
-      // Update band with photo URL
-      const updatedBand = await storage.updateBand(bandId, { 
-        imageUrl: objectPath 
-      });
-      
-      if (!updatedBand) {
-        return res.status(404).json({ error: "Band not found" });
-      }
-
-      res.json({ 
-        band: updatedBand,
-        photoUrl: objectPath 
-      });
+      const { replyId } = req.params;
+      await storage.incrementPitReplyLikes(replyId);
+      res.json({ message: 'Like added successfully' });
     } catch (error) {
-      console.error("Error updating band photo:", error);
-      res.status(500).json({ error: "Failed to update band photo" });
-    }
-  });
-
-  // Ticket and tour routes
-  app.get("/api/bands/:id/tickets", async (req, res) => {
-    try {
-      const band = await storage.getBand(req.params.id);
-      if (!band) {
-        return res.status(404).json({ message: "Band not found" });
-      }
-
-      const tours = await storage.getToursByBand(req.params.id);
-      const ticketOptions = tours.map(tour => ({
-        tour,
-        ticketOptions: ticketmasterService.generateTourTicketOptions(tour, band.name)
-      }));
-
-      res.json({
-        band,
-        ticketOptions,
-        directTicketUrl: ticketmasterService.generateTicketmasterUrl(band.name)
-      });
-    } catch (error) {
-      console.error('Error fetching ticket information:', error);
-      res.status(500).json({ message: "Failed to fetch ticket information" });
-    }
-  });
-
-  app.post("/api/bands/:id/tours", async (req, res) => {
-    try {
-      const band = await storage.getBand(req.params.id);
-      if (!band) {
-        return res.status(404).json({ message: "Band not found" });
-      }
-
-      const tourData = req.body;
-      const tourWithTickets = await ticketmasterService.createTourWithTickets({
-        ...tourData,
-        bandId: req.params.id,
-        bandName: band.name
-      });
-
-      const parsed = insertTourSchema.parse(tourWithTickets);
-      const tour = await storage.createTour(parsed);
-      
-      res.status(201).json(tour);
-    } catch (error) {
-      console.error('Error creating tour with tickets:', error);
-      res.status(400).json({ message: "Invalid tour data" });
-    }
-  });
-
-  // Concert recommendation routes
-  app.post('/api/recommendations/concerts', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const requestData: ConcertRecommendationRequest = {
-        userId,
-        ...req.body
-      };
-      
-      const recommendations = await concertRecommendationService.generateRecommendations(requestData);
-      res.json({ recommendations });
-    } catch (error) {
-      console.error('Error generating concert recommendations:', error);
-      res.status(500).json({ message: 'Failed to generate concert recommendations' });
-    }
-  });
-
-  app.get('/api/recommendations/concerts/:bandId/insights', async (req, res) => {
-    try {
-      const { bandId } = req.params;
-      const userId = req.query.userId as string;
-      
-      const insights = await concertRecommendationService.getConcertInsights(bandId, userId);
-      res.json(insights);
-    } catch (error) {
-      console.error('Error getting concert insights:', error);
-      res.status(500).json({ message: 'Failed to get concert insights' });
-    }
-  });
-
-  app.get('/api/recommendations/user-preferences', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      
-      // In a real app, you'd have a user preferences table
-      // For now, infer preferences from user activity
-      const userBands = await storage.getBandsByOwner(userId);
-      const genres = Array.from(new Set(userBands.map(band => band.genre)));
-      
-      const defaultPreferences = {
-        favoriteGenres: genres.length > 0 ? genres : ['Metal', 'Rock'],
-        location: null,
-        priceRange: { min: 20, max: 200 },
-        travelWillingness: 'regional' as const,
-        concertFrequency: 'monthly' as const
-      };
-      
-      res.json(defaultPreferences);
-    } catch (error) {
-      console.error('Error getting user preferences:', error);
-      res.status(500).json({ message: 'Failed to get user preferences' });
-    }
-  });
-
-  app.put('/api/recommendations/user-preferences', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const preferences = req.body;
-      
-      // In a real app, you'd save these to a user_preferences table
-      // For now, just return the updated preferences
-      res.json({ 
-        message: 'Preferences updated successfully',
-        preferences 
-      });
-    } catch (error) {
-      console.error('Error updating user preferences:', error);
-      res.status(500).json({ message: 'Failed to update preferences' });
-    }
-  });
-
-  // Background AI Routes
-  app.post("/api/ai/recommendations", async (req, res) => {
-    try {
-      const { preferences } = req.body;
-      
-      const recommendations = await aiService.generateRecommendations(preferences);
-      res.json(recommendations);
-    } catch (error) {
-      console.error('AI recommendations error:', error);
-      res.status(500).json({ error: "Recommendation service unavailable" });
-    }
-  });
-
-  app.get("/api/analytics/user-activity", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      
-      // Fetch recent user activity (reviews, searches, views)
-      const activity = await storage.getUserActivity(userId);
-      
-      res.json(activity);
-    } catch (error) {
-      console.error('User activity error:', error);
-      res.status(500).json({ error: "Activity data unavailable" });
-    }
-  });
-
-  // AI Features Routes
-  
-  // Smart Band Recommendations
-  app.get('/api/ai/recommendations', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      const allBands = await storage.getBands();
-      
-      // Get user preferences (in a real app, you'd store these)
-      const userBands = ['Metallica', 'Iron Maiden']; // Default favorites
-      const userGenres = ['Heavy Metal', 'Thrash Metal'];
-      
-      const recommendations = await aiService.getRecommendations(
-        userBands,
-        userGenres,
-        allBands
-      );
-      
-      res.json(recommendations);
-    } catch (error) {
-      console.error('Error getting AI recommendations:', error);
-      res.status(500).json({ message: 'Failed to get recommendations' });
-    }
-  });
-
-  // Enhanced Natural Language Search
-  app.post('/api/ai/search', async (req, res) => {
-    try {
-      const { query } = req.body;
-      
-      if (!query) {
-        return res.status(400).json({ message: 'Query is required' });
-      }
-      
-      const enhancement = await aiService.enhanceSearchQuery(query);
-      
-      // Use enhanced query for better search results
-      let searchResults: any[] = [];
-      if (enhancement.enhancedQuery) {
-        searchResults = await storage.searchBands(enhancement.enhancedQuery);
-      }
-      
-      res.json({
-        originalQuery: query,
-        enhancement,
-        searchResults
-      });
-    } catch (error) {
-      console.error('Error in AI search:', error);
-      res.status(500).json({ message: 'Failed to enhance search' });
-    }
-  });
-
-  // Music Analysis
-  app.get('/api/ai/analyze/:bandId', async (req, res) => {
-    try {
-      const band = await storage.getBand(req.params.bandId);
-      
-      if (!band) {
-        return res.status(404).json({ message: 'Band not found' });
-      }
-      
-      const analysis = await aiService.analyzeBand(
-        band.name,
-        band.genre || '',
-        band.description || '',
-        band.albums || []
-      );
-      
-      res.json({
-        bandId: band.id,
-        bandName: band.name,
-        analysis
-      });
-    } catch (error) {
-      console.error('Error analyzing band:', error);
-      res.status(500).json({ message: 'Failed to analyze band' });
-    }
-  });
-
-  // AI Chat Assistant
-  app.post('/api/ai/chat', async (req, res) => {
-    try {
-      const { message, context } = req.body;
-      
-      if (!message) {
-        return res.status(400).json({ message: 'Message is required' });
-      }
-      
-      const response = await aiService.chatWithAI(message, context || {});
-      
-      res.json(response);
-    } catch (error) {
-      console.error('Error in AI chat:', error);
-      res.status(500).json({ 
-        message: "I'm having trouble connecting right now. Try asking about metal bands or music discovery!",
-        suggestions: [
-          "Tell me about different metal genres",
-          "Recommend bands for beginners",
-          "What's happening in metal music lately?"
-        ]
-      });
-    }
-  });
-
-  // Photo Analysis
-  app.post('/api/ai/photos/analyze', async (req, res) => {
-    try {
-      const { description, category } = req.body;
-      
-      if (!description) {
-        return res.status(400).json({ message: 'Photo description is required' });
-      }
-      
-      const analysis = await aiService.analyzePhoto(
-        description,
-        category || 'live'
-      );
-      
-      res.json(analysis);
-    } catch (error) {
-      console.error('Error analyzing photo:', error);
-      res.status(500).json({ message: 'Failed to analyze photo' });
+      console.error("Error liking pit reply:", error);
+      res.status(500).json({ message: "Failed to like pit reply" });
     }
   });
 

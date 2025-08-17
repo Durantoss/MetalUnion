@@ -1,4 +1,14 @@
-import { type Band, type InsertBand, type Review, type InsertReview, type Photo, type InsertPhoto, type Tour, type InsertTour, type Message, type InsertMessage, type User, type UpsertUser, users, bands, reviews, photos, tours, messages } from "@shared/schema";
+import { 
+  type Band, type InsertBand, 
+  type Review, type InsertReview, 
+  type Photo, type InsertPhoto, 
+  type Tour, type InsertTour, 
+  type Message, type InsertMessage, 
+  type User, type UpsertUser,
+  type PitMessage, type InsertPitMessage,
+  type PitReply, type InsertPitReply,
+  users, bands, reviews, photos, tours, messages, pitMessages, pitReplies 
+} from "@shared/schema";
 import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -71,6 +81,17 @@ export interface IStorage {
 
   // Analytics for background AI
   getUserActivity(userId: string): Promise<any[]>;
+
+  // Pit message board operations
+  getPitMessages(): Promise<PitMessage[]>;
+  getPitMessage(id: string): Promise<PitMessage | undefined>;
+  createPitMessage(message: InsertPitMessage): Promise<PitMessage>;
+  incrementPitMessageLikes(id: string): Promise<void>;
+  incrementPitMessageReplies(id: string): Promise<void>;
+  
+  getPitReplies(messageId: string): Promise<PitReply[]>;
+  createPitReply(reply: InsertPitReply): Promise<PitReply>;
+  incrementPitReplyLikes(id: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -897,6 +918,98 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error fetching user activity:', error);
       return [];
+    }
+  }
+
+  // Pit message board operations
+  async getPitMessages(): Promise<PitMessage[]> {
+    try {
+      const result = await db.select().from(pitMessages).orderBy(sql`created_at DESC`);
+      return result || [];
+    } catch (error) {
+      console.error("Error fetching pit messages:", error);
+      return [];
+    }
+  }
+
+  async getPitMessage(id: string): Promise<PitMessage | undefined> {
+    try {
+      const [message] = await db.select().from(pitMessages).where(eq(pitMessages.id, id));
+      return message;
+    } catch (error) {
+      console.error("Error fetching pit message:", error);
+      return undefined;
+    }
+  }
+
+  async createPitMessage(messageData: InsertPitMessage): Promise<PitMessage> {
+    try {
+      const [message] = await db.insert(pitMessages).values({
+        ...messageData,
+        id: randomUUID()
+      }).returning();
+      return message;
+    } catch (error) {
+      console.error("Error creating pit message:", error);
+      throw error;
+    }
+  }
+
+  async incrementPitMessageLikes(id: string): Promise<void> {
+    try {
+      await db.update(pitMessages)
+        .set({ likes: sql`likes + 1` })
+        .where(eq(pitMessages.id, id));
+    } catch (error) {
+      console.error("Error incrementing pit message likes:", error);
+      throw error;
+    }
+  }
+
+  async incrementPitMessageReplies(id: string): Promise<void> {
+    try {
+      await db.update(pitMessages)
+        .set({ replies: sql`replies + 1` })
+        .where(eq(pitMessages.id, id));
+    } catch (error) {
+      console.error("Error incrementing pit message replies:", error);
+      throw error;
+    }
+  }
+
+  async getPitReplies(messageId: string): Promise<PitReply[]> {
+    try {
+      const result = await db.select().from(pitReplies)
+        .where(eq(pitReplies.messageId, messageId))
+        .orderBy(sql`created_at ASC`);
+      return result || [];
+    } catch (error) {
+      console.error("Error fetching pit replies:", error);
+      return [];
+    }
+  }
+
+  async createPitReply(replyData: InsertPitReply): Promise<PitReply> {
+    try {
+      const [reply] = await db.insert(pitReplies).values({
+        ...replyData,
+        id: randomUUID()
+      }).returning();
+      return reply;
+    } catch (error) {
+      console.error("Error creating pit reply:", error);
+      throw error;
+    }
+  }
+
+  async incrementPitReplyLikes(id: string): Promise<void> {
+    try {
+      await db.update(pitReplies)
+        .set({ likes: sql`likes + 1` })
+        .where(eq(pitReplies.id, id));
+    } catch (error) {
+      console.error("Error incrementing pit reply likes:", error);
+      throw error;
     }
   }
 }

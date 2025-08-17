@@ -4,6 +4,7 @@ import { Navigation } from './components/Navigation';
 import { ToursSection } from './components/ToursSection';
 import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
+import { ThePit } from './components/ThePit';
 
 interface Band {
   id: string;
@@ -310,6 +311,12 @@ const App = () => {
         return (
           <div style={{ padding: '0 2rem' }}>
             <PhotosSection />
+          </div>
+        );
+      case 'pit':
+        return (
+          <div style={{ padding: '0 2rem' }}>
+            <ThePit />
           </div>
         );
       default:

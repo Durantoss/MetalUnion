@@ -141,6 +141,33 @@ export function Navigation({ currentSection, onSectionChange, onShowComparison, 
           >
             Photos
           </button>
+          
+          <button
+            onClick={() => onSectionChange('pit')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: currentSection === 'pit' ? '#dc2626' : '#d1d5db',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              padding: '0.5rem 1rem',
+              borderRadius: '6px',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              if (currentSection !== 'pit') {
+                e.currentTarget.style.color = '#f87171';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (currentSection !== 'pit') {
+                e.currentTarget.style.color = '#d1d5db';
+              }
+            }}
+          >
+            The Pit
+          </button>
         </div>
         
         <div style={{ display: 'flex', gap: '1rem' }}>

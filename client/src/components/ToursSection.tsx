@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { SearchBar } from './SearchBar';
 
 interface Tour {
   id: string;
@@ -12,13 +13,16 @@ interface Tour {
 
 export function ToursSection() {
   const [tours, setTours] = useState<Tour[]>([]);
+  const [filteredTours, setFilteredTours] = useState<Tour[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetch('/api/tours')
       .then(response => response.json())
       .then(data => {
         setTours(data);
+        setFilteredTours(data);
         setLoading(false);
       })
       .catch(err => {
@@ -26,6 +30,19 @@ export function ToursSection() {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (!searchQuery) {
+      setFilteredTours(tours);
+    } else {
+      const filtered = tours.filter(tour =>
+        tour.bandName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tour.venue.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (tour.city + ' ' + tour.country).toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredTours(filtered);
+    }
+  }, [tours, searchQuery]);
 
   if (loading) {
     return (
@@ -53,22 +70,39 @@ export function ToursSection() {
         Upcoming Tours
       </h2>
       
-      {tours.length === 0 ? (
-        <div style={{
-          textAlign: 'center',
-          color: '#9ca3af',
-          fontSize: '1.2rem',
-          padding: '4rem 0'
-        }}>
-          No upcoming tours available. Check back soon!
-        </div>
+      <SearchBar 
+        onSearch={setSearchQuery}
+        placeholder="Search tours by band, venue, or location..."
+        section="tours"
+      />
+      
+      {filteredTours.length === 0 ? (
+        searchQuery ? (
+          <div style={{
+            textAlign: 'center',
+            color: '#9ca3af',
+            fontSize: '1.2rem',
+            padding: '4rem 0'
+          }}>
+            No tours found matching "{searchQuery}". Try different search terms.
+          </div>
+        ) : (
+          <div style={{
+            textAlign: 'center',
+            color: '#9ca3af',
+            fontSize: '1.2rem',
+            padding: '4rem 0'
+          }}>
+            No upcoming tours available. Check back soon!
+          </div>
+        )
       ) : (
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
           gap: '2rem'
         }}>
-          {tours.map(tour => (
+          {filteredTours.map(tour => (
             <div
               key={tour.id}
               style={{

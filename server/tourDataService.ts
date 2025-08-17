@@ -1,5 +1,5 @@
 import { storage } from "./storage";
-import { googleSearchService } from "./googleSearch";
+import { performGoogleSearch } from "./googleSearch";
 import type { InsertTour } from "@shared/schema";
 
 interface TourAPIResult {
@@ -70,10 +70,10 @@ export class TourDataService {
   private async fetchTourDataForBand(bandName: string, bandId: string): Promise<number> {
     try {
       // Use Google Search to find tour information
-      const googleTourResults = await googleSearchService.searchMetalTours(bandName, 10);
+      const googleTourResults = await performGoogleSearch(`${bandName} tour 2024 2025 concerts`, 'tours');
       
       // Parse Google results to extract tour information
-      const tourData = this.parseGoogleTourResults(googleTourResults, bandId);
+      const tourData = this.parseGoogleTourResults(googleTourResults || [], bandId);
       
       // Also check for additional sources
       const additionalTours = await this.fetchFromAdditionalSources(bandName, bandId);

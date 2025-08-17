@@ -1,20 +1,24 @@
 import { useState, useEffect } from 'react';
+import { SearchBar } from './SearchBar';
 
 interface Review {
   id: string;
-  bandName?: string;
-  albumName?: string;
-  concertVenue?: string;
+  bandId: string;
+  stagename: string;
   rating: number;
-  comment: string;
+  title: string;
+  content: string;
   reviewType: 'band' | 'album' | 'concert';
-  reviewerName: string;
+  targetName?: string;
+  likes: number;
   createdAt: string;
 }
 
 export function ReviewsSection() {
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [filteredReviews, setFilteredReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'band' | 'album' | 'concert'>('all');
 
   useEffect(() => {
@@ -30,7 +34,26 @@ export function ReviewsSection() {
       });
   }, []);
 
-  const filteredReviews = filter === 'all' ? reviews : reviews.filter(r => r.reviewType === filter);
+  useEffect(() => {
+    let filtered = reviews;
+    
+    // Apply type filter
+    if (filter !== 'all') {
+      filtered = filtered.filter(review => review.reviewType === filter);
+    }
+    
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(review =>
+        review.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        review.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        review.stagename.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        review.targetName?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    setFilteredReviews(filtered);
+  }, [reviews, searchQuery, filter]);
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -72,6 +95,12 @@ export function ReviewsSection() {
         Community Reviews
       </h2>
       
+      <SearchBar 
+        onSearch={setSearchQuery}
+        placeholder="Search reviews by title, content, reviewer, or target..."
+        section="reviews"
+      />
+      
       <div style={{
         display: 'flex',
         justifyContent: 'center',
@@ -109,16 +138,27 @@ export function ReviewsSection() {
           </button>
         ))}
       </div>
-      
+
       {filteredReviews.length === 0 ? (
-        <div style={{
-          textAlign: 'center',
-          color: '#9ca3af',
-          fontSize: '1.2rem',
-          padding: '4rem 0'
-        }}>
-          No reviews available. Be the first to write one!
-        </div>
+        searchQuery || filter !== 'all' ? (
+          <div style={{
+            textAlign: 'center',
+            color: '#9ca3af',
+            fontSize: '1.2rem',
+            padding: '4rem 0'
+          }}>
+            No reviews found matching your criteria. Try different filters or search terms.
+          </div>
+        ) : (
+          <div style={{
+            textAlign: 'center',
+            color: '#9ca3af',
+            fontSize: '1.2rem',
+            padding: '4rem 0'
+          }}>
+            No reviews available yet. Be the first to write one!
+          </div>
+        )
       ) : (
         <div style={{
           display: 'grid',
@@ -136,7 +176,7 @@ export function ReviewsSection() {
                 transition: 'transform 0.2s, border-color 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.transform = 'translateY(-4px)';
                 e.currentTarget.style.borderColor = '#dc2626';
               }}
               onMouseLeave={(e) => {
@@ -145,24 +185,15 @@ export function ReviewsSection() {
               }}
             >
               <div style={{ marginBottom: '1rem' }}>
-                <h3 style={{
-                  fontSize: '1.2rem',
-                  color: '#dc2626',
-                  fontWeight: 'bold',
-                  marginBottom: '0.5rem'
-                }}>
-                  {review.reviewType === 'band' && review.bandName}
-                  {review.reviewType === 'album' && `${review.bandName} - ${review.albumName}`}
-                  {review.reviewType === 'concert' && `${review.bandName} at ${review.concertVenue}`}
-                </h3>
-                
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  marginBottom: '0.5rem'
-                }}>
-                  {renderStars(review.rating)}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                  <h3 style={{
+                    fontSize: '1.3rem',
+                    color: '#dc2626',
+                    fontWeight: 'bold',
+                    margin: 0
+                  }}>
+                    {review.title}
+                  </h3>
                   <span style={{
                     backgroundColor: '#374151',
                     color: '#d1d5db',
@@ -174,25 +205,57 @@ export function ReviewsSection() {
                     {review.reviewType}
                   </span>
                 </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  {renderStars(review.rating)}
+                  <span style={{ color: '#9ca3af', fontSize: '0.9rem' }}>
+                    ({review.rating}/5)
+                  </span>
+                </div>
+                
+                <p style={{
+                  color: '#9ca3af',
+                  fontSize: '0.9rem',
+                  margin: 0
+                }}>
+                  by {review.stagename} • {new Date(review.createdAt).toLocaleDateString()}
+                  {review.targetName && ` • ${review.targetName}`}
+                </p>
               </div>
-              
+
               <p style={{
                 color: '#d1d5db',
                 lineHeight: '1.6',
                 marginBottom: '1rem'
               }}>
-                {review.comment}
+                {review.content}
               </p>
-              
+
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center',
-                color: '#9ca3af',
-                fontSize: '0.9rem'
+                alignItems: 'center'
               }}>
-                <span>by {review.reviewerName}</span>
-                <span>{new Date(review.createdAt).toLocaleDateString()}</span>
+                <button
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#9ca3af',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = '#dc2626';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = '#9ca3af';
+                  }}
+                >
+                  👍 {review.likes}
+                </button>
               </div>
             </div>
           ))}

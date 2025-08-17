@@ -1,5 +1,5 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, jsonb, index, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -182,3 +182,60 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export const upsertUserSchema = createInsertSchema(users);
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+// Message Board (The Pit) Tables
+export const pitMessages = pgTable("pit_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  authorName: varchar("author_name").notNull(),
+  title: varchar("title").notNull(),
+  content: varchar("content", { length: 2000 }).notNull(),
+  category: varchar("category", { enum: ["general", "bands", "tours", "gear", "news"] }).default("general"),
+  likes: integer("likes").default(0),
+  replies: integer("replies").default(0),
+  isPinned: integer("is_pinned").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const pitReplies = pgTable("pit_replies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  messageId: varchar("message_id").references(() => pitMessages.id, { onDelete: "cascade" }),
+  authorName: varchar("author_name").notNull(),
+  content: varchar("content", { length: 1000 }).notNull(),
+  likes: integer("likes").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Relations for message board
+export const pitMessagesRelations = relations(pitMessages, ({ many }) => ({
+  replies: many(pitReplies),
+}));
+
+export const pitRepliesRelations = relations(pitReplies, ({ one }) => ({
+  message: one(pitMessages, {
+    fields: [pitReplies.messageId],
+    references: [pitMessages.id],
+  }),
+}));
+
+// Insert schemas for message board
+export const insertPitMessageSchema = createInsertSchema(pitMessages).omit({
+  id: true,
+  likes: true,
+  replies: true,
+  isPinned: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPitReplySchema = createInsertSchema(pitReplies).omit({
+  id: true,
+  likes: true,
+  createdAt: true,
+});
+
+// Types for message board
+export type PitMessage = typeof pitMessages.$inferSelect;
+export type InsertPitMessage = z.infer<typeof insertPitMessageSchema>;
+export type PitReply = typeof pitReplies.$inferSelect;
+export type InsertPitReply = z.infer<typeof insertPitReplySchema>;
