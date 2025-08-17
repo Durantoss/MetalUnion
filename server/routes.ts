@@ -31,15 +31,12 @@ async function seedDatabase() {
   try {
     // Check if we already have bands
     const existingBands = await storage.getBands();
-    let bandsCreated = false;
     
     if (existingBands.length === 0) {
       console.log("Seeding database with initial bands...");
-      bandsCreated = true;
-    }
-
-    // Create top 10 rock/metal bands from Spotify (2025)
-    const linkinPark = await storage.createBand({
+      
+      // Create top 10 rock/metal bands from Spotify (2025)
+      await storage.createBand({
       name: "LINKIN PARK",
       genre: "Nu Metal",
       description: "Pioneering nu-metal band with massive Spotify presence (60.4M monthly listeners). Known for their fusion of rock, hip-hop, and electronic elements.",
@@ -147,78 +144,18 @@ async function seedDatabase() {
       instagram: "https://instagram.com/bonjovi",
     });
 
-    const radiohead = await storage.createBand({
-      name: "RADIOHEAD",
-      genre: "Alternative Rock",
-      description: "Art rock innovators with devoted fanbase (29.7M monthly listeners). Experimental British band pushing the boundaries of rock music.",
-      imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
-      founded: 1985,
-      members: ["Thom Yorke", "Jonny Greenwood", "Colin Greenwood", "Ed O'Brien", "Philip Selway"],
-      albums: ["OK Computer", "Kid A", "In Rainbows", "Hail to the Thief", "A Moon Shaped Pool"],
-      website: "https://radiohead.com",
-      instagram: "https://instagram.com/radiohead",
-    });
+      await storage.createBand({
+        name: "RADIOHEAD",
+        genre: "Alternative Rock", 
+        description: "Art rock innovators with devoted fanbase (29.7M monthly listeners). Experimental British band pushing the boundaries of rock music.",
+        imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+        founded: 1985,
+        members: ["Thom Yorke", "Jonny Greenwood", "Colin Greenwood", "Ed O'Brien", "Philip Selway"],
+        albums: ["OK Computer", "Kid A", "In Rainbows", "Hail to the Thief", "A Moon Shaped Pool"],
+        website: "https://radiohead.com",
+        instagram: "https://instagram.com/radiohead",
+      });
 
-    // Check if we need to seed tours
-    const existingTours = await storage.getTours();
-    if (existingTours.length === 0) {
-      console.log("Seeding database with initial tours...");
-      
-      // Get the band IDs (either from just created bands or existing ones)
-      const allBands = bandsCreated ? [linkinPark, queen, acdc, redHotChiliPeppers, greenDay, nirvana, twentyOnePilots, gunsNRoses, bonJovi, radiohead] : await storage.getBands();
-      const linkinParkBand = allBands.find(b => b.name === "LINKIN PARK");
-      const queenBand = allBands.find(b => b.name === "QUEEN");
-      const acdcBand = allBands.find(b => b.name === "AC/DC");
-
-      // Create sample tours for top Spotify bands
-      if (linkinParkBand) {
-        await storage.createTour({
-      bandId: linkinParkBand.id,
-      tourName: "From Zero World Tour 2025",
-      venue: "Madison Square Garden",
-      city: "New York",
-      country: "USA",
-      date: new Date("2025-07-20T19:30:00Z"),
-      ticketmasterUrl: "https://www.ticketmaster.com/linkin-park-tickets/artist/806070",
-      seatgeekUrl: "https://seatgeek.com/linkin-park-tickets",
-      price: "$75.00+",
-      status: "upcoming"
-    });
-
-      }
-
-      if (queenBand) {
-        await storage.createTour({
-          bandId: queenBand.id,
-      tourName: "Queen + Adam Lambert Rhapsody Tour",
-      venue: "Madison Square Garden",
-      city: "New York",
-      country: "USA", 
-      date: new Date("2025-07-22T20:00:00Z"),
-      ticketmasterUrl: "https://www.ticketmaster.com/iron-maiden-tickets/artist/735437",
-      seatgeekUrl: "https://seatgeek.com/iron-maiden-tickets",
-      price: "$65.00+",
-      status: "upcoming"
-    });
-
-      }
-
-      if (acdcBand) {
-        await storage.createTour({
-          bandId: acdcBand.id,
-      tourName: "Power Up World Tour",
-      venue: "Hollywood Bowl",
-      city: "Los Angeles", 
-      country: "USA",
-      date: new Date("2025-08-10T21:00:00Z"),
-      ticketmasterUrl: "https://www.ticketmaster.com/black-sabbath-tickets/artist/735520",
-      price: "$125.00+",
-      status: "upcoming"
-        });
-      }
-    }
-
-    if (bandsCreated || existingTours.length === 0) {
       console.log("Database seeded successfully!");
     }
   } catch (error) {
