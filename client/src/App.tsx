@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "./hooks/useAuth";
 import { LoginPage } from "./components/LoginPage";
 import { ConcertRecommendations } from "./components/ConcertRecommendations";
+import { TicketLinks } from "./components/TicketLinks";
 
 function App() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -10,6 +11,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [showLoginPage, setShowLoginPage] = useState(false);
   const [showConcertRecommendations, setShowConcertRecommendations] = useState(false);
+  const [selectedBandForTickets, setSelectedBandForTickets] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredBands, setFilteredBands] = useState<any[]>([]);
   
@@ -77,6 +79,23 @@ function App() {
         color: '#ffffff' 
       }}>
         <ConcertRecommendations onClose={() => setShowConcertRecommendations(false)} />
+      </div>
+    );
+  }
+
+  // Show ticket links if a band is selected
+  if (selectedBandForTickets) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        backgroundColor: '#0a0a0a', 
+        color: '#ffffff' 
+      }}>
+        <TicketLinks 
+          bandId={selectedBandForTickets.id}
+          bandName={selectedBandForTickets.name}
+          onClose={() => setSelectedBandForTickets(null)} 
+        />
       </div>
     );
   }
@@ -470,19 +489,27 @@ function App() {
                       <div style={{ 
                         display: 'flex', 
                         justifyContent: 'space-between',
-                        alignItems: 'center'
+                        alignItems: 'center',
+                        gap: '8px'
                       }}>
-                        <button style={{
-                          padding: '8px 16px',
-                          backgroundColor: '#dc2626',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          fontSize: '0.875rem',
-                          fontWeight: '600',
-                          cursor: 'pointer'
-                        }}>
-                          VIEW PROFILE
+                        <button 
+                          onClick={() => setSelectedBandForTickets(band)}
+                          style={{
+                            padding: '8px 16px',
+                            backgroundColor: '#dc2626',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '0.875rem',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                          data-testid={`button-tickets-${band.name.toLowerCase().replace(/\s+/g, '-')}`}
+                        >
+                          🎫 GET TICKETS
                         </button>
                         <span style={{ 
                           fontSize: '0.8rem', 

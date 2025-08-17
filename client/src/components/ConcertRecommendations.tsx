@@ -94,10 +94,10 @@ export function ConcertRecommendations({ onClose }: ConcertRecommendationsProps)
     if (userPreferences && typeof userPreferences === 'object') {
       const prefs = userPreferences as UserPreferences;
       setPreferences({
+        ...prefs,
         favoriteGenres: prefs.favoriteGenres || ['Metal', 'Rock'],
         travelWillingness: prefs.travelWillingness || 'regional',
-        concertFrequency: prefs.concertFrequency || 'monthly',
-        ...prefs
+        concertFrequency: prefs.concertFrequency || 'monthly'
       });
     }
   }, [userPreferences]);

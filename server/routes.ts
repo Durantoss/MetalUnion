@@ -7,6 +7,7 @@ import { googleSearchService, type EnhancedSearchResult } from "./googleSearch";
 import { tourDataService } from "./tourDataService";
 import { aiService, type BandRecommendation, type ChatResponse } from "./aiService";
 import { concertRecommendationService, type ConcertRecommendation, type ConcertRecommendationRequest } from "./concertRecommendationService";
+import { ticketmasterService } from "./ticketmasterService";
 import multer from "multer";
 import path from "path";
 
@@ -670,7 +671,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!band) {
         return res.status(404).json({ message: "Band not found" });
       }
-      res.json(band);
+      
+      // Get tours for this band
+      const tours = await storage.getToursByBand(req.params.id);
+      
+      // Add ticket URLs to tours
+      const toursWithTickets = await ticketmasterService.getUpcomingToursWithTickets(band, tours);
+      
+      res.json({
+        ...band,
+        upcomingTours: toursWithTickets
+      });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch band" });
     }
@@ -1050,6 +1061,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating band photo:", error);
       res.status(500).json({ error: "Failed to update band photo" });
+    }
+  });
+
+  // Ticket and tour routes
+  app.get("/api/bands/:id/tickets", async (req, res) => {
+    try {
+      const band = await storage.getBand(req.params.id);
+      if (!band) {
+        return res.status(404).json({ message: "Band not found" });
+      }
+
+      const tours = await storage.getToursByBand(req.params.id);
+      const ticketOptions = tours.map(tour => ({
+        tour,
+        ticketOptions: ticketmasterService.generateTourTicketOptions(tour, band.name)
+      }));
+
+      res.json({
+        band,
+        ticketOptions,
+        directTicketUrl: ticketmasterService.generateTicketmasterUrl(band.name)
+      });
+    } catch (error) {
+      console.error('Error fetching ticket information:', error);
+      res.status(500).json({ message: "Failed to fetch ticket information" });
+    }
+  });
+
+  app.post("/api/bands/:id/tours", async (req, res) => {
+    try {
+      const band = await storage.getBand(req.params.id);
+      if (!band) {
+        return res.status(404).json({ message: "Band not found" });
+      }
+
+      const tourData = req.body;
+      const tourWithTickets = await ticketmasterService.createTourWithTickets({
+        ...tourData,
+        bandId: req.params.id,
+        bandName: band.name
+      });
+
+      const parsed = insertTourSchema.parse(tourWithTickets);
+      const tour = await storage.createTour(parsed);
+      
+      res.status(201).json(tour);
+    } catch (error) {
+      console.error('Error creating tour with tickets:', error);
+      res.status(400).json({ message: "Invalid tour data" });
     }
   });
 
