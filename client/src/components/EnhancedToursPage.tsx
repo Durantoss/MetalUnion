@@ -60,6 +60,9 @@ export function EnhancedToursPage() {
 
   const [showFilters, setShowFilters] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
 
   const { data: tours = [], isLoading, refetch } = useQuery({
     queryKey: ['/api/tours/discover', searchFilters],
@@ -74,6 +77,41 @@ export function EnhancedToursPage() {
   });
 
   const handleSearch = () => {
+    setHasSearched(true);
+    
+    // Add to search history if query exists
+    if (searchFilters.query && !searchHistory.includes(searchFilters.query)) {
+      setSearchHistory(prev => [searchFilters.query, ...prev.slice(0, 4)]);
+    }
+    
+    setShowSuggestions(false);
+    refetch();
+  };
+
+  // Popular tour searches and band suggestions
+  const popularSearches = [
+    'metallica tour', 'iron maiden tour', 'black sabbath tour', 'judas priest tour',
+    'megadeth tour', 'slayer tour', 'pantera tour', 'anthrax tour', 'testament tour',
+    'metal tour 2025', 'rock festival', 'death metal tour', 'thrash metal tour'
+  ];
+
+  const handleQueryChange = (value: string) => {
+    setSearchFilters(prev => ({ ...prev, query: value }));
+    
+    if (value.length > 2) {
+      const suggestions = popularSearches
+        .filter(search => search.toLowerCase().includes(value.toLowerCase()))
+        .slice(0, 5);
+      setSearchSuggestions([...new Set([...suggestions, ...searchHistory])]);
+      setShowSuggestions(suggestions.length > 0 || searchHistory.length > 0);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  const selectSuggestion = (suggestion: string) => {
+    setSearchFilters(prev => ({ ...prev, query: suggestion }));
+    setShowSuggestions(false);
     setHasSearched(true);
     refetch();
   };
@@ -190,19 +228,29 @@ export function EnhancedToursPage() {
               <div style={{ position: 'relative' }}>
                 <input
                   type="text"
-                  placeholder="Enter band names, tour names..."
+                  placeholder="Search tours: metallica, iron maiden, metal tour 2025..."
                   value={searchFilters.query}
-                  onChange={(e) => setSearchFilters(prev => ({ ...prev, query: e.target.value }))}
+                  onChange={(e) => handleQueryChange(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  onFocus={() => {
+                    if (searchFilters.query.length > 2) {
+                      setShowSuggestions(true);
+                    }
+                  }}
+                  onBlur={() => {
+                    // Delay hiding suggestions to allow clicks
+                    setTimeout(() => setShowSuggestions(false), 200);
+                  }}
                   style={{
                     width: '100%',
                     padding: '12px 16px 12px 40px',
                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
                     border: '1px solid rgba(220, 38, 38, 0.3)',
-                    borderRadius: '8px',
+                    borderRadius: showSuggestions ? '8px 8px 0 0' : '8px',
                     color: 'white',
                     fontSize: '16px',
-                    outline: 'none'
+                    outline: 'none',
+                    transition: 'border-radius 0.2s'
                   }}
                   data-testid="input-tour-search"
                 />
@@ -215,6 +263,81 @@ export function EnhancedToursPage() {
                   width: '20px',
                   height: '20px'
                 }} />
+                
+                {/* Search Suggestions Dropdown */}
+                {showSuggestions && (searchSuggestions.length > 0 || searchHistory.length > 0) && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                    border: '1px solid rgba(220, 38, 38, 0.3)',
+                    borderTop: 'none',
+                    borderRadius: '0 0 8px 8px',
+                    zIndex: 10,
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    backdropFilter: 'blur(10px)'
+                  }}>
+                    {searchHistory.length > 0 && (
+                      <div style={{ padding: '8px 12px', borderBottom: '1px solid rgba(220, 38, 38, 0.2)' }}>
+                        <p style={{ color: '#eab308', fontSize: '12px', margin: 0, fontWeight: '600' }}>
+                          Recent Searches
+                        </p>
+                      </div>
+                    )}
+                    {searchHistory.slice(0, 3).map((item, index) => (
+                      <div
+                        key={`history-${index}`}
+                        onClick={() => selectSuggestion(item)}
+                        style={{
+                          padding: '10px 12px',
+                          cursor: 'pointer',
+                          color: 'rgba(255, 255, 255, 0.8)',
+                          fontSize: '14px',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                        data-testid={`search-history-${index}`}
+                      >
+                        <Clock size={12} style={{ marginRight: '8px', color: '#eab308' }} />
+                        {item}
+                      </div>
+                    ))}
+                    
+                    {searchSuggestions.filter(s => !searchHistory.includes(s)).slice(0, 5).map((suggestion, index) => (
+                      <div
+                        key={`suggestion-${index}`}
+                        onClick={() => selectSuggestion(suggestion)}
+                        style={{
+                          padding: '10px 12px',
+                          cursor: 'pointer',
+                          color: 'rgba(255, 255, 255, 0.9)',
+                          fontSize: '14px',
+                          borderBottom: index < 4 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(234, 179, 8, 0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                        data-testid={`search-suggestion-${index}`}
+                      >
+                        <Search size={12} style={{ marginRight: '8px', color: '#dc2626' }} />
+                        {suggestion}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -722,32 +845,70 @@ export function EnhancedToursPage() {
             <p style={{ marginBottom: '2rem', maxWidth: '500px', margin: '0 auto' }}>
               Try adjusting your search terms, location, or expanding your genre preferences to discover more tours.
             </p>
-            <button
-              onClick={() => {
-                setSearchFilters({
-                  query: '',
-                  location: '',
-                  preferredGenres: ['metal', 'rock'],
-                  favoriteArtists: [],
-                  priceRange: { min: 20, max: 300 },
-                  radius: 100
-                });
-                setHasSearched(false);
-              }}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: '#dc2626',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '16px',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              data-testid="button-reset-search"
-            >
-              Reset Search
-            </button>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <button
+                onClick={() => {
+                  setSearchFilters({
+                    query: '',
+                    location: '',
+                    preferredGenres: ['metal', 'rock'],
+                    favoriteArtists: [],
+                    priceRange: { min: 20, max: 300 },
+                    radius: 100
+                  });
+                  setHasSearched(false);
+                  setSearchHistory([]);
+                }}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#dc2626',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                data-testid="button-reset-search"
+              >
+                Reset Search
+              </button>
+              
+              {/* Quick Search Buttons */}
+              <button
+                onClick={() => selectSuggestion('metal tour 2025')}
+                style={{
+                  padding: '12px 20px',
+                  backgroundColor: 'rgba(234, 179, 8, 0.2)',
+                  color: '#eab308',
+                  border: '1px solid rgba(234, 179, 8, 0.3)',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                data-testid="button-quick-metal"
+              >
+                Metal Tours
+              </button>
+              
+              <button
+                onClick={() => selectSuggestion('rock festival')}
+                style={{
+                  padding: '12px 20px',
+                  backgroundColor: 'rgba(220, 38, 38, 0.2)',
+                  color: '#dc2626',
+                  border: '1px solid rgba(220, 38, 38, 0.3)',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                data-testid="button-quick-rock"
+              >
+                Rock Festivals
+              </button>
+            </div>
           </div>
         )}
 
