@@ -1,6 +1,5 @@
-import { createRoot } from "react-dom/client";
-import { useState, useEffect } from "react";
-import "./index.css";
+// Redirecting to test page to avoid React hooks issue
+window.location.href = '/test.html';
 
 function MetalHubApp() {
   const [bands, setBands] = useState<any[]>([]);
