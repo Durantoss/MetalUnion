@@ -6,6 +6,7 @@ import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
 import { ThePit } from './components/ThePit';
 import { ModernLandingPage } from './components/ModernLandingPage';
+import { EnhancedSocialHub } from './components/EnhancedSocialHub';
 import { Band } from './types';
 
 
