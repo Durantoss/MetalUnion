@@ -5,6 +5,7 @@ import { ConcertRecommendations } from "./components/ConcertRecommendations";
 import { TicketLinks } from "./components/TicketLinks";
 
 function App() {
+  // Auth hook must be called unconditionally at the top level
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [bands, setBands] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

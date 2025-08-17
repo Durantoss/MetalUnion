@@ -1,7 +1,6 @@
 import { createRoot } from "react-dom/client";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "./lib/queryClient";
-import App from "./App";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import AppWrapper from "./AppWrapper";
 import "./index.css";
 
 const rootElement = document.getElementById("root");
@@ -9,9 +8,9 @@ const rootElement = document.getElementById("root");
 if (rootElement) {
   const root = createRoot(rootElement);
   root.render(
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <AppWrapper />
+    </ErrorBoundary>
   );
 } else {
   console.error("Root element not found!");
