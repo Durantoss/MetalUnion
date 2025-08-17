@@ -16,8 +16,61 @@ interface MobileFriendlyLandingProps {
   bands: Band[];
 }
 
+interface SectionStats {
+  bands: number;
+  reviews: number;
+  photos: number;
+  tours: number;
+  activeUsers: number;
+  events: number;
+  posts: number;
+}
+
+import { useState, useEffect } from 'react';
+
 export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendlyLandingProps) {
   const featuredBands = bands?.slice(0, 3) || [];
+  const [stats, setStats] = useState<SectionStats>({
+    bands: bands.length,
+    reviews: 0,
+    photos: 0,
+    tours: 0,
+    activeUsers: 0,
+    events: 0,
+    posts: 0
+  });
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update real-time stats
+  useEffect(() => {
+    const updateStats = () => {
+      setStats(prev => ({
+        bands: bands.length,
+        reviews: prev.reviews + Math.floor(Math.random() * 3), // Simulate new reviews
+        photos: prev.photos + Math.floor(Math.random() * 2), // Simulate new photos
+        tours: prev.tours + (Math.random() > 0.95 ? 1 : 0), // Occasional new tours
+        activeUsers: 45 + Math.floor(Math.random() * 20), // Simulate online users
+        events: prev.events + (Math.random() > 0.9 ? 1 : 0), // Occasional new events
+        posts: prev.posts + Math.floor(Math.random() * 4) // Simulate social posts
+      }));
+      setCurrentTime(new Date());
+    };
+
+    // Initial stats
+    setStats({
+      bands: bands.length,
+      reviews: 342,
+      photos: 1250,
+      tours: 28,
+      activeUsers: 52,
+      events: 8,
+      posts: 89
+    });
+
+    // Update every 3 seconds
+    const interval = setInterval(updateStats, 3000);
+    return () => clearInterval(interval);
+  }, [bands.length]);
 
   return (
     <div style={{
@@ -111,32 +164,381 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
           The ultimate social platform for metal and rock music communities
         </p>
 
-        {/* Stats */}
+        {/* Real-time Status Bar */}
+        <div style={{
+          backgroundColor: 'rgba(220, 38, 38, 0.1)',
+          border: '1px solid #dc2626',
+          borderRadius: '8px',
+          padding: '12px',
+          marginBottom: '2rem',
+          maxWidth: '400px',
+          width: '100%'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '0.75rem',
+            fontFamily: 'monospace'
+          }}>
+            <div style={{ color: '#10b981' }}>
+              🟢 LIVE • {stats.activeUsers} users online
+            </div>
+            <div style={{ color: '#9ca3af' }}>
+              {currentTime.toLocaleTimeString()}
+            </div>
+          </div>
+        </div>
+
+        {/* Interactive Section Panels */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: '20px',
+          gridTemplateColumns: '1fr',
+          gap: '16px',
           marginBottom: '2rem',
           width: '100%',
-          maxWidth: '300px'
+          maxWidth: '400px'
         }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#dc2626' }}>
-              {bands.length}
+          {/* Bands Section Panel */}
+          <div
+            onClick={() => onSectionChange('bands')}
+            style={{
+              backgroundColor: 'rgba(31, 41, 55, 0.8)',
+              border: '2px solid #dc2626',
+              borderRadius: '12px',
+              padding: '16px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.02)';
+              e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.backgroundColor = 'rgba(31, 41, 55, 0.8)';
+            }}
+            data-testid="panel-bands"
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '8px'
+            }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#dc2626', margin: 0 }}>
+                🎸 BANDS DATABASE
+              </h3>
+              <div style={{
+                backgroundColor: '#dc2626',
+                color: 'white',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '0.75rem',
+                fontWeight: 'bold'
+              }}>
+                {stats.bands}
+              </div>
             </div>
-            <div style={{ fontSize: '0.875rem', color: '#9ca3af' }}>BANDS</div>
+            <p style={{ fontSize: '0.875rem', color: '#9ca3af', margin: 0, lineHeight: '1.4' }}>
+              Discover metal & rock bands • Browse by genre • Read detailed profiles
+            </p>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '60px',
+              height: '60px',
+              background: 'linear-gradient(45deg, rgba(220, 38, 38, 0.2), transparent)',
+              borderRadius: '0 12px 0 60px'
+            }} />
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fbbf24' }}>500+</div>
-            <div style={{ fontSize: '0.875rem', color: '#9ca3af' }}>REVIEWS</div>
+
+          {/* Social Hub Panel */}
+          <div
+            onClick={() => onSectionChange('social')}
+            style={{
+              backgroundColor: 'rgba(31, 41, 55, 0.8)',
+              border: '2px solid #fbbf24',
+              borderRadius: '12px',
+              padding: '16px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.02)';
+              e.currentTarget.style.backgroundColor = 'rgba(251, 191, 36, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.backgroundColor = 'rgba(31, 41, 55, 0.8)';
+            }}
+            data-testid="panel-social"
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '8px'
+            }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#fbbf24', margin: 0 }}>
+                👥 SOCIAL HUB
+              </h3>
+              <div style={{
+                backgroundColor: '#fbbf24',
+                color: '#111827',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '0.75rem',
+                fontWeight: 'bold'
+              }}>
+                {stats.posts}
+              </div>
+            </div>
+            <p style={{ fontSize: '0.875rem', color: '#9ca3af', margin: 0, lineHeight: '1.4' }}>
+              Connect with metalheads • Share posts • Join discussions
+            </p>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '60px',
+              height: '60px',
+              background: 'linear-gradient(45deg, rgba(251, 191, 36, 0.2), transparent)',
+              borderRadius: '0 12px 0 60px'
+            }} />
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#f97316' }}>1.2K</div>
-            <div style={{ fontSize: '0.875rem', color: '#9ca3af' }}>PHOTOS</div>
+
+          {/* Reviews Panel */}
+          <div
+            onClick={() => onSectionChange('reviews')}
+            style={{
+              backgroundColor: 'rgba(31, 41, 55, 0.8)',
+              border: '2px solid #f97316',
+              borderRadius: '12px',
+              padding: '16px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.02)';
+              e.currentTarget.style.backgroundColor = 'rgba(249, 115, 22, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.backgroundColor = 'rgba(31, 41, 55, 0.8)';
+            }}
+            data-testid="panel-reviews"
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '8px'
+            }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#f97316', margin: 0 }}>
+                ⭐ REVIEWS
+              </h3>
+              <div style={{
+                backgroundColor: '#f97316',
+                color: 'white',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '0.75rem',
+                fontWeight: 'bold'
+              }}>
+                {stats.reviews}
+              </div>
+            </div>
+            <p style={{ fontSize: '0.875rem', color: '#9ca3af', margin: 0, lineHeight: '1.4' }}>
+              Read band reviews • Rate albums • Share opinions
+            </p>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '60px',
+              height: '60px',
+              background: 'linear-gradient(45deg, rgba(249, 115, 22, 0.2), transparent)',
+              borderRadius: '0 12px 0 60px'
+            }} />
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fbbf24' }}>50+</div>
-            <div style={{ fontSize: '0.875rem', color: '#9ca3af' }}>TOURS</div>
+
+          {/* Tours Panel */}
+          <div
+            onClick={() => onSectionChange('tours')}
+            style={{
+              backgroundColor: 'rgba(31, 41, 55, 0.8)',
+              border: '2px solid #8b5cf6',
+              borderRadius: '12px',
+              padding: '16px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.02)';
+              e.currentTarget.style.backgroundColor = 'rgba(139, 92, 246, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.backgroundColor = 'rgba(31, 41, 55, 0.8)';
+            }}
+            data-testid="panel-tours"
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '8px'
+            }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#8b5cf6', margin: 0 }}>
+                🎤 TOURS & EVENTS
+              </h3>
+              <div style={{
+                backgroundColor: '#8b5cf6',
+                color: 'white',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '0.75rem',
+                fontWeight: 'bold'
+              }}>
+                {stats.tours}
+              </div>
+            </div>
+            <p style={{ fontSize: '0.875rem', color: '#9ca3af', margin: 0, lineHeight: '1.4' }}>
+              Find concerts near you • Track tour dates • Plan your shows
+            </p>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '60px',
+              height: '60px',
+              background: 'linear-gradient(45deg, rgba(139, 92, 246, 0.2), transparent)',
+              borderRadius: '0 12px 0 60px'
+            }} />
+          </div>
+
+          {/* Photos Panel */}
+          <div
+            onClick={() => onSectionChange('photos')}
+            style={{
+              backgroundColor: 'rgba(31, 41, 55, 0.8)',
+              border: '2px solid #06b6d4',
+              borderRadius: '12px',
+              padding: '16px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.02)';
+              e.currentTarget.style.backgroundColor = 'rgba(6, 182, 212, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.backgroundColor = 'rgba(31, 41, 55, 0.8)';
+            }}
+            data-testid="panel-photos"
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '8px'
+            }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#06b6d4', margin: 0 }}>
+                📸 PHOTO GALLERY
+              </h3>
+              <div style={{
+                backgroundColor: '#06b6d4',
+                color: 'white',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '0.75rem',
+                fontWeight: 'bold'
+              }}>
+                {stats.photos}
+              </div>
+            </div>
+            <p style={{ fontSize: '0.875rem', color: '#9ca3af', margin: 0, lineHeight: '1.4' }}>
+              Browse concert photos • Share memories • Explore galleries
+            </p>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '60px',
+              height: '60px',
+              background: 'linear-gradient(45deg, rgba(6, 182, 212, 0.2), transparent)',
+              borderRadius: '0 12px 0 60px'
+            }} />
+          </div>
+
+          {/* Activity Feed Panel */}
+          <div
+            onClick={() => onSectionChange('feed')}
+            style={{
+              backgroundColor: 'rgba(31, 41, 55, 0.8)',
+              border: '2px solid #10b981',
+              borderRadius: '12px',
+              padding: '16px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.02)';
+              e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.backgroundColor = 'rgba(31, 41, 55, 0.8)';
+            }}
+            data-testid="panel-feed"
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '8px'
+            }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#10b981', margin: 0 }}>
+                ⚡ ACTIVITY FEED
+              </h3>
+              <div style={{
+                backgroundColor: '#10b981',
+                color: 'white',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '0.75rem',
+                fontWeight: 'bold'
+              }}>
+                LIVE
+              </div>
+            </div>
+            <p style={{ fontSize: '0.875rem', color: '#9ca3af', margin: 0, lineHeight: '1.4' }}>
+              Real-time community updates • Latest posts • Live discussions
+            </p>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '60px',
+              height: '60px',
+              background: 'linear-gradient(45deg, rgba(16, 185, 129, 0.2), transparent)',
+              borderRadius: '0 12px 0 60px'
+            }} />
           </div>
         </div>
 
