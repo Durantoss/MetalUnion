@@ -679,6 +679,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const multiPlatformEventService = new MultiPlatformEventService();
 
   // Discover events with multi-platform search and AI-powered recommendations
+  // Tour discovery endpoint with Google + OpenAI integration
+  app.post('/api/tours/discover', async (req, res) => {
+    try {
+      const { TourDiscoveryService } = await import('./tourDiscoveryService');
+      const tourService = new TourDiscoveryService();
+      console.log('Tour discovery request received:', req.body);
+      const tours = await tourService.discoverTours(req.body);
+      console.log(`Returning ${tours.length} tours to client`);
+      res.json(tours);
+    } catch (error) {
+      console.error('Tour discovery error:', error);
+      res.status(500).json({ error: 'Failed to discover tours' });
+    }
+  });
+
   app.post('/api/events/discover', async (req, res) => {
     try {
       const request = req.body;

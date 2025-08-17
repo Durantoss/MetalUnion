@@ -285,6 +285,53 @@ Always stay focused on metal/rock music topics.`;
     ];
     return suggestions.slice(0, 3);
   }
+  
+  // Tour AI Analysis and Ranking
+  async analyzeAndRankTours(tours: any[], userRequest: any): Promise<any[]> {
+    if (!process.env.OPENAI_API_KEY) {
+      console.log('OpenAI API key not available for tour ranking');
+      return tours;
+    }
+
+    try {
+      const prompt = `
+      Analyze these music tours and rank them based on user preferences:
+
+      User Preferences:
+      - Location: ${userRequest.location || 'Any'}
+      - Preferred Genres: ${userRequest.preferredGenres?.join(', ') || 'Any'}
+      - Favorite Artists: ${userRequest.favoriteArtists?.join(', ') || 'Any'}
+      - Price Range: $${userRequest.priceRange?.min || 0} - $${userRequest.priceRange?.max || 200}
+
+      Tours to analyze:
+      ${JSON.stringify(tours.slice(0, 5), null, 2)}
+
+      Please:
+      1. Rank tours by relevance (0.1 to 1.0)
+      2. Add personalized recommendation reasons
+      3. Consider tour quality, band popularity, venue quality, and price value
+      4. Return in JSON format with enhanced relevanceScore and aiRecommendationReason
+
+      Return only the JSON array of tours with updated scores.
+      `;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          { role: "system", content: "You are a music tour expert specializing in metal and rock tours." },
+          { role: "user", content: prompt }
+        ],
+        response_format: { type: "json_object" },
+      });
+
+      const result = JSON.parse(response.choices[0].message.content || '{"tours": []}');
+      return Array.isArray(result.tours) ? result.tours : result;
+
+    } catch (error) {
+      console.error('Error ranking tours with AI:', error);
+      return tours;
+    }
+  }
 }
 
 export const aiService = new AIService();
