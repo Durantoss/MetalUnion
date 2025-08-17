@@ -18,6 +18,7 @@ const App = () => {
   const [currentSection, setCurrentSection] = useState('landing');
 
   const handleReturnHome = () => {
+    console.log('handleReturnHome called');
     setCurrentSection('landing');
     setShowComparison(false);
   };

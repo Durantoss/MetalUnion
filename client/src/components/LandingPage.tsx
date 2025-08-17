@@ -83,7 +83,20 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white relative">
+      {/* Floating Navigation Button */}
+      <button
+        onClick={() => onSectionChange('bands')}
+        className="fixed top-4 right-4 z-50 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full 
+                   transition-all duration-300 transform hover:scale-110 shadow-lg"
+        data-testid="button-floating-nav"
+        title="Go to Bands"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         {/* Background Images Carousel */}

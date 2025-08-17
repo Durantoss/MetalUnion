@@ -18,7 +18,11 @@ export function Navigation({ currentSection, onSectionChange, onShowComparison, 
       setAnimatingWord('union');
       setTimeout(() => {
         setAnimatingWord(null);
-        onReturnHome();
+        if (typeof onReturnHome === 'function') {
+          onReturnHome();
+        } else {
+          console.error('onReturnHome is not a function');
+        }
       }, 150);
     }, 150);
   };
