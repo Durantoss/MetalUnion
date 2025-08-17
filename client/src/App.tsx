@@ -141,7 +141,7 @@ function App() {
               lineHeight: '1.2'
             }}
           >
-            🤘 MetalHub
+            🤘 MetalHub Band Database
           </h1>
           
           <div style={{ 
