@@ -9,7 +9,7 @@ export function useAuth() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     staleTime: 5 * 60 * 1000, // 5 minutes - extended for better persistence 
-    cacheTime: 30 * 60 * 1000, // 30 minutes cache
+    gcTime: 30 * 60 * 1000, // 30 minutes cache (renamed from cacheTime in React Query v5)
     // Handle auth failures gracefully for anonymous access
     queryFn: async () => {
       try {
