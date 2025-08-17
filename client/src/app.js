@@ -330,7 +330,7 @@ if (!rootElement) {
           <p>Please refresh the page to try again</p>
           <details style="margin-top: 16px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto;">
             <summary>Technical Details</summary>
-            <pre style="background: #1a1a1a; padding: 12px; border-radius: 6px; overflow-x: auto;">${error.message}</pre>
+            <pre style="background: #1a1a1a; padding: 12px; border-radius: 6px; overflow-x: auto;">${escapeHtml(error.message)}</pre>
           </details>
         </div>
       `;
