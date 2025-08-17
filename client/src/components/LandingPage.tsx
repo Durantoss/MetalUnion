@@ -21,9 +21,47 @@ interface LandingPageProps {
 export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [hoveredSection, setHoveredSection] = useState<string | null>(null);
+  const [stats, setStats] = useState({
+    bands: 0,
+    tours: 0,
+    reviews: 0,
+    photos: 0
+  });
 
-  // Featured bands for the hero carousel
-  const featuredBands = bands.slice(0, 3);
+  // Featured bands for the hero carousel - use bands with images first
+  const featuredBands = bands.filter(band => band.imageUrl).slice(0, 3);
+  
+  // Fetch real stats from API
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [bandsRes, toursRes, reviewsRes, photosRes] = await Promise.all([
+          fetch('/api/bands'),
+          fetch('/api/tours'),
+          fetch('/api/reviews'),
+          fetch('/api/photos')
+        ]);
+        
+        const [bandsData, toursData, reviewsData, photosData] = await Promise.all([
+          bandsRes.json(),
+          toursRes.json(),
+          reviewsRes.json(),
+          photosRes.json()
+        ]);
+        
+        setStats({
+          bands: bandsData.length,
+          tours: toursData.length,
+          reviews: reviewsData.length,
+          photos: photosData.length
+        });
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
+    
+    fetchStats();
+  }, []);
 
   useEffect(() => {
     if (featuredBands.length > 0) {
@@ -40,7 +78,7 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
       title: 'DISCOVER BANDS',
       description: 'Explore metal and rock bands from around the world',
       icon: '🎸',
-      stats: `${bands.length} Bands`,
+      stats: `${stats.bands} Bands`,
       gradient: 'from-red-600 to-red-800',
       hoverGradient: 'from-red-500 to-red-700'
     },
@@ -49,7 +87,7 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
       title: 'TOUR DATES',
       description: 'Never miss a live show with our tour tracking',
       icon: '🎫',
-      stats: 'Live Updates',
+      stats: `${stats.tours} Tours`,
       gradient: 'from-purple-600 to-purple-800',
       hoverGradient: 'from-purple-500 to-purple-700'
     },
@@ -58,7 +96,7 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
       title: 'REVIEWS',
       description: 'Read and write reviews for albums and concerts',
       icon: '⭐',
-      stats: 'Community Driven',
+      stats: `${stats.reviews} Reviews`,
       gradient: 'from-blue-600 to-blue-800',
       hoverGradient: 'from-blue-500 to-blue-700'
     },
@@ -67,7 +105,7 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
       title: 'PHOTOS',
       description: 'Share concert memories and band photography',
       icon: '📸',
-      stats: 'Visual Stories',
+      stats: `${stats.photos} Photos`,
       gradient: 'from-green-600 to-green-800',
       hoverGradient: 'from-green-500 to-green-700'
     },
@@ -286,10 +324,10 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { number: bands.length.toString(), label: 'BANDS', icon: '🎸' },
-              { number: '∞', label: 'TOURS', icon: '🎫' },
-              { number: '∞', label: 'REVIEWS', icon: '⭐' },
-              { number: '∞', label: 'PHOTOS', icon: '📸' }
+              { number: stats.bands.toString(), label: 'BANDS', icon: '🎸' },
+              { number: stats.tours.toString(), label: 'TOURS', icon: '🎫' },
+              { number: stats.reviews.toString(), label: 'REVIEWS', icon: '⭐' },
+              { number: stats.photos.toString(), label: 'PHOTOS', icon: '📸' }
             ].map((stat, index) => (
               <div key={index} className="text-center group">
                 <div className="text-4xl mb-2 transition-transform duration-300 group-hover:scale-125">
