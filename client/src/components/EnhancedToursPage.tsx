@@ -49,6 +49,8 @@ interface TourSearchFilters {
 }
 
 export function EnhancedToursPage() {
+  console.log('EnhancedToursPage component is rendering!');
+  
   const [searchFilters, setSearchFilters] = useState<TourSearchFilters>({
     query: '',
     location: '',
