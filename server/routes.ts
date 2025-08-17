@@ -30,132 +30,136 @@ const upload = multer({
 
 async function seedDatabase() {
   try {
-    // Check if we already have bands
+    // Get existing bands and check for duplicates by name
     const existingBands = await storage.getBands();
+    const existingBandNames = new Set(existingBands.map(b => b.name.toLowerCase()));
     
-    if (existingBands.length === 0) {
+    console.log(`Found ${existingBands.length} existing bands in database`);
+    
+    // Only seed if we have fewer than 5 unique bands
+    if (existingBands.length < 5) {
       console.log("Seeding database with initial bands...");
       
-      // Create top 10 rock/metal bands from Spotify (2025)
-      await storage.createBand({
-      name: "LINKIN PARK",
-      genre: "Nu Metal",
-      description: "Pioneering nu-metal band with massive Spotify presence (60.4M monthly listeners). Known for their fusion of rock, hip-hop, and electronic elements.",
-      imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
-      founded: 1996,
-      members: ["Mike Shinoda", "Brad Delson", "Dave Farrell", "Joe Hahn", "Rob Bourdon", "Emily Armstrong"],
-      albums: ["Hybrid Theory", "Meteora", "Minutes to Midnight", "A Thousand Suns", "Living Things"],
-      website: "https://linkinpark.com",
-      instagram: "https://instagram.com/linkinpark",
-    });
+      // Create top 10 rock/metal bands if they don't exist
+      const bandData = [
+        {
+          name: "LINKIN PARK",
+          genre: "Nu Metal",
+          description: "Pioneering nu-metal band with massive Spotify presence (60.4M monthly listeners). Known for their fusion of rock, hip-hop, and electronic elements.",
+          imageUrl: null,
+          founded: 1996,
+          members: ["Mike Shinoda", "Brad Delson", "Dave Farrell", "Joe Hahn", "Rob Bourdon", "Emily Armstrong"],
+          albums: ["Hybrid Theory", "Meteora", "Minutes to Midnight", "A Thousand Suns", "Living Things"],
+          website: "https://linkinpark.com",
+          instagram: "https://instagram.com/linkinpark",
+        },
+        {
+          name: "QUEEN",
+          genre: "Rock",
+          description: "Legendary British rock band with global appeal (52.8M monthly listeners). Timeless classics that span generations with theatrical performances.",
+          imageUrl: null,
+          founded: 1970,
+          members: ["Freddie Mercury", "Brian May", "Roger Taylor", "John Deacon"],
+          albums: ["Queen", "A Night at the Opera", "News of the World", "The Game", "Innuendo"],
+          website: "https://queenonline.com",
+          instagram: "https://instagram.com/officialqueenmusic",
+        },
+        {
+          name: "AC/DC",
+          genre: "Hard Rock",
+          description: "Australian hard rock titans with consistent streaming power (37.7M monthly listeners). High-voltage rock and roll since the 1970s.",
+          imageUrl: null,
+          founded: 1973,
+          members: ["Angus Young", "Brian Johnson", "Phil Rudd", "Cliff Williams", "Stevie Young"],
+          albums: ["High Voltage", "Highway to Hell", "Back in Black", "For Those About to Rock", "The Razors Edge"],
+          website: "https://acdc.com",
+          instagram: "https://instagram.com/acdc",
+        },
+        {
+          name: "RED HOT CHILI PEPPERS",
+          genre: "Alternative Rock",
+          description: "Funk rock pioneers with crossover success (36.7M monthly listeners). Blending rock, funk, and rap with California attitude.",
+          imageUrl: null,
+          founded: 1982,
+          members: ["Anthony Kiedis", "Flea", "Chad Smith", "John Frusciante"],
+          albums: ["Blood Sugar Sex Magik", "Californication", "By the Way", "Stadium Arcadium", "Unlimited Love"],
+          website: "https://redhotchilipeppers.com",
+          instagram: "https://instagram.com/chilipeppers",
+        },
+        {
+          name: "GREEN DAY",
+          genre: "Pop Punk",
+          description: "Pop-punk legends with mainstream staying power (36.4M monthly listeners). Defined the 90s punk revival and continue to evolve.",
+          imageUrl: null,
+          founded: 1987,
+          members: ["Billie Joe Armstrong", "Mike Dirnt", "Tré Cool"],
+          albums: ["Dookie", "Insomniac", "American Idiot", "21st Century Breakdown", "Revolution Radio"],
+          website: "https://greenday.com",
+          instagram: "https://instagram.com/greenday",
+        },
+        {
+          name: "NIRVANA",
+          genre: "Grunge",
+          description: "Grunge pioneers with lasting cultural impact (32.9M monthly listeners). Defined alternative rock and the Seattle sound of the 90s.",
+          imageUrl: null,
+          founded: 1987,
+          members: ["Kurt Cobain", "Krist Novoselic", "Dave Grohl"],
+          albums: ["Bleach", "Nevermind", "In Utero", "MTV Unplugged in New York"],
+          website: "https://nirvana.com",
+          instagram: "https://instagram.com/nirvana",
+        },
+        {
+          name: "TWENTY ONE PILOTS",
+          genre: "Alternative Rock",
+          description: "Modern alternative rock with metal influences (30.9M monthly listeners). Genre-blending duo from Columbus with devoted fanbase.",
+          imageUrl: null,
+          founded: 2009,
+          members: ["Tyler Joseph", "Josh Dun"],
+          albums: ["Vessel", "Blurryface", "Trench", "Scaled and Icy", "Clancy"],
+          website: "https://twentyonepilots.com",
+          instagram: "https://instagram.com/twentyonepilots",
+        },
+        {
+          name: "GUNS N' ROSES",
+          genre: "Hard Rock",
+          description: "Hard rock icons maintaining streaming relevance (30.4M monthly listeners). Los Angeles rock legends with a rebellious attitude.",
+          imageUrl: null,
+          founded: 1985,
+          members: ["Axl Rose", "Slash", "Duff McKagan", "Dizzy Reed", "Richard Fortus", "Frank Ferrer", "Melissa Reese"],
+          albums: ["Appetite for Destruction", "G N' R Lies", "Use Your Illusion I", "Use Your Illusion II", "Chinese Democracy"],
+          website: "https://gunsnroses.com",
+          instagram: "https://instagram.com/gunsnroses",
+        },
+        {
+          name: "BON JOVI",
+          genre: "Arena Rock",
+          description: "Arena rock veterans with broad appeal (30.0M monthly listeners). New Jersey rock icons known for anthemic choruses and stadium shows.",
+          imageUrl: null,
+          founded: 1983,
+          members: ["Jon Bon Jovi", "David Bryan", "Tico Torres", "Phil X"],
+          albums: ["Bon Jovi", "Slippery When Wet", "New Jersey", "Keep the Faith", "These Days"],
+          website: "https://bonjovi.com",
+          instagram: "https://instagram.com/bonjovi",
+        },
+        {
+          name: "RADIOHEAD",
+          genre: "Alternative Rock",
+          description: "Art rock innovators with devoted fanbase (29.7M monthly listeners). Experimental British band pushing the boundaries of rock music.",
+          imageUrl: null,
+          founded: 1985,
+          members: ["Thom Yorke", "Jonny Greenwood", "Colin Greenwood", "Ed O'Brien", "Philip Selway"],
+          albums: ["OK Computer", "Kid A", "In Rainbows", "Hail to the Thief", "A Moon Shaped Pool"],
+          website: "https://radiohead.com",
+          instagram: "https://instagram.com/radiohead",
+        }
+      ];
 
-    const queen = await storage.createBand({
-      name: "QUEEN",
-      genre: "Rock",
-      description: "Legendary British rock band with global appeal (52.8M monthly listeners). Timeless classics that span generations with theatrical performances.",
-      imageUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
-      founded: 1970,
-      members: ["Freddie Mercury", "Brian May", "Roger Taylor", "John Deacon"],
-      albums: ["Queen", "A Night at the Opera", "News of the World", "The Game", "Innuendo"],
-      website: "https://queenonline.com",
-      instagram: "https://instagram.com/officialqueenmusic",
-    });
-
-    const acdc = await storage.createBand({
-      name: "AC/DC",
-      genre: "Hard Rock",
-      description: "Australian hard rock titans with consistent streaming power (37.7M monthly listeners). High-voltage rock and roll since the 1970s.",
-      imageUrl: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
-      founded: 1973,
-      members: ["Angus Young", "Brian Johnson", "Phil Rudd", "Cliff Williams", "Stevie Young"],
-      albums: ["High Voltage", "Highway to Hell", "Back in Black", "For Those About to Rock", "The Razors Edge"],
-      website: "https://acdc.com",
-      instagram: "https://instagram.com/acdc",
-    });
-
-    const redHotChiliPeppers = await storage.createBand({
-      name: "RED HOT CHILI PEPPERS",
-      genre: "Alternative Rock",
-      description: "Funk rock pioneers with crossover success (36.7M monthly listeners). Blending rock, funk, and rap with California attitude.",
-      imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
-      founded: 1982,
-      members: ["Anthony Kiedis", "Flea", "Chad Smith", "John Frusciante"],
-      albums: ["Blood Sugar Sex Magik", "Californication", "By the Way", "Stadium Arcadium", "Unlimited Love"],
-      website: "https://redhotchilipeppers.com",
-      instagram: "https://instagram.com/chilipeppers",
-    });
-
-    const greenDay = await storage.createBand({
-      name: "GREEN DAY",
-      genre: "Pop Punk",
-      description: "Pop-punk legends with mainstream staying power (36.4M monthly listeners). Defined the 90s punk revival and continue to evolve.",
-      imageUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
-      founded: 1987,
-      members: ["Billie Joe Armstrong", "Mike Dirnt", "Tré Cool"],
-      albums: ["Dookie", "Insomniac", "American Idiot", "21st Century Breakdown", "Revolution Radio"],
-      website: "https://greenday.com",
-      instagram: "https://instagram.com/greenday",
-    });
-
-    const nirvana = await storage.createBand({
-      name: "NIRVANA",
-      genre: "Grunge",
-      description: "Grunge pioneers with lasting cultural impact (32.9M monthly listeners). Defined alternative rock and the Seattle sound of the 90s.",
-      imageUrl: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
-      founded: 1987,
-      members: ["Kurt Cobain", "Krist Novoselic", "Dave Grohl"],
-      albums: ["Bleach", "Nevermind", "In Utero", "MTV Unplugged in New York"],
-      website: "https://nirvana.com",
-      instagram: "https://instagram.com/nirvana",
-    });
-
-    const twentyOnePilots = await storage.createBand({
-      name: "TWENTY ONE PILOTS",
-      genre: "Alternative Rock",
-      description: "Modern alternative rock with metal influences (30.9M monthly listeners). Genre-blending duo from Columbus with devoted fanbase.",
-      imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
-      founded: 2009,
-      members: ["Tyler Joseph", "Josh Dun"],
-      albums: ["Vessel", "Blurryface", "Trench", "Scaled and Icy", "Clancy"],
-      website: "https://twentyonepilots.com",
-      instagram: "https://instagram.com/twentyonepilots",
-    });
-
-    const gunsNRoses = await storage.createBand({
-      name: "GUNS N' ROSES",
-      genre: "Hard Rock",
-      description: "Hard rock icons maintaining streaming relevance (30.4M monthly listeners). Los Angeles rock legends with a rebellious attitude.",
-      imageUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
-      founded: 1985,
-      members: ["Axl Rose", "Slash", "Duff McKagan", "Dizzy Reed", "Richard Fortus", "Frank Ferrer", "Melissa Reese"],
-      albums: ["Appetite for Destruction", "G N' R Lies", "Use Your Illusion I", "Use Your Illusion II", "Chinese Democracy"],
-      website: "https://gunsnroses.com",
-      instagram: "https://instagram.com/gunsnroses",
-    });
-
-    const bonJovi = await storage.createBand({
-      name: "BON JOVI",
-      genre: "Arena Rock",
-      description: "Arena rock veterans with broad appeal (30.0M monthly listeners). New Jersey rock icons known for anthemic choruses and stadium shows.",
-      imageUrl: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
-      founded: 1983,
-      members: ["Jon Bon Jovi", "David Bryan", "Tico Torres", "Phil X"],
-      albums: ["Bon Jovi", "Slippery When Wet", "New Jersey", "Keep the Faith", "These Days"],
-      website: "https://bonjovi.com",
-      instagram: "https://instagram.com/bonjovi",
-    });
-
-      await storage.createBand({
-        name: "RADIOHEAD",
-        genre: "Alternative Rock", 
-        description: "Art rock innovators with devoted fanbase (29.7M monthly listeners). Experimental British band pushing the boundaries of rock music.",
-        imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
-        founded: 1985,
-        members: ["Thom Yorke", "Jonny Greenwood", "Colin Greenwood", "Ed O'Brien", "Philip Selway"],
-        albums: ["OK Computer", "Kid A", "In Rainbows", "Hail to the Thief", "A Moon Shaped Pool"],
-        website: "https://radiohead.com",
-        instagram: "https://instagram.com/radiohead",
-      });
+      // Only create bands that don't already exist
+      for (const band of bandData) {
+        if (!existingBandNames.has(band.name.toLowerCase())) {
+          await storage.createBand(band);
+        }
+      }
 
       console.log("Database seeded successfully!");
     }

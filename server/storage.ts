@@ -172,7 +172,19 @@ export class MemStorage implements IStorage {
 
   // Bands
   async getBands(): Promise<Band[]> {
-    return Array.from(this.bands.values()).sort((a, b) => a.name.localeCompare(b.name));
+    const bands = Array.from(this.bands.values());
+    
+    // Deduplicate by band name, keeping the most recent entry
+    const uniqueBands = new Map<string, Band>();
+    bands.forEach(band => {
+      const key = band.name.toLowerCase();
+      const existing = uniqueBands.get(key);
+      if (!existing || (band.createdAt && existing.createdAt && band.createdAt > existing.createdAt)) {
+        uniqueBands.set(key, band);
+      }
+    });
+    
+    return Array.from(uniqueBands.values()).sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async getBand(id: string): Promise<Band | undefined> {
@@ -215,11 +227,25 @@ export class MemStorage implements IStorage {
   async searchBands(query: string): Promise<Band[]> {
     const bands = Array.from(this.bands.values());
     const searchTerm = query.toLowerCase();
-    return bands.filter(band => 
+    
+    // Filter and deduplicate by band name
+    const filtered = bands.filter(band => 
       band.name.toLowerCase().includes(searchTerm) ||
       band.genre.toLowerCase().includes(searchTerm) ||
       band.description.toLowerCase().includes(searchTerm)
     );
+    
+    // Deduplicate by band name, keeping the most recent entry
+    const uniqueBands = new Map<string, Band>();
+    filtered.forEach(band => {
+      const key = band.name.toLowerCase();
+      const existing = uniqueBands.get(key);
+      if (!existing || (band.createdAt && existing.createdAt && band.createdAt > existing.createdAt)) {
+        uniqueBands.set(key, band);
+      }
+    });
+    
+    return Array.from(uniqueBands.values()).sort((a, b) => a.name.localeCompare(b.name));
   }
 
 
