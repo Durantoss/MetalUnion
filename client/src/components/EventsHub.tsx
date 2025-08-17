@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +18,8 @@ import {
   ExternalLink,
   Filter,
   Plus,
-  Sparkles
+  Sparkles,
+  Trophy
 } from 'lucide-react';
 
 interface Event {
@@ -232,7 +233,7 @@ export function EventsHub({ featured = false }: { featured?: boolean }) {
                   const iconColor = eventTypeColors[event.eventType];
                   const isUpcoming = isEventUpcoming(event);
                   const timeUntil = getTimeUntilEvent(event);
-                  const isFull = event.maxAttendees && event.currentAttendees >= event.maxAttendees;
+                  const isFull = Boolean(event.maxAttendees && event.currentAttendees >= event.maxAttendees);
                   
                   return (
                     <motion.div
@@ -479,10 +480,3 @@ export function EventsHub({ featured = false }: { featured?: boolean }) {
   );
 }
 
-function Trophy({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-      <path fillRule="evenodd" d="M10 2L13 14H7L10 2Z" clipRule="evenodd" />
-    </svg>
-  );
-}
