@@ -366,12 +366,7 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
-      {/* Debug Info (Development Only) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed top-3 right-3 z-[100] glass neo-border px-3 py-1 rounded-lg font-mono text-xs font-bold">
-          {currentSection || 'landing'} | {bands?.length || 0}
-        </div>
-      )}
+
       
       {currentSection !== 'landing' && (
         <ModernNavigation
