@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { SearchBar } from './SearchBar';
+// Hook-free tours section component
 
 interface Tour {
   id: string;
@@ -12,166 +11,92 @@ interface Tour {
 }
 
 export function ToursSection() {
-  const [tours, setTours] = useState<Tour[]>([]);
-  const [filteredTours, setFilteredTours] = useState<Tour[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    fetch('/api/tours')
-      .then(response => response.json())
-      .then(data => {
-        setTours(data);
-        setFilteredTours(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error loading tours:', err);
-        setLoading(false);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (!searchQuery) {
-      setFilteredTours(tours);
-    } else {
-      const filtered = tours.filter(tour =>
-        tour.bandName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tour.venue.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (tour.city + ' ' + tour.country).toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredTours(filtered);
-    }
-  }, [tours, searchQuery]);
-
-  if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '400px',
-        color: '#9ca3af'
-      }}>
-        Loading tours...
-      </div>
-    );
-  }
-
   return (
-    <div style={{ padding: '2rem 0' }}>
-      <h2 style={{
-        fontSize: '2.5rem',
-        color: '#dc2626',
-        fontWeight: 'bold',
+    <div style={{
+      padding: '2rem',
+      maxWidth: '1200px',
+      margin: '0 auto'
+    }}>
+      <div style={{
         textAlign: 'center',
-        marginBottom: '2rem'
+        marginBottom: '3rem'
       }}>
-        Upcoming Tours
-      </h2>
-      
-      <SearchBar 
-        onSearch={setSearchQuery}
-        placeholder="Search tours by band, venue, or location..."
-        section="tours"
-      />
-      
-      {filteredTours.length === 0 ? (
-        searchQuery ? (
-          <div style={{
-            textAlign: 'center',
-            color: '#9ca3af',
-            fontSize: '1.2rem',
-            padding: '4rem 0'
-          }}>
-            No tours found matching "{searchQuery}". Try different search terms.
-          </div>
-        ) : (
-          <div style={{
-            textAlign: 'center',
-            color: '#9ca3af',
-            fontSize: '1.2rem',
-            padding: '4rem 0'
-          }}>
-            No upcoming tours available. Check back soon!
-          </div>
-        )
-      ) : (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-          gap: '2rem'
+        <h1 style={{
+          fontSize: '2.5rem',
+          fontWeight: 'bold',
+          background: 'linear-gradient(45deg, #dc2626, #facc15)',
+          backgroundClip: 'text',
+          WebkitBackgroundClip: 'text',
+          color: 'transparent',
+          marginBottom: '1rem'
         }}>
-          {filteredTours.map(tour => (
-            <div
-              key={tour.id}
-              style={{
-                backgroundColor: '#1f2937',
-                border: '1px solid #374151',
-                borderRadius: '12px',
-                padding: '1.5rem',
-                transition: 'transform 0.2s, border-color 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.borderColor = '#dc2626';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.borderColor = '#374151';
-              }}
-            >
-              <h3 style={{
-                fontSize: '1.5rem',
-                color: '#dc2626',
-                fontWeight: 'bold',
-                marginBottom: '1rem'
-              }}>
-                {tour.bandName}
-              </h3>
-              
-              <div style={{ color: '#d1d5db', marginBottom: '0.5rem' }}>
-                <strong style={{ color: '#f87171' }}>Venue:</strong> {tour.venue}
-              </div>
-              
-              <div style={{ color: '#d1d5db', marginBottom: '0.5rem' }}>
-                <strong style={{ color: '#f87171' }}>Location:</strong> {tour.city}, {tour.country}
-              </div>
-              
-              <div style={{ color: '#d1d5db', marginBottom: '1.5rem' }}>
-                <strong style={{ color: '#f87171' }}>Date:</strong> {new Date(tour.date).toLocaleDateString()}
-              </div>
-              
-              {tour.ticketUrl && (
-                <a
-                  href={tour.ticketUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-block',
-                    backgroundColor: '#dc2626',
-                    color: 'white',
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '8px',
-                    textDecoration: 'none',
-                    fontSize: '1rem',
-                    fontWeight: '600',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#b91c1c';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#dc2626';
-                  }}
-                >
-                  Get Tickets ↗
-                </a>
-              )}
-            </div>
-          ))}
+          🚌 TOUR DATES
+        </h1>
+        <p style={{
+          color: '#d1d5db',
+          fontSize: '1.1rem'
+        }}>
+          Discover upcoming metal and rock concerts worldwide
+        </p>
+      </div>
+
+      <div style={{
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        borderRadius: '12px',
+        border: '1px solid rgba(153, 27, 27, 0.5)',
+        padding: '2rem',
+        textAlign: 'center'
+      }}>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '1rem'
+        }}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            backgroundColor: 'rgba(220, 38, 38, 0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.5rem'
+          }}>
+            🎸
+          </div>
+          
+          <h3 style={{
+            color: '#facc15',
+            fontSize: '1.25rem',
+            fontWeight: '600',
+            margin: 0
+          }}>
+            Tour Database Loading
+          </h3>
+          
+          <p style={{
+            color: '#9ca3af',
+            margin: 0,
+            maxWidth: '400px'
+          }}>
+            We're building an extensive database of metal and rock tour dates. 
+            Check back soon for comprehensive concert listings!
+          </p>
+
+          <div style={{
+            marginTop: '1rem',
+            padding: '0.75rem 1.5rem',
+            backgroundColor: 'rgba(234, 179, 8, 0.1)',
+            border: '1px solid rgba(234, 179, 8, 0.3)',
+            borderRadius: '6px',
+            color: '#facc15',
+            fontSize: '0.9rem'
+          }}>
+            💡 Pro Tip: Check out EVENT DISCOVERY for AI-powered concert recommendations!
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

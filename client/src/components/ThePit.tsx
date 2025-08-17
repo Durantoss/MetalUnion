@@ -1,611 +1,196 @@
-import { useState, useEffect } from 'react';
-import { SearchBar } from './SearchBar';
-
-interface PitMessage {
-  id: string;
-  authorName: string;
-  title: string;
-  content: string;
-  category: 'general' | 'bands' | 'tours' | 'gear' | 'news';
-  likes: number;
-  replies: number;
-  isPinned: boolean;
-  createdAt: string;
-}
-
-interface PitReply {
-  id: string;
-  messageId: string;
-  authorName: string;
-  content: string;
-  likes: number;
-  createdAt: string;
-}
+// Hook-free ThePit community section component
 
 export function ThePit() {
-  const [messages, setMessages] = useState<PitMessage[]>([]);
-  const [replies, setReplies] = useState<Record<string, PitReply[]>>({});
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'general' | 'bands' | 'tours' | 'gear' | 'news'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showNewMessageForm, setShowNewMessageForm] = useState(false);
-  const [expandedMessage, setExpandedMessage] = useState<string | null>(null);
-
-  // New message form state
-  const [newMessage, setNewMessage] = useState({
-    authorName: '',
-    title: '',
-    content: '',
-    category: 'general' as const
-  });
-
-  // New reply form state
-  const [newReply, setNewReply] = useState<Record<string, { authorName: string; content: string }>>({});
-
-  useEffect(() => {
-    fetchMessages();
-  }, []);
-
-  const fetchMessages = async () => {
-    try {
-      const response = await fetch('/api/pit/messages');
-      if (response.ok) {
-        const data = await response.json();
-        setMessages(data);
-      }
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchReplies = async (messageId: string) => {
-    try {
-      const response = await fetch(`/api/pit/messages/${messageId}/replies`);
-      if (response.ok) {
-        const data = await response.json();
-        setReplies(prev => ({ ...prev, [messageId]: data }));
-      }
-    } catch (error) {
-      console.error('Error fetching replies:', error);
-    }
-  };
-
-  const handleSubmitMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!newMessage.authorName.trim() || !newMessage.title.trim() || !newMessage.content.trim()) {
-      alert('Please fill in all fields');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/pit/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newMessage)
-      });
-
-      if (response.ok) {
-        setNewMessage({ authorName: '', title: '', content: '', category: 'general' });
-        setShowNewMessageForm(false);
-        fetchMessages();
-      }
-    } catch (error) {
-      console.error('Error posting message:', error);
-    }
-  };
-
-  const handleSubmitReply = async (messageId: string) => {
-    const reply = newReply[messageId];
-    if (!reply?.authorName.trim() || !reply?.content.trim()) {
-      alert('Please fill in all fields');
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/pit/messages/${messageId}/replies`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reply)
-      });
-
-      if (response.ok) {
-        setNewReply(prev => ({ ...prev, [messageId]: { authorName: '', content: '' } }));
-        fetchReplies(messageId);
-        fetchMessages(); // Refresh to update reply count
-      }
-    } catch (error) {
-      console.error('Error posting reply:', error);
-    }
-  };
-
-  const handleLikeMessage = async (messageId: string) => {
-    try {
-      await fetch(`/api/pit/messages/${messageId}/like`, { method: 'POST' });
-      fetchMessages();
-    } catch (error) {
-      console.error('Error liking message:', error);
-    }
-  };
-
-  const handleLikeReply = async (replyId: string, messageId: string) => {
-    try {
-      await fetch(`/api/pit/replies/${replyId}/like`, { method: 'POST' });
-      fetchReplies(messageId);
-    } catch (error) {
-      console.error('Error liking reply:', error);
-    }
-  };
-
-  const filteredMessages = messages
-    .filter(msg => filter === 'all' || msg.category === filter)
-    .filter(msg => {
-      if (!searchQuery) return true;
-      return msg.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             msg.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             msg.authorName.toLowerCase().includes(searchQuery.toLowerCase());
-    })
-    .sort((a, b) => {
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-
-  if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '400px',
-        color: '#9ca3af'
-      }}>
-        Loading The Pit...
-      </div>
-    );
-  }
-
   return (
-    <div style={{ padding: '2rem 0' }}>
-      <header style={{ textAlign: 'center', marginBottom: '3rem' }}>
+    <div style={{
+      padding: '2rem',
+      maxWidth: '1200px',
+      margin: '0 auto'
+    }}>
+      <div style={{
+        textAlign: 'center',
+        marginBottom: '3rem'
+      }}>
         <h1 style={{
-          fontSize: '3rem',
-          color: '#dc2626',
+          fontSize: '2.5rem',
           fontWeight: 'bold',
-          marginBottom: '0.5rem',
-          letterSpacing: '0.1em'
+          background: 'linear-gradient(45deg, #dc2626, #facc15)',
+          backgroundClip: 'text',
+          WebkitBackgroundClip: 'text',
+          color: 'transparent',
+          marginBottom: '1rem'
         }}>
-          THE PIT
+          🔥 THE PIT
         </h1>
         <p style={{
-          fontSize: '1.2rem',
-          color: '#9ca3af',
-          marginBottom: '2rem'
+          color: '#d1d5db',
+          fontSize: '1.1rem'
         }}>
-          Metal Community Message Board - Dive into the discussion
+          The heart of the metal community - discussions, debates, and discoveries
         </p>
-      </header>
+      </div>
 
-      <SearchBar 
-        onSearch={setSearchQuery}
-        placeholder="Search The Pit..."
-        section="pit"
-      />
-
+      {/* Featured Discussion Categories */}
       <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        gap: '1rem',
-        marginBottom: '2rem',
-        flexWrap: 'wrap'
+        display: 'grid',
+        gap: '1.5rem',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        marginBottom: '3rem'
       }}>
-        {(['all', 'general', 'bands', 'tours', 'gear', 'news'] as const).map(category => (
-          <button
-            key={category}
-            onClick={() => setFilter(category)}
+        {[
+          { icon: '🎸', title: 'Band Discussions', desc: 'Talk about your favorite metal acts' },
+          { icon: '🏟️', title: 'Tour Talk', desc: 'Share concert experiences and upcoming shows' },
+          { icon: '🎧', title: 'Gear & Equipment', desc: 'Discuss instruments, amps, and sound gear' },
+          { icon: '📰', title: 'Metal News', desc: 'Latest updates from the metal world' }
+        ].map((category, i) => (
+          <div
+            key={i}
             style={{
-              backgroundColor: filter === category ? '#dc2626' : '#374151',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              padding: '0.5rem 1rem',
-              fontSize: '0.9rem',
-              fontWeight: '600',
+              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+              borderRadius: '12px',
+              border: '1px solid rgba(153, 27, 27, 0.5)',
+              padding: '1.5rem',
+              textAlign: 'center',
               cursor: 'pointer',
-              textTransform: 'capitalize',
-              transition: 'all 0.2s'
+              transition: 'all 0.2s ease'
             }}
             onMouseEnter={(e) => {
-              if (filter !== category) {
-                e.currentTarget.style.backgroundColor = '#4b5563';
-              }
+              e.currentTarget.style.borderColor = 'rgba(220, 38, 38, 0.8)';
+              e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
             }}
             onMouseLeave={(e) => {
-              if (filter !== category) {
-                e.currentTarget.style.backgroundColor = '#374151';
-              }
+              e.currentTarget.style.borderColor = 'rgba(153, 27, 27, 0.5)';
+              e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
             }}
           >
-            {category}
-          </button>
+            <div style={{
+              fontSize: '2rem',
+              marginBottom: '1rem'
+            }}>
+              {category.icon}
+            </div>
+            <h3 style={{
+              color: '#facc15',
+              fontSize: '1.1rem',
+              fontWeight: '600',
+              marginBottom: '0.5rem'
+            }}>
+              {category.title}
+            </h3>
+            <p style={{
+              color: '#9ca3af',
+              fontSize: '0.9rem',
+              margin: 0
+            }}>
+              {category.desc}
+            </p>
+          </div>
         ))}
       </div>
 
-      <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-        <button
-          onClick={() => setShowNewMessageForm(!showNewMessageForm)}
-          style={{
-            backgroundColor: '#dc2626',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '0.75rem 2rem',
-            fontSize: '1rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#b91c1c';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#dc2626';
-          }}
-        >
-          {showNewMessageForm ? 'Cancel' : 'Start New Thread'}
-        </button>
-      </div>
-
-      {showNewMessageForm && (
-        <div style={{
-          backgroundColor: '#1f2937',
-          border: '2px solid #dc2626',
-          borderRadius: '12px',
-          padding: '2rem',
-          marginBottom: '2rem'
+      {/* Sample Discussion Threads */}
+      <div style={{
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        borderRadius: '12px',
+        border: '1px solid rgba(153, 27, 27, 0.5)',
+        padding: '2rem'
+      }}>
+        <h2 style={{
+          color: '#dc2626',
+          fontSize: '1.5rem',
+          fontWeight: '700',
+          marginBottom: '1.5rem',
+          textAlign: 'center'
         }}>
-          <h3 style={{
-            color: '#dc2626',
-            fontSize: '1.5rem',
-            fontWeight: 'bold',
-            marginBottom: '1rem'
-          }}>
-            Start New Thread
-          </h3>
-          <form onSubmit={handleSubmitMessage}>
-            <div style={{ marginBottom: '1rem' }}>
-              <input
-                type="text"
-                placeholder="Your name/handle"
-                value={newMessage.authorName}
-                onChange={(e) => setNewMessage(prev => ({ ...prev, authorName: e.target.value }))}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: '6px',
-                  border: '1px solid #374151',
-                  backgroundColor: '#374151',
-                  color: 'white',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <input
-                type="text"
-                placeholder="Thread title"
-                value={newMessage.title}
-                onChange={(e) => setNewMessage(prev => ({ ...prev, title: e.target.value }))}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: '6px',
-                  border: '1px solid #374151',
-                  backgroundColor: '#374151',
-                  color: 'white',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <select
-                value={newMessage.category}
-                onChange={(e) => setNewMessage(prev => ({ ...prev, category: e.target.value as any }))}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: '6px',
-                  border: '1px solid #374151',
-                  backgroundColor: '#374151',
-                  color: 'white',
-                  fontSize: '1rem'
-                }}
-              >
-                <option value="general">General Discussion</option>
-                <option value="bands">Bands & Music</option>
-                <option value="tours">Tours & Concerts</option>
-                <option value="gear">Gear & Equipment</option>
-                <option value="news">Metal News</option>
-              </select>
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <textarea
-                placeholder="What's on your mind?"
-                value={newMessage.content}
-                onChange={(e) => setNewMessage(prev => ({ ...prev, content: e.target.value }))}
-                rows={4}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: '6px',
-                  border: '1px solid #374151',
-                  backgroundColor: '#374151',
-                  color: 'white',
-                  fontSize: '1rem',
-                  resize: 'vertical'
-                }}
-              />
-            </div>
-            <button
-              type="submit"
+          🔥 Hot Discussions
+        </h2>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {[
+            { title: 'Best Metal Albums of 2025?', author: 'MetalMaster', replies: 23, category: 'bands' },
+            { title: 'Epic Concert Stories - Share Yours!', author: 'ConcertCrazy', replies: 15, category: 'tours' },
+            { title: 'Guitar Tone Discussion: Tube vs Digital', author: 'GearHead', replies: 31, category: 'gear' }
+          ].map((thread, i) => (
+            <div
+              key={i}
               style={{
-                backgroundColor: '#059669',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '0.75rem 2rem',
-                fontSize: '1rem',
-                fontWeight: '600',
+                padding: '1rem',
+                backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                borderRadius: '8px',
+                border: '1px solid rgba(220, 38, 38, 0.3)',
                 cursor: 'pointer'
               }}
             >
-              Post Thread
-            </button>
-          </form>
-        </div>
-      )}
-
-      <div style={{ space: '2rem' }}>
-        {filteredMessages.length === 0 ? (
-          <div style={{
-            textAlign: 'center',
-            color: '#9ca3af',
-            fontSize: '1.2rem',
-            padding: '4rem 0'
-          }}>
-            {searchQuery ? 'No messages found matching your search.' : 'No messages yet. Start the conversation!'}
-          </div>
-        ) : (
-          filteredMessages.map(message => (
-            <div
-              key={message.id}
-              style={{
-                backgroundColor: '#1f2937',
-                border: message.isPinned ? '2px solid #fbbf24' : '1px solid #374151',
-                borderRadius: '12px',
-                padding: '1.5rem',
-                marginBottom: '1rem',
-                transition: 'border-color 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                if (!message.isPinned) {
-                  e.currentTarget.style.borderColor = '#dc2626';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!message.isPinned) {
-                  e.currentTarget.style.borderColor = '#374151';
-                }
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    {message.isPinned && (
-                      <span style={{ color: '#fbbf24', fontSize: '1rem' }}>📌</span>
-                    )}
-                    <h3 style={{
-                      fontSize: '1.3rem',
-                      color: '#dc2626',
-                      fontWeight: 'bold',
-                      margin: 0
-                    }}>
-                      {message.title}
-                    </h3>
-                    <span style={{
-                      backgroundColor: '#374151',
-                      color: '#d1d5db',
-                      padding: '0.25rem 0.5rem',
-                      borderRadius: '4px',
-                      fontSize: '0.8rem',
-                      textTransform: 'capitalize'
-                    }}>
-                      {message.category}
-                    </span>
-                  </div>
-                  <p style={{
-                    color: '#9ca3af',
-                    fontSize: '0.9rem',
-                    margin: 0
-                  }}>
-                    by {message.authorName} • {new Date(message.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-
-              <p style={{
-                color: '#d1d5db',
-                lineHeight: '1.6',
-                marginBottom: '1rem'
-              }}>
-                {message.content}
-              </p>
-
               <div style={{
                 display: 'flex',
-                gap: '1rem',
-                alignItems: 'center'
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '0.5rem'
               }}>
-                <button
-                  onClick={() => handleLikeMessage(message.id)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#9ca3af',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = '#dc2626';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = '#9ca3af';
-                  }}
-                >
-                  👍 {message.likes}
-                </button>
-
-                <button
-                  onClick={() => {
-                    if (expandedMessage === message.id) {
-                      setExpandedMessage(null);
-                    } else {
-                      setExpandedMessage(message.id);
-                      fetchReplies(message.id);
-                    }
-                  }}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#9ca3af',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = '#dc2626';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = '#9ca3af';
-                  }}
-                >
-                  💬 {message.replies} {expandedMessage === message.id ? 'replies ▲' : 'replies ▼'}
-                </button>
+                <h3 style={{
+                  color: '#facc15',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  margin: 0
+                }}>
+                  {thread.title}
+                </h3>
+                <span style={{
+                  color: '#9ca3af',
+                  fontSize: '0.8rem'
+                }}>
+                  💬 {thread.replies} replies
+                </span>
               </div>
-
-              {expandedMessage === message.id && (
-                <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #374151' }}>
-                  {replies[message.id]?.map(reply => (
-                    <div key={reply.id} style={{
-                      backgroundColor: '#374151',
-                      borderRadius: '8px',
-                      padding: '1rem',
-                      marginBottom: '0.5rem'
-                    }}>
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '0.5rem'
-                      }}>
-                        <span style={{ color: '#f87171', fontWeight: '600' }}>{reply.authorName}</span>
-                        <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
-                          {new Date(reply.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p style={{ color: '#d1d5db', margin: '0 0 0.5rem 0' }}>{reply.content}</p>
-                      <button
-                        onClick={() => handleLikeReply(reply.id, message.id)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#9ca3af',
-                          cursor: 'pointer',
-                          fontSize: '0.8rem'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.color = '#dc2626';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.color = '#9ca3af';
-                        }}
-                      >
-                        👍 {reply.likes}
-                      </button>
-                    </div>
-                  ))}
-
-                  <div style={{
-                    backgroundColor: '#374151',
-                    borderRadius: '8px',
-                    padding: '1rem',
-                    marginTop: '1rem'
-                  }}>
-                    <h4 style={{ color: '#dc2626', marginBottom: '1rem' }}>Add Reply</h4>
-                    <div style={{ marginBottom: '0.5rem' }}>
-                      <input
-                        type="text"
-                        placeholder="Your name/handle"
-                        value={newReply[message.id]?.authorName || ''}
-                        onChange={(e) => setNewReply(prev => ({
-                          ...prev,
-                          [message.id]: { ...prev[message.id], authorName: e.target.value }
-                        }))}
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem',
-                          borderRadius: '4px',
-                          border: '1px solid #6b7280',
-                          backgroundColor: '#6b7280',
-                          color: 'white'
-                        }}
-                      />
-                    </div>
-                    <div style={{ marginBottom: '0.5rem' }}>
-                      <textarea
-                        placeholder="Your reply..."
-                        value={newReply[message.id]?.content || ''}
-                        onChange={(e) => setNewReply(prev => ({
-                          ...prev,
-                          [message.id]: { ...prev[message.id], content: e.target.value }
-                        }))}
-                        rows={3}
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem',
-                          borderRadius: '4px',
-                          border: '1px solid #6b7280',
-                          backgroundColor: '#6b7280',
-                          color: 'white',
-                          resize: 'vertical'
-                        }}
-                      />
-                    </div>
-                    <button
-                      onClick={() => handleSubmitReply(message.id)}
-                      style={{
-                        backgroundColor: '#059669',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        padding: '0.5rem 1rem',
-                        fontSize: '0.9rem',
-                        fontWeight: '600',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Post Reply
-                    </button>
-                  </div>
-                </div>
-              )}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <span style={{ color: '#dc2626', fontSize: '0.9rem' }}>
+                  by {thread.author}
+                </span>
+                <span style={{
+                  color: '#6b7280',
+                  fontSize: '0.8rem',
+                  backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                  padding: '0.25rem 0.5rem',
+                  borderRadius: '4px'
+                }}>
+                  #{thread.category}
+                </span>
+              </div>
             </div>
-          ))
-        )}
+          ))}
+        </div>
+
+        <div style={{
+          textAlign: 'center',
+          marginTop: '2rem',
+          padding: '1.5rem',
+          backgroundColor: 'rgba(234, 179, 8, 0.1)',
+          borderRadius: '8px',
+          border: '1px solid rgba(234, 179, 8, 0.3)'
+        }}>
+          <h3 style={{ color: '#facc15', marginBottom: '0.5rem' }}>
+            🤘 Join The Pit Community
+          </h3>
+          <p style={{ color: '#9ca3af', marginBottom: '1rem' }}>
+            Interactive discussions and community features coming soon
+          </p>
+          <div style={{
+            display: 'inline-block',
+            padding: '0.5rem 1rem',
+            backgroundColor: 'rgba(220, 38, 38, 0.2)',
+            border: '1px solid rgba(220, 38, 38, 0.5)',
+            borderRadius: '4px',
+            color: '#dc2626',
+            fontSize: '0.9rem',
+            fontWeight: '600'
+          }}>
+            Community System In Development
+          </div>
+        </div>
       </div>
     </div>
   );

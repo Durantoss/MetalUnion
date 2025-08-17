@@ -1,277 +1,165 @@
-import { useState, useEffect } from 'react';
-import { SearchBar } from './SearchBar';
-import { CommentSection } from './CommentSection';
-
-interface Review {
-  id: string;
-  bandId: string;
-  stagename: string;
-  rating: number;
-  title: string;
-  content: string;
-  reviewType: 'band' | 'album' | 'concert';
-  targetName?: string;
-  likes: number;
-  createdAt: string;
-}
+// Hook-free reviews section component
 
 export function ReviewsSection() {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [filteredReviews, setFilteredReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState<'all' | 'band' | 'album' | 'concert'>('all');
-
-  useEffect(() => {
-    fetch('/api/reviews')
-      .then(response => response.json())
-      .then(data => {
-        setReviews(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error loading reviews:', err);
-        setLoading(false);
-      });
-  }, []);
-
-  useEffect(() => {
-    let filtered = reviews;
-    
-    // Apply type filter
-    if (filter !== 'all') {
-      filtered = filtered.filter(review => review.reviewType === filter);
-    }
-    
-    // Apply search filter
-    if (searchQuery) {
-      filtered = filtered.filter(review =>
-        review.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        review.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        review.stagename.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        review.targetName?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    
-    setFilteredReviews(filtered);
-  }, [reviews, searchQuery, filter]);
-
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <span
-        key={i}
-        style={{
-          color: i < rating ? '#fbbf24' : '#6b7280',
-          fontSize: '1.2rem'
-        }}
-      >
-        ★
-      </span>
-    ));
-  };
-
-  if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '400px',
-        color: '#9ca3af'
-      }}>
-        Loading reviews...
-      </div>
-    );
-  }
-
   return (
-    <div style={{ padding: '2rem 0' }}>
-      <h2 style={{
-        fontSize: '2.5rem',
-        color: '#dc2626',
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: '2rem'
-      }}>
-        Community Reviews
-      </h2>
-      
-      <SearchBar 
-        onSearch={setSearchQuery}
-        placeholder="Search reviews by title, content, reviewer, or target..."
-        section="reviews"
-      />
-      
+    <div style={{
+      padding: '2rem',
+      maxWidth: '1200px',
+      margin: '0 auto'
+    }}>
       <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        gap: '1rem',
-        marginBottom: '2rem'
+        textAlign: 'center',
+        marginBottom: '3rem'
       }}>
-        {(['all', 'band', 'album', 'concert'] as const).map(type => (
-          <button
-            key={type}
-            onClick={() => setFilter(type)}
+        <h1 style={{
+          fontSize: '2.5rem',
+          fontWeight: 'bold',
+          background: 'linear-gradient(45deg, #dc2626, #facc15)',
+          backgroundClip: 'text',
+          WebkitBackgroundClip: 'text',
+          color: 'transparent',
+          marginBottom: '1rem'
+        }}>
+          ⭐ REVIEWS & RATINGS
+        </h1>
+        <p style={{
+          color: '#d1d5db',
+          fontSize: '1.1rem'
+        }}>
+          Community reviews for bands, albums, and concerts
+        </p>
+      </div>
+
+      <div style={{
+        display: 'grid',
+        gap: '1.5rem',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))'
+      }}>
+        {/* Sample Review Cards */}
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
             style={{
-              backgroundColor: filter === type ? '#dc2626' : '#374151',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              padding: '0.5rem 1rem',
-              fontSize: '0.9rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              textTransform: 'capitalize',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              if (filter !== type) {
-                e.currentTarget.style.backgroundColor = '#4b5563';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (filter !== type) {
-                e.currentTarget.style.backgroundColor = '#374151';
-              }
+              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+              borderRadius: '12px',
+              border: '1px solid rgba(153, 27, 27, 0.5)',
+              padding: '1.5rem'
             }}
           >
-            {type}
-          </button>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '1rem'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(220, 38, 38, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.8rem'
+                }}>
+                  🤘
+                </div>
+                <span style={{ color: '#facc15', fontSize: '0.9rem', fontWeight: '600' }}>
+                  MetalWarrior{i}
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: '2px' }}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span
+                    key={star}
+                    style={{
+                      color: star <= 4 ? '#facc15' : '#4b5563',
+                      fontSize: '0.8rem'
+                    }}
+                  >
+                    ⭐
+                  </span>
+                ))}
+              </div>
+            </div>
+            
+            <h3 style={{
+              color: '#dc2626',
+              fontSize: '1rem',
+              fontWeight: '600',
+              marginBottom: '0.5rem'
+            }}>
+              Epic Performance Review
+            </h3>
+            
+            <p style={{
+              color: '#d1d5db',
+              fontSize: '0.9rem',
+              lineHeight: '1.5',
+              margin: 0
+            }}>
+              Amazing show with incredible energy. The crowd was electric and the band delivered
+              an unforgettable performance. Definitely recommend checking them out live!
+            </p>
+            
+            <div style={{
+              marginTop: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem'
+            }}>
+              <button style={{
+                background: 'none',
+                border: 'none',
+                color: '#9ca3af',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem'
+              }}>
+                🔥 {12 + i} likes
+              </button>
+              <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>
+                2 days ago
+              </span>
+            </div>
+          </div>
         ))}
       </div>
 
-      {filteredReviews.length === 0 ? (
-        searchQuery || filter !== 'all' ? (
-          <div style={{
-            textAlign: 'center',
-            color: '#9ca3af',
-            fontSize: '1.2rem',
-            padding: '4rem 0'
-          }}>
-            No reviews found matching your criteria. Try different filters or search terms.
-          </div>
-        ) : (
-          <div style={{
-            textAlign: 'center',
-            color: '#9ca3af',
-            fontSize: '1.2rem',
-            padding: '4rem 0'
-          }}>
-            No reviews available yet. Be the first to write one!
-          </div>
-        )
-      ) : (
+      <div style={{
+        textAlign: 'center',
+        marginTop: '3rem',
+        padding: '2rem',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        borderRadius: '12px',
+        border: '1px solid rgba(153, 27, 27, 0.5)'
+      }}>
+        <h3 style={{ color: '#facc15', marginBottom: '1rem' }}>
+          🎸 Share Your Experience
+        </h3>
+        <p style={{ color: '#9ca3af', marginBottom: '1.5rem' }}>
+          Join the community and share your reviews of bands, albums, and concerts
+        </p>
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
-          gap: '2rem'
+          display: 'inline-block',
+          padding: '0.75rem 1.5rem',
+          backgroundColor: 'rgba(220, 38, 38, 0.2)',
+          border: '1px solid rgba(220, 38, 38, 0.5)',
+          borderRadius: '6px',
+          color: '#dc2626',
+          fontSize: '0.9rem',
+          fontWeight: '600'
         }}>
-          {filteredReviews.map(review => (
-            <div
-              key={review.id}
-              style={{
-                backgroundColor: '#1f2937',
-                border: '1px solid #374151',
-                borderRadius: '12px',
-                padding: '1.5rem',
-                transition: 'transform 0.2s, border-color 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.borderColor = '#dc2626';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.borderColor = '#374151';
-              }}
-            >
-              <div style={{ marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                  <h3 style={{
-                    fontSize: '1.3rem',
-                    color: '#dc2626',
-                    fontWeight: 'bold',
-                    margin: 0
-                  }}>
-                    {review.title}
-                  </h3>
-                  <span style={{
-                    backgroundColor: '#374151',
-                    color: '#d1d5db',
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '4px',
-                    fontSize: '0.8rem',
-                    textTransform: 'capitalize'
-                  }}>
-                    {review.reviewType}
-                  </span>
-                </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                  {renderStars(review.rating)}
-                  <span style={{ color: '#9ca3af', fontSize: '0.9rem' }}>
-                    ({review.rating}/5)
-                  </span>
-                </div>
-                
-                <p style={{
-                  color: '#9ca3af',
-                  fontSize: '0.9rem',
-                  margin: 0
-                }}>
-                  by {review.stagename} • {new Date(review.createdAt).toLocaleDateString()}
-                  {review.targetName && ` • ${review.targetName}`}
-                </p>
-              </div>
-
-              <p style={{
-                color: '#d1d5db',
-                lineHeight: '1.6',
-                marginBottom: '1rem'
-              }}>
-                {review.content}
-              </p>
-
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '1.5rem'
-              }}>
-                <button
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#9ca3af',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = '#dc2626';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = '#9ca3af';
-                  }}
-                >
-                  👍 {review.likes}
-                </button>
-              </div>
-
-              {/* Comment Section for each review */}
-              <div style={{ borderTop: '1px solid #374151', paddingTop: '1rem' }}>
-                <CommentSection 
-                  targetType="review" 
-                  targetId={review.id} 
-                  targetTitle={review.title}
-                />
-              </div>
-            </div>
-          ))}
+          Review System Coming Soon
         </div>
-      )}
+      </div>
     </div>
   );
 }
