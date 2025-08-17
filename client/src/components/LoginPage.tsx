@@ -156,34 +156,53 @@ export function LoginPage({ onBack }: LoginPageProps) {
   }
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      backgroundColor: '#000000', 
-      color: '#ffffff', 
-      padding: '32px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }}>
-      <div style={{ 
-        maxWidth: '400px', 
-        width: '100%',
-        backgroundColor: '#1f2937',
-        padding: '48px 32px',
-        borderRadius: '12px',
-        textAlign: 'center'
-      }}>
+    <div 
+      className="responsive-login-container"
+      style={{ 
+        minHeight: '100vh', 
+        backgroundColor: '#000000', 
+        color: '#ffffff', 
+        padding: '32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}
+    >
+      <div 
+        className="responsive-login-modal"
+        style={{ 
+          maxWidth: '400px', 
+          width: '100%',
+          backgroundColor: '#1f2937',
+          padding: '48px 32px',
+          borderRadius: '12px',
+          textAlign: 'center'
+        }}
+      >
         <div style={{ marginBottom: '32px' }}>
-          <span style={{ fontSize: '4rem', display: 'block', marginBottom: '16px' }}>🤘</span>
-          <h1 style={{ 
-            fontSize: '2rem', 
-            fontWeight: 'bold', 
-            color: '#dc2626', 
-            marginBottom: '8px'
-          }}>
+          <span 
+            className="responsive-login-icon"
+            style={{ 
+              fontSize: '4rem', 
+              display: 'block', 
+              marginBottom: '16px' 
+            }}
+          >🤘</span>
+          <h1 
+            className="responsive-login-title"
+            style={{ 
+              fontSize: '2rem', 
+              fontWeight: 'bold', 
+              color: '#dc2626', 
+              marginBottom: '8px'
+            }}
+          >
             MetalHub
           </h1>
-          <p style={{ color: '#d1d5db', fontSize: '1rem' }}>
+          <p style={{ 
+            color: '#d1d5db', 
+            fontSize: '1rem' 
+          }}>
             The Ultimate Metal Community
           </p>
         </div>

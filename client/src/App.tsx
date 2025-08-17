@@ -66,24 +66,41 @@ function App() {
   // If still checking authentication, show loading
   if (authLoading) {
     return (
-      <div style={{ 
-        minHeight: '100vh', 
-        background: 'linear-gradient(135deg, #1a1a1a 0%, #2d1b69 50%, #000000 100%)',
-        color: '#ffffff', 
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{ textAlign: 'center', padding: '32px' }}>
-          <div style={{ 
-            fontSize: '4rem', 
-            marginBottom: '24px',
-            animation: 'pulse 2s infinite'
-          }}>🤘</div>
-          <p style={{ fontSize: '1.5rem', color: '#dc2626', fontWeight: '600' }}>
+      <div 
+        className="responsive-login-container"
+        style={{ 
+          minHeight: '100vh', 
+          backgroundColor: '#000000',
+          color: '#ffffff', 
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}
+      >
+        <div style={{ textAlign: 'center' }}>
+          <div 
+            className="responsive-login-icon"
+            style={{ 
+              fontSize: '4rem', 
+              marginBottom: '16px'
+            }}
+          >🤘</div>
+          <p 
+            className="responsive-login-title"
+            style={{ 
+              fontSize: '1.5rem', 
+              color: '#dc2626', 
+              fontWeight: '600' 
+            }}
+          >
             Loading MetalHub...
           </p>
-          <p style={{ fontSize: '1rem', color: '#9ca3af', marginTop: '8px' }}>
+          <p style={{ 
+            fontSize: '1rem', 
+            color: '#9ca3af', 
+            marginTop: '8px' 
+          }}>
             Preparing your metal experience
           </p>
         </div>
@@ -92,50 +109,73 @@ function App() {
   }
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      backgroundColor: '#000000', 
-      color: '#ffffff', 
-      padding: '32px',
-      fontFamily: 'system-ui, sans-serif'
-    }}>
+    <div 
+      className="responsive-container"
+      style={{ 
+        minHeight: '100vh', 
+        backgroundColor: '#000000', 
+        color: '#ffffff', 
+        padding: '32px',
+        fontFamily: 'system-ui, sans-serif'
+      }}
+    >
       <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          marginBottom: '24px',
-          flexWrap: 'wrap',
-          gap: '16px'
-        }}>
-          <h1 style={{ 
-            fontSize: '2.5rem', 
-            fontWeight: 'bold', 
-            color: '#dc2626', 
-            margin: 0
-          }}>
+        <div 
+          className="responsive-header"
+          style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            marginBottom: '24px',
+            flexDirection: 'row',
+            gap: '16px'
+          }}
+        >
+          <h1 
+            className="responsive-title"
+            style={{ 
+              fontSize: '2.5rem', 
+              fontWeight: 'bold', 
+              color: '#dc2626', 
+              margin: 0,
+              lineHeight: '1.2'
+            }}
+          >
             🤘 MetalHub Band Database
           </h1>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '12px', 
+            flexWrap: 'wrap',
+            justifyContent: 'flex-end'
+          }}>
             {isAuthenticated ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 {user?.profileImageUrl && (
                   <img 
                     src={user.profileImageUrl}
                     alt="Profile"
                     style={{
-                      width: '32px',
-                      height: '32px',
+                      width: '28px',
+                      height: '28px',
                       borderRadius: '50%',
                       objectFit: 'cover'
                     }}
                   />
                 )}
-                <span style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
+                <span 
+                  className="responsive-text-sm"
+                  style={{ 
+                    fontSize: '0.875rem', 
+                    color: '#9ca3af' 
+                  }}
+                >
                   {user?.firstName || user?.email || 'User'}
                 </span>
                 <button
+                  className="responsive-btn-sm"
                   onClick={() => setShowLoginPage(true)}
                   style={{
                     padding: '6px 12px',
@@ -275,14 +315,18 @@ function App() {
               </p>
             </div>
           ) : (
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', 
-              gap: '16px' 
-            }}>
+            <div 
+              className="responsive-grid"
+              style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', 
+                gap: '16px'
+              }}
+            >
               {filteredBands.map((band, index) => (
                 <div 
                   key={`${band.id}-${index}`}
+                  className="responsive-card"
                   style={{ 
                     backgroundColor: '#1f2937', 
                     padding: '16px', 
@@ -292,16 +336,19 @@ function App() {
                     alignItems: 'flex-start'
                   }}
                 >
-                  <div style={{ 
-                    width: '60px', 
-                    height: '60px', 
-                    backgroundColor: '#374151', 
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0
-                  }}>
+                  <div 
+                    className="responsive-avatar"
+                    style={{ 
+                      width: '60px', 
+                      height: '60px', 
+                      backgroundColor: '#374151', 
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}
+                  >
                     {band.imageUrl ? (
                       <img 
                         src={band.imageUrl} 
@@ -314,30 +361,79 @@ function App() {
                         }}
                       />
                     ) : (
-                      <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                      <div style={{ 
+                        fontSize: '12px', 
+                        color: '#9ca3af' 
+                      }}>
                         🎸
                       </div>
                     )}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>{band.name}</h3>
-                    <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>{band.genre}</p>
-                    <p style={{ color: '#6b7280', fontSize: '0.75rem' }}>{band.description}</p>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h3 style={{ 
+                      fontSize: '1.125rem', 
+                      fontWeight: '600',
+                      margin: '0 0 4px 0',
+                      lineHeight: '1.2'
+                    }}>
+                      {band.name}
+                    </h3>
+                    <p 
+                      className="responsive-text-sm"
+                      style={{ 
+                        color: '#9ca3af', 
+                        fontSize: '0.875rem',
+                        margin: '0 0 4px 0'
+                      }}
+                    >
+                      {band.genre}
+                    </p>
+                    <p 
+                      className="responsive-text-xs"
+                      style={{ 
+                        color: '#6b7280', 
+                        fontSize: '0.75rem',
+                        margin: '0 0 8px 0',
+                        lineHeight: '1.3',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical'
+                      }}
+                    >
+                      {band.description}
+                    </p>
                     
                     {band.founded && (
-                      <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '4px' }}>
+                      <p 
+                        className="responsive-text-xs"
+                        style={{ 
+                          color: '#6b7280', 
+                          fontSize: '0.75rem', 
+                          margin: '2px 0'
+                        }}
+                      >
                         Founded: {band.founded}
                       </p>
                     )}
                     
                     {band.members && band.members.length > 0 && (
-                      <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '4px' }}>
+                      <p 
+                        className="responsive-text-xs"
+                        style={{ 
+                          color: '#6b7280', 
+                          fontSize: '0.75rem', 
+                          margin: '2px 0'
+                        }}
+                      >
                         Members: {band.members.slice(0, 2).join(', ')}
                         {band.members.length > 2 && ` +${band.members.length - 2} more`}
                       </p>
                     )}
                   </div>
                   <button
+                    className="responsive-btn-sm"
                     style={{ 
                       padding: '4px 12px', 
                       backgroundColor: '#dc2626', 
@@ -345,7 +441,8 @@ function App() {
                       fontSize: '0.875rem',
                       border: 'none',
                       color: 'white',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      flexShrink: 0
                     }}
                     onClick={() => console.log('Selected band:', band.name)}
                   >
