@@ -413,7 +413,7 @@ const App = () => {
         {showUserProfile && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 backdrop-blur-lg">
             <div className="bg-background border border-border rounded-xl p-6 max-w-4xl w-full max-h-[80vh] overflow-hidden">
-              <UserProfile onClose={() => setShowUserProfile(false)} />
+              <UserProfile userId="demo-user" isOwnProfile={true} onClose={() => setShowUserProfile(false)} />
             </div>
           </div>
         )}

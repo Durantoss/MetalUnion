@@ -35,6 +35,7 @@ interface UserData {
   followerCount: number;
   followingCount: number;
   isFollowing?: boolean;
+  createdAt: string;
 }
 
 interface Achievement {
