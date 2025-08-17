@@ -24,6 +24,8 @@ import { MetalLoader } from "@/components/ui/metal-loader";
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();
 
+  console.log("Auth state:", { user, isLoading, isAuthenticated }); // Debug log
+
   // Show loading screen while checking authentication
   if (isLoading) {
     return (
