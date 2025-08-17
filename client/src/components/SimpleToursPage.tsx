@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Search, MapPin, Calendar, DollarSign } from 'lucide-react';
 
 export function SimpleToursPage() {
+  console.log('SimpleToursPage component is rendering!');
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,12 +39,13 @@ export function SimpleToursPage() {
     <div style={{
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #1a1a1a 0%, #2d1b1b 50%, #1a1a1a 100%)',
-      padding: '2rem'
+      padding: '1rem',
+      paddingTop: '2rem'
     }}>
       {/* Hero Section */}
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
         <h1 style={{
-          fontSize: '4rem',
+          fontSize: 'clamp(2rem, 8vw, 4rem)',
           fontWeight: 'bold',
           background: 'linear-gradient(45deg, #dc2626, #facc15)',
           backgroundClip: 'text',
@@ -70,10 +73,11 @@ export function SimpleToursPage() {
         <div style={{
           backgroundColor: 'rgba(0, 0, 0, 0.8)',
           borderRadius: '16px',
-          padding: '1.5rem',
+          padding: '1rem',
           border: '2px solid rgba(220, 38, 38, 0.4)',
           backdropFilter: 'blur(20px)',
-          boxShadow: '0 8px 32px rgba(220, 38, 38, 0.2)'
+          boxShadow: '0 8px 32px rgba(220, 38, 38, 0.2)',
+          margin: '0 0.5rem'
         }}>
           <div style={{ position: 'relative', marginBottom: '1rem' }}>
             <input
@@ -84,13 +88,14 @@ export function SimpleToursPage() {
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               style={{
                 width: '100%',
-                padding: '16px 120px 16px 20px',
+                padding: '16px 100px 16px 20px',
                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
                 border: '1px solid rgba(220, 38, 38, 0.3)',
                 borderRadius: '12px',
                 color: 'white',
-                fontSize: '18px',
-                outline: 'none'
+                fontSize: '16px',
+                outline: 'none',
+                boxSizing: 'border-box'
               }}
             />
             <button
