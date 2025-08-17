@@ -137,7 +137,7 @@ const App = () => {
     
     // Force landing page display for mobile debugging
     if (currentSection === 'landing' || !currentSection || currentSection === '' || currentSection === undefined) {
-      console.log('Rendering LandingPage component');
+      console.log('Rendering ModernLandingPage component');
       
       // Mobile test mode - use simplified component
       const isMobile = window.innerWidth <= 768;

@@ -93,7 +93,7 @@
   }
 
   .neo-border {
-    border: 3px solid theme('colors.foreground');
+    border: 3px solid hsl(var(--foreground));
   }
 
   /* Glass morphism */
@@ -114,7 +114,7 @@
   /* Gradient text effects */
   .gradient-text-primary {
     background: linear-gradient(135deg, 
-      theme('colors.primary') 0%, 
+      hsl(var(--primary)) 0%, 
       hsl(var(--neon-pink)) 50%, 
       hsl(var(--electric-blue)) 100%);
     background-clip: text;
@@ -135,9 +135,9 @@
 
   /* Modern glow effects */
   .glow-primary {
-    box-shadow: 0 0 20px theme('colors.primary'),
-                0 0 40px theme('colors.primary'),
-                0 0 80px theme('colors.primary');
+    box-shadow: 0 0 20px hsl(var(--primary)),
+                0 0 40px hsl(var(--primary)),
+                0 0 80px hsl(var(--primary));
   }
 
   .glow-neon {
@@ -185,12 +185,12 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: theme('colors.muted');
+    background: hsl(var(--muted));
     border-radius: 10px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: theme('colors.primary');
+    background: hsl(var(--primary));
     border-radius: 10px;
   }
 
