@@ -1,8 +1,7 @@
-import { createRoot } from "react-dom/client";
 import { useState, useEffect } from "react";
-import "./index.css";
 
-function MetalHubApp() {
+// Simple version without hooks to test basic functionality
+export default function SimpleApp() {
   const [bands, setBands] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -111,7 +110,6 @@ function MetalHubApp() {
                   fontSize: '0.875rem',
                   fontWeight: '600'
                 }}
-                data-testid={`button-tickets-${band.name.toLowerCase().replace(/\s+/g, '-')}`}
               >
                 🎫 GET TICKETS
               </button>
@@ -121,13 +119,4 @@ function MetalHubApp() {
       </main>
     </div>
   );
-}
-
-const rootElement = document.getElementById("root");
-
-if (rootElement) {
-  const root = createRoot(rootElement);
-  root.render(<MetalHubApp />);
-} else {
-  console.error("Root element not found!");
 }
