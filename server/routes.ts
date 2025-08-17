@@ -7,6 +7,7 @@ import { performGoogleSearch } from "./googleSearch";
 import { tourDataService } from "./tourDataService";
 import { aiService, type BandRecommendation, type ChatResponse } from "./aiService";
 import { EventDiscoveryService } from "./eventDiscoveryService";
+import { MultiPlatformEventService } from "./multiPlatformEventService";
 import { concertRecommendationService, type ConcertRecommendation, type ConcertRecommendationRequest } from "./concertRecommendationService";
 import { ticketmasterService } from "./ticketmasterService";
 import multer from "multer";
@@ -673,19 +674,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Event Discovery API endpoints
+  // Event Discovery API endpoints  
   const eventDiscoveryService = new EventDiscoveryService();
+  const multiPlatformEventService = new MultiPlatformEventService();
 
-  // Discover events with AI-powered recommendations
+  // Discover events with multi-platform search and AI-powered recommendations
   app.post('/api/events/discover', async (req, res) => {
     try {
       const request = req.body;
+      console.log('Event discovery request received:', request);
       
-      if (!request.userLocation) {
-        return res.status(400).json({ error: 'User location is required for event discovery' });
-      }
+      // Use the new multi-platform service instead of the old Google-based one
+      const events = await multiPlatformEventService.discoverEvents(request);
+      console.log(`Returning ${events.length} events to client`);
       
-      const events = await eventDiscoveryService.discoverEvents(request);
       res.json(events);
     } catch (error) {
       console.error('Error discovering events:', error);
@@ -693,13 +695,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get personalized event recommendations
+  // Get personalized event recommendations using multi-platform search
   app.post('/api/events/personalized', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const request = req.body;
       
-      const events = await eventDiscoveryService.getPersonalizedRecommendations(userId, request);
+      // Add user preferences to request (you can expand this with actual user data from DB)
+      const enhancedRequest = {
+        ...request,
+        favoriteArtists: request.favoriteArtists || ['Metallica', 'Iron Maiden', 'Black Sabbath'],
+        preferredGenres: request.preferredGenres || ['metal', 'rock', 'hardcore']
+      };
+      
+      const events = await multiPlatformEventService.discoverEvents(enhancedRequest);
       res.json(events);
     } catch (error) {
       console.error('Error getting personalized events:', error);
@@ -734,7 +743,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         aiRecommendationReason: 'Great match for metal fans'
       };
       
-      const insights = await eventDiscoveryService.generateEventInsights(mockEvent);
+      const insights = await multiPlatformEventService.generateEventInsights(mockEvent);
       res.json(insights);
     } catch (error) {
       console.error('Error getting event insights:', error);

@@ -443,8 +443,43 @@ export function EnhancedEventsPage() {
                 animation: 'spin 1s linear infinite'
               }}></div>
               <span style={{ fontSize: '1.25rem', color: '#facc15' }}>
-                Discovering amazing events...
+                Searching SeatGeek, Ticketmaster & Bandsintown...
               </span>
+            </div>
+          </div>
+        )}
+
+        {/* Demo Events Notice */}
+        {!isLoading && events.length > 0 && events[0].id.startsWith('demo-') && (
+          <div style={{
+            backgroundColor: 'rgba(234, 179, 8, 0.1)',
+            border: '1px solid rgba(234, 179, 8, 0.3)',
+            borderRadius: '8px',
+            padding: '1rem',
+            marginBottom: '2rem',
+            display: 'flex',
+            alignItems: 'start',
+            gap: '12px'
+          }}>
+            <div style={{
+              color: '#facc15',
+              fontSize: '1.5rem',
+              flexShrink: 0,
+              marginTop: '4px'
+            }}>
+              ℹ️
+            </div>
+            <div>
+              <h3 style={{ color: '#facc15', marginBottom: '8px', fontSize: '1rem', fontWeight: 'bold' }}>
+                Demo Mode Active
+              </h3>
+              <p style={{ color: '#d1d5db', fontSize: '0.875rem', lineHeight: '1.4', marginBottom: '8px' }}>
+                Currently showing sample events. Once API keys for SeatGeek, Ticketmaster, and Bandsintown are configured, 
+                you'll see real concert and event data from all major ticketing platforms.
+              </p>
+              <p style={{ color: '#9ca3af', fontSize: '0.75rem' }}>
+                The system is ready and will automatically search multiple platforms for the best metal, rock, and hardcore events in your area.
+              </p>
             </div>
           </div>
         )}
