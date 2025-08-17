@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "./hooks/useAuth";
 import { LoginPage } from "./components/LoginPage";
+import { ConcertRecommendations } from "./components/ConcertRecommendations";
 
 function App() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -8,6 +9,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showLoginPage, setShowLoginPage] = useState(false);
+  const [showConcertRecommendations, setShowConcertRecommendations] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredBands, setFilteredBands] = useState<any[]>([]);
   
@@ -64,6 +66,19 @@ function App() {
   // Show login page if explicitly requested
   if (showLoginPage) {
     return <LoginPage onBack={() => setShowLoginPage(false)} />;
+  }
+
+  // Show concert recommendations if requested
+  if (showConcertRecommendations) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        backgroundColor: '#0a0a0a', 
+        color: '#ffffff' 
+      }}>
+        <ConcertRecommendations onClose={() => setShowConcertRecommendations(false)} />
+      </div>
+    );
   }
 
   // If still checking authentication, show loading
@@ -143,6 +158,23 @@ function App() {
           <span style={{ color: '#999', fontSize: '0.9rem', cursor: 'pointer' }}>REVIEWS</span>
           <span style={{ color: '#999', fontSize: '0.9rem', cursor: 'pointer' }}>TOURS</span>
           <span style={{ color: '#999', fontSize: '0.9rem', cursor: 'pointer' }}>PHOTOS</span>
+          {isAuthenticated && (
+            <span 
+              onClick={() => setShowConcertRecommendations(true)}
+              style={{ 
+                color: '#dc2626', 
+                fontSize: '0.9rem', 
+                cursor: 'pointer',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+              data-testid="button-concert-recommendations"
+            >
+              🎯 AI CONCERTS
+            </span>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <input
               type="text"

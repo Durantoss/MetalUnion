@@ -6,6 +6,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { googleSearchService, type EnhancedSearchResult } from "./googleSearch";
 import { tourDataService } from "./tourDataService";
 import { aiService, type BandRecommendation, type ChatResponse } from "./aiService";
+import { concertRecommendationService, type ConcertRecommendation, type ConcertRecommendationRequest } from "./concertRecommendationService";
 import multer from "multer";
 import path from "path";
 
@@ -1049,6 +1050,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating band photo:", error);
       res.status(500).json({ error: "Failed to update band photo" });
+    }
+  });
+
+  // Concert recommendation routes
+  app.post('/api/recommendations/concerts', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const requestData: ConcertRecommendationRequest = {
+        userId,
+        ...req.body
+      };
+      
+      const recommendations = await concertRecommendationService.generateRecommendations(requestData);
+      res.json({ recommendations });
+    } catch (error) {
+      console.error('Error generating concert recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate concert recommendations' });
+    }
+  });
+
+  app.get('/api/recommendations/concerts/:bandId/insights', async (req, res) => {
+    try {
+      const { bandId } = req.params;
+      const userId = req.query.userId as string;
+      
+      const insights = await concertRecommendationService.getConcertInsights(bandId, userId);
+      res.json(insights);
+    } catch (error) {
+      console.error('Error getting concert insights:', error);
+      res.status(500).json({ message: 'Failed to get concert insights' });
+    }
+  });
+
+  app.get('/api/recommendations/user-preferences', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // In a real app, you'd have a user preferences table
+      // For now, infer preferences from user activity
+      const userBands = await storage.getBandsByOwner(userId);
+      const genres = [...new Set(userBands.map(band => band.genre))];
+      
+      const defaultPreferences = {
+        favoriteGenres: genres.length > 0 ? genres : ['Metal', 'Rock'],
+        location: null,
+        priceRange: { min: 20, max: 200 },
+        travelWillingness: 'regional' as const,
+        concertFrequency: 'monthly' as const
+      };
+      
+      res.json(defaultPreferences);
+    } catch (error) {
+      console.error('Error getting user preferences:', error);
+      res.status(500).json({ message: 'Failed to get user preferences' });
+    }
+  });
+
+  app.put('/api/recommendations/user-preferences', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const preferences = req.body;
+      
+      // In a real app, you'd save these to a user_preferences table
+      // For now, just return the updated preferences
+      res.json({ 
+        message: 'Preferences updated successfully',
+        preferences 
+      });
+    } catch (error) {
+      console.error('Error updating user preferences:', error);
+      res.status(500).json({ message: 'Failed to update preferences' });
     }
   });
 
