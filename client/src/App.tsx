@@ -133,7 +133,19 @@ const App = () => {
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
             <button 
-              onClick={() => window.location.href = '/api/login'}
+              onClick={() => {
+                console.log('Login button clicked');
+                fetch('/api/login')
+                  .then(response => response.json())
+                  .then(data => {
+                    console.log('Login response:', data);
+                    alert(data.message || 'Login functionality temporarily disabled for testing');
+                  })
+                  .catch(err => {
+                    console.error('Login error:', err);
+                    alert('Login service temporarily unavailable');
+                  });
+              }}
               style={{
                 backgroundColor: '#dc2626',
                 color: 'white',

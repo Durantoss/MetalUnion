@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertBandSchema, insertReviewSchema, insertPhotoSchema, insertTourSchema, insertMessageSchema } from "@shared/schema";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./simpleAuth";
 import { googleSearchService, type EnhancedSearchResult } from "./googleSearch";
 import { tourDataService } from "./tourDataService";
 import { aiService, type BandRecommendation, type ChatResponse } from "./aiService";
