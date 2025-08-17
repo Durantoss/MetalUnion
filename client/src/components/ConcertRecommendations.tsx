@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { MapPin, Calendar, Star, Zap, Settings } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+// import { useAuth } from '@/hooks/useAuth'; // Temporarily disabled
 
 interface ConcertRecommendation {
   band: {
@@ -49,7 +49,8 @@ interface ConcertRecommendationsProps {
 }
 
 export function ConcertRecommendations({ onClose }: ConcertRecommendationsProps) {
-  const { isAuthenticated } = useAuth();
+  // const { isAuthenticated } = useAuth(); // Temporarily disabled
+  const isAuthenticated = false;
   const [showPreferences, setShowPreferences] = useState(false);
   const [preferences, setPreferences] = useState<UserPreferences>({
     favoriteGenres: ['Metal', 'Rock'],
