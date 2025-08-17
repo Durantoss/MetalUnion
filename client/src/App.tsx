@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { BandComparison } from './components/BandComparison';
 
 interface Band {
   id: string;
@@ -17,6 +18,7 @@ const App = () => {
   const [bands, setBands] = useState<Band[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showComparison, setShowComparison] = useState(false);
 
   useEffect(() => {
     console.log('App component mounted');
@@ -129,21 +131,38 @@ const App = () => {
           }}>
             Metal Community Platform - {bands.length} Bands
           </p>
-          <button 
-            onClick={() => window.location.href = '/api/login'}
-            style={{
-              backgroundColor: '#dc2626',
-              color: 'white',
-              padding: '12px 24px',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '1rem',
-              cursor: 'pointer',
-              fontWeight: '600'
-            }}
-          >
-            Sign in with Replit
-          </button>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <button 
+              onClick={() => window.location.href = '/api/login'}
+              style={{
+                backgroundColor: '#dc2626',
+                color: 'white',
+                padding: '12px 24px',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                fontWeight: '600'
+              }}
+            >
+              Sign in with Replit
+            </button>
+            <button 
+              onClick={() => setShowComparison(true)}
+              style={{
+                backgroundColor: '#059669',
+                color: 'white',
+                padding: '12px 24px',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                fontWeight: '600'
+              }}
+            >
+              Compare Bands
+            </button>
+          </div>
         </header>
 
         <div style={{
@@ -258,6 +277,13 @@ const App = () => {
             </div>
           ))}
         </div>
+
+        {showComparison && (
+          <BandComparison 
+            bands={bands} 
+            onClose={() => setShowComparison(false)} 
+          />
+        )}
       </div>
     </div>
   );
