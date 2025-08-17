@@ -205,7 +205,217 @@ export function EnhancedToursPage() {
           </p>
         </div>
 
-        {/* Search Section */}
+        {/* Primary Search Bar */}
+        <div style={{
+          maxWidth: '800px',
+          margin: '0 auto 1rem auto',
+          position: 'relative'
+        }}>
+          <div style={{
+            position: 'relative',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            borderRadius: '16px',
+            padding: '1rem',
+            border: '2px solid rgba(220, 38, 38, 0.4)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 8px 32px rgba(220, 38, 38, 0.2)'
+          }}>
+            <div style={{ position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="🔍 Search tours: metallica, iron maiden, metal tour 2025..."
+                value={searchFilters.query}
+                onChange={(e) => handleQueryChange(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                onFocus={() => {
+                  if (searchFilters.query.length > 2) {
+                    setShowSuggestions(true);
+                  }
+                }}
+                onBlur={() => {
+                  setTimeout(() => setShowSuggestions(false), 200);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '16px 120px 16px 20px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(220, 38, 38, 0.3)',
+                  borderRadius: '12px',
+                  color: 'white',
+                  fontSize: '18px',
+                  outline: 'none',
+                  transition: 'all 0.3s ease'
+                }}
+                data-testid="input-tour-search"
+              />
+              <button
+                onClick={handleSearch}
+                style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  padding: '12px 24px',
+                  backgroundColor: '#dc2626',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)'
+                }}
+                data-testid="button-search-tours"
+              >
+                SEARCH
+              </button>
+              
+              {/* Search Suggestions */}
+              {showSuggestions && (searchSuggestions.length > 0 || searchHistory.length > 0) && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                  border: '1px solid rgba(220, 38, 38, 0.3)',
+                  borderRadius: '0 0 12px 12px',
+                  zIndex: 20,
+                  maxHeight: '300px',
+                  overflowY: 'auto',
+                  backdropFilter: 'blur(10px)',
+                  marginTop: '4px'
+                }}>
+                  {searchHistory.length > 0 && (
+                    <>
+                      <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(220, 38, 38, 0.2)' }}>
+                        <p style={{ color: '#eab308', fontSize: '14px', margin: 0, fontWeight: '600' }}>
+                          Recent Searches
+                        </p>
+                      </div>
+                      {searchHistory.slice(0, 3).map((item, index) => (
+                        <div
+                          key={`history-${index}`}
+                          onClick={() => selectSuggestion(item)}
+                          style={{
+                            padding: '12px 16px',
+                            cursor: 'pointer',
+                            color: 'rgba(255, 255, 255, 0.9)',
+                            fontSize: '16px',
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                            transition: 'background-color 0.2s',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                          data-testid={`search-history-${index}`}
+                        >
+                          <Clock size={16} style={{ marginRight: '12px', color: '#eab308' }} />
+                          {item}
+                        </div>
+                      ))}
+                    </>
+                  )}
+                  
+                  {searchSuggestions.filter(s => !searchHistory.includes(s)).slice(0, 6).map((suggestion, index) => (
+                    <div
+                      key={`suggestion-${index}`}
+                      onClick={() => selectSuggestion(suggestion)}
+                      style={{
+                        padding: '12px 16px',
+                        cursor: 'pointer',
+                        color: 'rgba(255, 255, 255, 0.9)',
+                        fontSize: '16px',
+                        borderBottom: index < 5 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none',
+                        transition: 'background-color 0.2s',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(234, 179, 8, 0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
+                      data-testid={`search-suggestion-${index}`}
+                    >
+                      <Search size={16} style={{ marginRight: '12px', color: '#dc2626' }} />
+                      {suggestion}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Quick Action Buttons */}
+            <div style={{ 
+              display: 'flex', 
+              gap: '12px', 
+              justifyContent: 'center', 
+              marginTop: '16px',
+              flexWrap: 'wrap'
+            }}>
+              <button
+                onClick={() => selectSuggestion('metal tour 2025')}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'rgba(234, 179, 8, 0.2)',
+                  color: '#eab308',
+                  border: '1px solid rgba(234, 179, 8, 0.4)',
+                  borderRadius: '20px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                data-testid="button-quick-metal"
+              >
+                🤘 Metal Tours
+              </button>
+              
+              <button
+                onClick={() => selectSuggestion('rock festival')}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'rgba(220, 38, 38, 0.2)',
+                  color: '#dc2626',
+                  border: '1px solid rgba(220, 38, 38, 0.4)',
+                  borderRadius: '20px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                data-testid="button-quick-rock"
+              >
+                🎸 Rock Festivals
+              </button>
+              
+              <button
+                onClick={() => selectSuggestion('metallica tour')}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: 'white',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '20px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                data-testid="button-quick-metallica"
+              >
+                ⚡ Metallica
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Advanced Filters */}
         <div style={{
           maxWidth: '1200px',
           margin: '0 auto 2rem auto',
@@ -215,133 +425,45 @@ export function EnhancedToursPage() {
           border: '1px solid rgba(220, 38, 38, 0.3)',
           backdropFilter: 'blur(10px)'
         }}>
-          <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
-            <div>
-              <label style={{ 
-                display: 'block', 
-                marginBottom: '0.5rem', 
-                color: '#eab308', 
-                fontWeight: '600' 
-              }}>
-                Search Tours
-              </label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="text"
-                  placeholder="Search tours: metallica, iron maiden, metal tour 2025..."
-                  value={searchFilters.query}
-                  onChange={(e) => handleQueryChange(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  onFocus={() => {
-                    if (searchFilters.query.length > 2) {
-                      setShowSuggestions(true);
-                    }
-                  }}
-                  onBlur={() => {
-                    // Delay hiding suggestions to allow clicks
-                    setTimeout(() => setShowSuggestions(false), 200);
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px 12px 40px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    border: '1px solid rgba(220, 38, 38, 0.3)',
-                    borderRadius: showSuggestions ? '8px 8px 0 0' : '8px',
-                    color: 'white',
-                    fontSize: '16px',
-                    outline: 'none',
-                    transition: 'border-radius 0.2s'
-                  }}
-                  data-testid="input-tour-search"
-                />
-                <Search style={{ 
-                  position: 'absolute', 
-                  left: '12px', 
-                  top: '50%', 
-                  transform: 'translateY(-50%)',
-                  color: '#dc2626',
-                  width: '20px',
-                  height: '20px'
-                }} />
-                
-                {/* Search Suggestions Dropdown */}
-                {showSuggestions && (searchSuggestions.length > 0 || searchHistory.length > 0) && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    right: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                    border: '1px solid rgba(220, 38, 38, 0.3)',
-                    borderTop: 'none',
-                    borderRadius: '0 0 8px 8px',
-                    zIndex: 10,
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                    backdropFilter: 'blur(10px)'
-                  }}>
-                    {searchHistory.length > 0 && (
-                      <div style={{ padding: '8px 12px', borderBottom: '1px solid rgba(220, 38, 38, 0.2)' }}>
-                        <p style={{ color: '#eab308', fontSize: '12px', margin: 0, fontWeight: '600' }}>
-                          Recent Searches
-                        </p>
-                      </div>
-                    )}
-                    {searchHistory.slice(0, 3).map((item, index) => (
-                      <div
-                        key={`history-${index}`}
-                        onClick={() => selectSuggestion(item)}
-                        style={{
-                          padding: '10px 12px',
-                          cursor: 'pointer',
-                          color: 'rgba(255, 255, 255, 0.8)',
-                          fontSize: '14px',
-                          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                          transition: 'background-color 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.1)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                        }}
-                        data-testid={`search-history-${index}`}
-                      >
-                        <Clock size={12} style={{ marginRight: '8px', color: '#eab308' }} />
-                        {item}
-                      </div>
-                    ))}
-                    
-                    {searchSuggestions.filter(s => !searchHistory.includes(s)).slice(0, 5).map((suggestion, index) => (
-                      <div
-                        key={`suggestion-${index}`}
-                        onClick={() => selectSuggestion(suggestion)}
-                        style={{
-                          padding: '10px 12px',
-                          cursor: 'pointer',
-                          color: 'rgba(255, 255, 255, 0.9)',
-                          fontSize: '14px',
-                          borderBottom: index < 4 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none',
-                          transition: 'background-color 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'rgba(234, 179, 8, 0.1)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                        }}
-                        data-testid={`search-suggestion-${index}`}
-                      >
-                        <Search size={12} style={{ marginRight: '8px', color: '#dc2626' }} />
-                        {suggestion}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            marginBottom: '1rem'
+          }}>
+            <h3 style={{ 
+              color: '#eab308', 
+              fontSize: '18px', 
+              margin: 0, 
+              fontWeight: '600' 
+            }}>
+              Advanced Filters
+            </h3>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: showFilters ? '#dc2626' : 'rgba(220, 38, 38, 0.2)',
+                color: showFilters ? 'white' : '#dc2626',
+                border: '1px solid rgba(220, 38, 38, 0.4)',
+                borderRadius: '8px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+              data-testid="button-toggle-filters"
+            >
+              <Filter size={16} />
+              {showFilters ? 'Hide Filters' : 'Show Filters'}
+            </button>
+          </div>
 
-            <div>
+          {showFilters && (
+            <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
+              <div>
               <label style={{ 
                 display: 'block', 
                 marginBottom: '0.5rem', 
@@ -434,7 +556,8 @@ export function EnhancedToursPage() {
                 />
               </div>
             </div>
-          </div>
+            </div>
+          )}
 
           <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button
