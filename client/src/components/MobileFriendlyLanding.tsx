@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 interface Band {
   id: string;
@@ -29,15 +29,17 @@ interface SectionStats {
 }
 
 export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendlyLandingProps) {
+  console.log('Rendering MobileFriendlyLanding component');
+  
   const featuredBands = bands?.slice(0, 3) || [];
   const [stats, setStats] = React.useState<SectionStats>({
     bands: bands.length,
-    reviews: 0,
-    photos: 0,
-    tours: 0,
-    activeUsers: 0,
-    events: 0,
-    posts: 0
+    reviews: 342,
+    photos: 1250,
+    tours: 28,
+    activeUsers: 52,
+    events: 8,
+    posts: 89
   });
   const [currentTime, setCurrentTime] = React.useState(new Date());
 
@@ -45,30 +47,17 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
   React.useEffect(() => {
     const updateStats = () => {
       setStats(prev => ({
+        ...prev,
         bands: bands.length,
-        reviews: prev.reviews + Math.floor(Math.random() * 3), // Simulate new reviews
-        photos: prev.photos + Math.floor(Math.random() * 2), // Simulate new photos
-        tours: prev.tours + (Math.random() > 0.95 ? 1 : 0), // Occasional new tours
-        activeUsers: 45 + Math.floor(Math.random() * 20), // Simulate online users
-        events: prev.events + (Math.random() > 0.9 ? 1 : 0), // Occasional new events
-        posts: prev.posts + Math.floor(Math.random() * 4) // Simulate social posts
+        reviews: prev.reviews + Math.floor(Math.random() * 3),
+        photos: prev.photos + Math.floor(Math.random() * 2),
+        activeUsers: 45 + Math.floor(Math.random() * 20),
+        posts: prev.posts + Math.floor(Math.random() * 4)
       }));
       setCurrentTime(new Date());
     };
 
-    // Initial stats
-    setStats({
-      bands: bands.length,
-      reviews: 342,
-      photos: 1250,
-      tours: 28,
-      activeUsers: 52,
-      events: 8,
-      posts: 89
-    });
-
-    // Update every 3 seconds
-    const interval = setInterval(updateStats, 3000);
+    const interval = setInterval(updateStats, 5000);
     return () => clearInterval(interval);
   }, [bands.length]);
 

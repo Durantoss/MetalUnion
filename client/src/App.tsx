@@ -5,7 +5,7 @@ import { ToursSection } from './components/ToursSection';
 import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
 import { ThePit } from './components/ThePit';
-import { MobileFriendlyLanding } from './components/MobileFriendlyLanding';
+import { SimpleLanding } from './components/SimpleLanding';
 import { EnhancedSocialHub } from './components/EnhancedSocialHub';
 import { UserProfile } from './components/UserProfile';
 import { NotificationCenter } from './components/NotificationCenter';
@@ -154,7 +154,7 @@ const App = () => {
       console.log('Rendering MobileFriendlyLanding component');
       
       return (
-        <MobileFriendlyLanding 
+        <SimpleLanding 
           onSectionChange={setCurrentSection}
           bands={bands}
         />
