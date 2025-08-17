@@ -7,7 +7,7 @@ MetalHub is a comprehensive full-stack music community platform designed for met
 ## Recent Changes (August 17, 2025)
 
 **Hero Design Recreation Complete**: Successfully recreated the original dramatic hero-style landing page design based on user's uploaded screenshot. User confirmed this is the design to work with moving forward. Features include:
-- Large "DISCOVER THE UNDERGROUND" hero section with dramatic red typography and text shadows
+- Large "GAZE INTO THE ABYSS" hero section with dramatic red typography and text shadows
 - Professional navigation header with METALHUB branding and responsive design
 - Featured bands displayed in large, image-focused cards with overlays and gradients
 - Star ratings and review counts for community engagement

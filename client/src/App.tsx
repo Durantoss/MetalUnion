@@ -237,7 +237,7 @@ function App() {
             lineHeight: '1.1',
             textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
           }}>
-            DISCOVER THE <span style={{ color: '#dc2626' }}>UNDERGROUND</span>
+            GAZE INTO THE <span style={{ color: '#dc2626' }}>ABYSS</span>
           </h1>
           <p style={{
             fontSize: '1.25rem',
