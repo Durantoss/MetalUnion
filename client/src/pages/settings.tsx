@@ -93,17 +93,10 @@ export default function Settings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user/preferences"] });
-      toast({
-        title: "Preferences Updated",
-        description: "Your account preferences have been saved successfully!",
-      });
+      console.log("Preferences updated successfully");
     },
     onError: (error: Error) => {
-      toast({
-        title: "Update Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Preferences update failed:", error.message);
     },
   });
 
