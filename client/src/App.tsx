@@ -20,8 +20,11 @@ function App() {
   useEffect(() => {
     document.body.style.margin = '0';
     document.body.style.padding = '0';
-    document.body.style.backgroundColor = '#000000';
+    document.body.style.backgroundColor = '#0a0a0a';
     document.body.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+    document.body.style.overflow = 'auto';
+    document.documentElement.style.margin = '0';
+    document.documentElement.style.padding = '0';
   }, []);
 
   useEffect(() => {
@@ -130,7 +133,12 @@ function App() {
         }}>
           METALHUB
         </div>
-        <nav style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
+        <nav style={{ 
+          display: 'flex', 
+          gap: 'clamp(16px, 4vw, 32px)', 
+          alignItems: 'center',
+          flexWrap: 'wrap'
+        }}>
           <span style={{ color: '#999', fontSize: '0.9rem', cursor: 'pointer' }}>BANDS</span>
           <span style={{ color: '#999', fontSize: '0.9rem', cursor: 'pointer' }}>REVIEWS</span>
           <span style={{ color: '#999', fontSize: '0.9rem', cursor: 'pointer' }}>TOURS</span>
@@ -207,7 +215,11 @@ function App() {
         backgroundPosition: 'center',
         padding: '80px 24px',
         textAlign: 'center',
-        position: 'relative'
+        position: 'relative',
+        minHeight: '500px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}>
         <div style={{
           position: 'absolute',
@@ -219,10 +231,11 @@ function App() {
         }}></div>
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
           <h1 style={{
-            fontSize: '4rem',
+            fontSize: 'clamp(2rem, 8vw, 4rem)',
             fontWeight: 'bold',
             marginBottom: '16px',
-            lineHeight: '1.1'
+            lineHeight: '1.1',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
           }}>
             DISCOVER THE <span style={{ color: '#dc2626' }}>UNDERGROUND</span>
           </h1>
@@ -234,7 +247,12 @@ function App() {
           }}>
             Reviews, photos, and tour dates for the heaviest bands on the planet
           </p>
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+          <div style={{ 
+            display: 'flex', 
+            gap: '16px', 
+            justifyContent: 'center',
+            flexWrap: 'wrap' 
+          }}>
             <button style={{
               padding: '12px 24px',
               backgroundColor: '#dc2626',
