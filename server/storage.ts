@@ -520,7 +520,7 @@ export class MemStorage implements IStorage {
       ...userReviews.map(review => ({
         type: 'review',
         timestamp: review.createdAt || new Date(),
-        genre: review.genre,
+        genre: review.reviewType,
         item: review.stagename,
         rating: review.rating
       }))
@@ -861,7 +861,7 @@ export class DatabaseStorage implements IStorage {
         ...userReviews.map(review => ({
           type: 'review',
           timestamp: review.createdAt || new Date(),
-          genre: review.genre,
+          genre: review.reviewType,
           item: review.stagename,
           rating: review.rating
         }))

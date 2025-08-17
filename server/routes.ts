@@ -985,6 +985,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
+  // Object Storage Routes for Band Photos
+  app.get("/public-objects/:filePath(*)", async (req, res) => {
+    const filePath = req.params.filePath;
+    const { ObjectStorageService } = await import("./objectStorage");
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const file = await objectStorageService.searchPublicObject(filePath);
+      if (!file) {
+        return res.status(404).json({ error: "File not found" });
+      }
+      objectStorageService.downloadObject(file, res);
+    } catch (error) {
+      console.error("Error searching for public object:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/objects/upload", async (req, res) => {
+    const { ObjectStorageService } = await import("./objectStorage");
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Failed to get upload URL" });
+    }
+  });
+
+  app.put("/api/bands/:id/photo", async (req, res) => {
+    try {
+      const { photoURL } = req.body;
+      const bandId = req.params.id;
+      
+      if (!photoURL) {
+        return res.status(400).json({ error: "photoURL is required" });
+      }
+
+      const { ObjectStorageService } = await import("./objectStorage");
+      const objectStorageService = new ObjectStorageService();
+      
+      // Set ACL policy for public band photo
+      const objectPath = objectStorageService.normalizeObjectEntityPath(photoURL);
+      
+      // Update band with photo URL
+      const updatedBand = await storage.updateBand(bandId, { 
+        imageUrl: objectPath 
+      });
+      
+      if (!updatedBand) {
+        return res.status(404).json({ error: "Band not found" });
+      }
+
+      res.json({ 
+        band: updatedBand,
+        photoUrl: objectPath 
+      });
+    } catch (error) {
+      console.error("Error updating band photo:", error);
+      res.status(500).json({ error: "Failed to update band photo" });
+    }
+  });
+
   // Background AI Routes
   app.post("/api/ai/recommendations", async (req, res) => {
     try {
