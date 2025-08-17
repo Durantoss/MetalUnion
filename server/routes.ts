@@ -5,6 +5,7 @@ import { insertBandSchema, insertReviewSchema, insertPhotoSchema, insertTourSche
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { googleSearchService, type EnhancedSearchResult } from "./googleSearch";
 import { tourDataService } from "./tourDataService";
+import { aiService, type BandRecommendation, type ChatResponse } from "./aiService";
 import multer from "multer";
 import path from "path";
 
@@ -908,6 +909,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/uploads', (req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     next();
+  });
+
+  // AI Features Routes
+  
+  // Smart Band Recommendations
+  app.get('/api/ai/recommendations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      const allBands = await storage.getBands();
+      
+      // Get user preferences (in a real app, you'd store these)
+      const userBands = ['Metallica', 'Iron Maiden']; // Default favorites
+      const userGenres = ['Heavy Metal', 'Thrash Metal'];
+      
+      const recommendations = await aiService.getRecommendations(
+        userBands,
+        userGenres,
+        allBands
+      );
+      
+      res.json(recommendations);
+    } catch (error) {
+      console.error('Error getting AI recommendations:', error);
+      res.status(500).json({ message: 'Failed to get recommendations' });
+    }
+  });
+
+  // Enhanced Natural Language Search
+  app.post('/api/ai/search', async (req, res) => {
+    try {
+      const { query } = req.body;
+      
+      if (!query) {
+        return res.status(400).json({ message: 'Query is required' });
+      }
+      
+      const enhancement = await aiService.enhanceSearchQuery(query);
+      
+      // Use enhanced query for better search results
+      let searchResults = [];
+      if (enhancement.enhancedQuery) {
+        searchResults = await storage.searchBands(enhancement.enhancedQuery);
+      }
+      
+      res.json({
+        originalQuery: query,
+        enhancement,
+        searchResults
+      });
+    } catch (error) {
+      console.error('Error in AI search:', error);
+      res.status(500).json({ message: 'Failed to enhance search' });
+    }
+  });
+
+  // Music Analysis
+  app.get('/api/ai/analyze/:bandId', async (req, res) => {
+    try {
+      const band = await storage.getBand(req.params.bandId);
+      
+      if (!band) {
+        return res.status(404).json({ message: 'Band not found' });
+      }
+      
+      const analysis = await aiService.analyzeBand(
+        band.name,
+        band.genre || '',
+        band.description || '',
+        band.albums
+      );
+      
+      res.json({
+        bandId: band.id,
+        bandName: band.name,
+        analysis
+      });
+    } catch (error) {
+      console.error('Error analyzing band:', error);
+      res.status(500).json({ message: 'Failed to analyze band' });
+    }
+  });
+
+  // AI Chat Assistant
+  app.post('/api/ai/chat', async (req, res) => {
+    try {
+      const { message, context } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ message: 'Message is required' });
+      }
+      
+      const response = await aiService.chatWithAI(message, context || {});
+      
+      res.json(response);
+    } catch (error) {
+      console.error('Error in AI chat:', error);
+      res.status(500).json({ 
+        message: "I'm having trouble connecting right now. Try asking about metal bands or music discovery!",
+        suggestions: [
+          "Tell me about different metal genres",
+          "Recommend bands for beginners",
+          "What's happening in metal music lately?"
+        ]
+      });
+    }
+  });
+
+  // Photo Analysis
+  app.post('/api/ai/photos/analyze', async (req, res) => {
+    try {
+      const { description, category } = req.body;
+      
+      if (!description) {
+        return res.status(400).json({ message: 'Photo description is required' });
+      }
+      
+      const analysis = await aiService.analyzePhoto(
+        description,
+        category || 'live'
+      );
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error('Error analyzing photo:', error);
+      res.status(500).json({ message: 'Failed to analyze photo' });
+    }
   });
 
   const httpServer = createServer(app);

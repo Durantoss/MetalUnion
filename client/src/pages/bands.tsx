@@ -9,7 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { MetalLoader } from "@/components/ui/metal-loader";
 import LighterRating from "@/components/ui/star-rating";
 import { WebSearchResults, type WebSearchResult } from "@/components/WebSearchResults";
-import { Search, Filter, X, Calendar, MapPin, ExternalLink, Clock, Globe, Database } from "lucide-react";
+import { SmartSearch } from "@/components/ui/smart-search";
+import { AIRecommendations } from "@/components/ui/ai-recommendations";
+import { Search, Filter, X, Calendar, MapPin, ExternalLink, Clock, Globe, Database, Bot, Sparkles } from "lucide-react";
 import type { Band, Tour } from "@shared/schema";
 
 // Extended type to include upcoming tours
@@ -34,6 +36,7 @@ export default function Bands() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [includeWebResults, setIncludeWebResults] = useState(false);
   const [searchMode, setSearchMode] = useState<'database' | 'enhanced'>('database');
+  const [showAIFeatures, setShowAIFeatures] = useState(false);
 
   // Regular database search
   const { data: allBands = [], isLoading: bandsLoading } = useQuery<BandWithTours[]>({
@@ -214,6 +217,18 @@ export default function Bands() {
               </Select>
             </div>
 
+            {/* AI Features Toggle */}
+            <Button
+              onClick={() => setShowAIFeatures(!showAIFeatures)}
+              variant={showAIFeatures ? "default" : "outline"}
+              size="lg"
+              className="gap-2 h-12 sm:h-14 font-bold uppercase tracking-wider text-sm sm:text-base bg-gradient-to-r from-metal-red to-red-600 hover:from-red-600 hover:to-metal-red"
+              data-testid="toggle-ai-features"
+            >
+              <Bot className="w-4 h-4" />
+              AI Features
+            </Button>
+
             {/* Web Search Toggle */}
             <div className="flex items-center gap-2 p-3 border border-metal-gray rounded-lg bg-black/50 min-w-full sm:min-w-40">
               <Globe className="w-4 h-4 text-metal-red" />
@@ -291,6 +306,52 @@ export default function Bands() {
               {searchQuery && ` MATCHING "${searchQuery}"`}
               {selectedGenre && ` IN ${selectedGenre}`}
             </p>
+          </div>
+        )}
+
+        {/* AI Features Section */}
+        {showAIFeatures && (
+          <div className="mb-8 space-y-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-6 h-6 text-metal-red" />
+              <h2 className="text-2xl font-bold uppercase tracking-wider">AI-Powered Features</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Smart Search */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold uppercase tracking-wider flex items-center gap-2">
+                  <Search className="w-5 h-5" />
+                  Smart Search
+                </h3>
+                <SmartSearch onResults={(results) => {
+                  console.log('Smart search results:', results);
+                  // Could update the main search results
+                }} />
+              </div>
+
+              {/* AI Recommendations */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold uppercase tracking-wider flex items-center gap-2">
+                  <Sparkles className="w-5 h-5" />
+                  Personal Recommendations
+                </h3>
+                <AIRecommendations />
+              </div>
+            </div>
+
+            <div className="text-center py-4">
+              <Link href="/ai-assistant">
+                <Button 
+                  size="lg" 
+                  className="bg-gradient-to-r from-metal-red to-red-600 hover:from-red-600 hover:to-metal-red gap-2"
+                  data-testid="link-full-ai-assistant"
+                >
+                  <Bot className="w-5 h-5" />
+                  Explore Full AI Assistant
+                </Button>
+              </Link>
+            </div>
           </div>
         )}
       </div>

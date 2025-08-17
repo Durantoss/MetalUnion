@@ -14,6 +14,7 @@ import Messages from "@/pages/messages";
 import Profile from "@/pages/profile";
 import MyBands from "@/pages/my-bands";
 import Search from "@/pages/search";
+import AIAssistant from "@/pages/ai-assistant";
 import NotFound from "@/pages/not-found";
 import UserOnboarding from "@/components/user-onboarding";
 import { InstallPrompt } from "@/components/install-prompt";
@@ -60,6 +61,7 @@ function Router() {
         <Route path="/profile" component={Profile} />
         <Route path="/my-bands" component={MyBands} />
         <Route path="/search" component={Search} />
+        <Route path="/ai-assistant" component={AIAssistant} />
         <Route component={NotFound} />
       </Switch>
       <Footer />
