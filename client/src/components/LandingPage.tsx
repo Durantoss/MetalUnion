@@ -121,24 +121,25 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white relative">
+    <div className="min-h-screen bg-black text-white relative safe-top safe-bottom">
       {/* Floating Navigation Button */}
       <button
         onClick={() => {
           console.log('Floating nav button clicked');
           onSectionChange('bands');
         }}
-        className="fixed top-4 right-4 z-50 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full 
-                   transition-all duration-300 transform hover:scale-110 shadow-lg"
+        className="fixed top-3 sm:top-4 right-3 sm:right-4 z-50 bg-red-600 hover:bg-red-700 
+                   text-white p-2.5 sm:p-3 rounded-full transition-all duration-300 
+                   transform hover:scale-110 active:scale-95 shadow-lg shadow-red-500/25"
         data-testid="button-floating-nav"
         title="Go to Bands"
         style={{
           touchAction: 'manipulation',
-          minWidth: '48px',
-          minHeight: '48px'
+          minWidth: '44px',
+          minHeight: '44px'
         }}
       >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                 d="M4 6h16M4 12h16M4 18h16" />
         </svg>
@@ -166,34 +167,38 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
         {/* Hero Content */}
         <div className="relative z-10 text-center px-4 max-w-6xl mx-auto">
           <h1 
-            className="text-6xl md:text-8xl lg:text-9xl font-black mb-6"
+            className="text-4xl xs:text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-black mb-4 sm:mb-6"
             style={{
               background: 'linear-gradient(45deg, #dc2626, #b91c1c, #991b1b)',
               backgroundClip: 'text',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              textShadow: '0 0 30px rgba(220, 38, 38, 0.5)',
-              letterSpacing: '0.1em'
+              textShadow: '0 0 20px rgba(220, 38, 38, 0.5)',
+              letterSpacing: 'clamp(0.05em, 0.1em, 0.15em)',
+              lineHeight: '0.9'
             }}
           >
             MOSHUNION
           </h1>
           
-          <p className="text-xl md:text-3xl lg:text-4xl mb-8 font-bold text-gray-300">
+          <p className="text-lg sm:text-xl md:text-3xl lg:text-4xl mb-6 sm:mb-8 font-bold text-gray-300">
             GAZE INTO THE ABYSS
           </p>
           
-          <p className="text-lg md:text-xl mb-12 text-gray-400 max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl mb-8 sm:mb-12 text-gray-400 max-w-3xl mx-auto px-2">
             The ultimate destination for metal and rock enthusiasts. Discover bands, 
             track tours, share reviews, and connect with the global metal community.
           </p>
 
           {/* Featured Band Indicator */}
           {featuredBands.length > 0 && (
-            <div className="mb-8">
-              <p className="text-sm text-gray-500 mb-2">NOW FEATURING</p>
-              <p className="text-2xl font-bold text-red-400">
+            <div className="mb-6 sm:mb-8 px-4">
+              <p className="text-xs sm:text-sm text-gray-500 mb-2">NOW FEATURING</p>
+              <p className="text-xl sm:text-2xl font-bold text-red-400 break-words">
                 {featuredBands[currentImageIndex]?.name}
+              </p>
+              <p className="text-sm sm:text-base text-red-300 mt-1">
+                {featuredBands[currentImageIndex]?.genre}
               </p>
             </div>
           )}
@@ -204,8 +209,9 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
               onSectionChange('bands');
             }}
             className="bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 
-                     text-white px-8 py-4 rounded-lg font-bold text-lg transition-all duration-300 
-                     transform hover:scale-105 hover:shadow-lg hover:shadow-red-500/25"
+                     text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-base sm:text-lg 
+                     transition-all duration-300 transform hover:scale-105 hover:shadow-lg 
+                     hover:shadow-red-500/25 w-full sm:w-auto max-w-xs mx-auto"
             data-testid="button-enter-site"
             style={{
               touchAction: 'manipulation',
@@ -225,30 +231,32 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
       </section>
 
       {/* Interactive Sections Grid */}
-      <section className="py-20 px-4 bg-gradient-to-b from-black to-gray-900">
+      <section className="py-12 sm:py-16 md:py-20 px-4 bg-gradient-to-b from-black to-gray-900">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl md:text-6xl font-black text-center mb-4 text-red-500">
+          <h2 className="text-3xl sm:text-4xl md:text-6xl font-black text-center mb-2 sm:mb-4 text-red-500 px-4">
             EXPLORE THE UNION
           </h2>
-          <p className="text-xl text-center text-gray-400 mb-16 max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-center text-gray-400 mb-8 sm:mb-12 md:mb-16 max-w-3xl mx-auto px-4">
             Dive deep into every aspect of the metal community with our comprehensive platform
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {sections.map((section, index) => (
               <div
                 key={section.id}
                 className={`relative group cursor-pointer transform transition-all duration-500 
-                          hover:scale-105 ${index === 2 ? 'lg:col-span-1 lg:col-start-2' : ''}`}
+                          hover:scale-105 active:scale-95 ${index === 2 ? 'lg:col-span-1 lg:col-start-2' : ''}`}
                 onMouseEnter={() => setHoveredSection(section.id)}
                 onMouseLeave={() => setHoveredSection(null)}
                 onClick={() => {
                   console.log(`Section ${section.id} clicked`);
                   onSectionChange(section.id);
                 }}
+                onTouchStart={() => setHoveredSection(section.id)}
                 onTouchEnd={(e) => {
                   e.preventDefault();
                   console.log(`Section ${section.id} touched`);
+                  setHoveredSection(null);
                   onSectionChange(section.id);
                 }}
                 data-testid={`section-${section.id}`}
@@ -258,9 +266,9 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
                   WebkitTapHighlightColor: 'transparent'
                 }}
               >
-                <div className={`relative h-80 rounded-2xl bg-gradient-to-br ${
+                <div className={`relative h-64 sm:h-72 md:h-80 rounded-xl sm:rounded-2xl bg-gradient-to-br ${
                   hoveredSection === section.id ? section.hoverGradient : section.gradient
-                } p-8 overflow-hidden transition-all duration-500 
+                } p-4 sm:p-6 md:p-8 overflow-hidden transition-all duration-500 
                 border-2 border-gray-700 hover:border-gray-500`}>
                   
                   {/* Background Pattern */}
@@ -316,27 +324,27 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
       </section>
 
       {/* Statistics Section */}
-      <section className="py-20 bg-gray-900">
+      <section className="py-12 sm:py-16 md:py-20 bg-gray-900">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-5xl font-black mb-12 text-white">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-black mb-8 sm:mb-10 md:mb-12 text-white px-4">
             THE NUMBERS SPEAK
           </h2>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
             {[
               { number: stats.bands.toString(), label: 'BANDS', icon: '🎸' },
               { number: stats.tours.toString(), label: 'TOURS', icon: '🎫' },
               { number: stats.reviews.toString(), label: 'REVIEWS', icon: '⭐' },
               { number: stats.photos.toString(), label: 'PHOTOS', icon: '📸' }
             ].map((stat, index) => (
-              <div key={index} className="text-center group">
-                <div className="text-4xl mb-2 transition-transform duration-300 group-hover:scale-125">
+              <div key={index} className="text-center group p-2">
+                <div className="text-2xl sm:text-3xl md:text-4xl mb-2 transition-transform duration-300 group-hover:scale-125">
                   {stat.icon}
                 </div>
-                <div className="text-3xl md:text-5xl font-black text-red-500 mb-2">
+                <div className="text-2xl sm:text-3xl md:text-5xl font-black text-red-500 mb-1 sm:mb-2">
                   {stat.number}
                 </div>
-                <div className="text-gray-400 font-bold tracking-wide">
+                <div className="text-gray-400 font-bold tracking-wide text-xs sm:text-sm md:text-base">
                   {stat.label}
                 </div>
               </div>
@@ -346,25 +354,26 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
       </section>
 
       {/* Call to Action */}
-      <section className="py-20 bg-black">
+      <section className="py-12 sm:py-16 md:py-20 bg-black">
         <div className="max-w-4xl mx-auto text-center px-4">
-          <h2 className="text-4xl md:text-6xl font-black mb-8 text-red-500">
+          <h2 className="text-3xl sm:text-4xl md:text-6xl font-black mb-6 sm:mb-8 text-red-500 px-2">
             JOIN THE UNION
           </h2>
-          <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-8 sm:mb-10 md:mb-12 max-w-2xl mx-auto">
             Ready to dive into the ultimate metal community? 
             Start exploring bands, tracking tours, and connecting with fellow metalheads.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-md sm:max-w-none mx-auto">
             <button
               onClick={() => {
                 console.log('Discover Bands clicked');
                 onSectionChange('bands');
               }}
               className="bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 
-                       text-white px-8 py-4 rounded-lg font-bold text-lg transition-all duration-300 
-                       transform hover:scale-105"
+                       text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-base sm:text-lg 
+                       transition-all duration-300 transform hover:scale-105 active:scale-95 
+                       w-full sm:w-auto"
               data-testid="button-discover-bands"
               style={{
                 touchAction: 'manipulation',
@@ -380,8 +389,9 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
                 onSectionChange('pit');
               }}
               className="bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-600 hover:to-gray-800 
-                       text-white px-8 py-4 rounded-lg font-bold text-lg transition-all duration-300 
-                       transform hover:scale-105 border-2 border-gray-600 hover:border-gray-500"
+                       text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-base sm:text-lg 
+                       transition-all duration-300 transform hover:scale-105 active:scale-95
+                       border-2 border-gray-600 hover:border-gray-500 w-full sm:w-auto"
               data-testid="button-join-pit"
               style={{
                 touchAction: 'manipulation',
