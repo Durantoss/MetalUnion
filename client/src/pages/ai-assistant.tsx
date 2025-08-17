@@ -20,17 +20,17 @@ export default function AIAssistant() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-red-950 text-white">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-red-950 text-white safe-area">
+      <div className="container mx-auto px-4 py-6 sm:py-8 safe-left safe-right">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 sm:mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Bot className="h-12 w-12 text-red-500" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
+            <Bot className="h-10 sm:h-12 w-10 sm:w-12 text-red-500" />
+            <h1 className="mobile-heading text-3xl sm:text-4xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
               AI Assistant
             </h1>
           </div>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="mobile-text text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto">
             Discover new music, get intelligent recommendations, and explore the metal universe with advanced AI
           </p>
           
@@ -57,59 +57,59 @@ export default function AIAssistant() {
 
         {/* AI Features Tabs */}
         <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
-            <TabsTrigger value="chat" className="flex items-center gap-2" data-testid="chat-tab">
-              <Bot className="h-4 w-4" />
-              AI Chat
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-6 sm:mb-8 h-auto">
+            <TabsTrigger value="chat" className="mobile-button flex items-center justify-center gap-1 sm:gap-2 p-3 focus-visible-metal" data-testid="chat-tab">
+              <Bot className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs sm:text-sm">AI Chat</span>
             </TabsTrigger>
-            <TabsTrigger value="search" className="flex items-center gap-2" data-testid="search-tab">
-              <Search className="h-4 w-4" />
-              Smart Search
+            <TabsTrigger value="search" className="mobile-button flex items-center justify-center gap-1 sm:gap-2 p-3 focus-visible-metal" data-testid="search-tab">
+              <Search className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs sm:text-sm">Smart Search</span>
             </TabsTrigger>
-            <TabsTrigger value="recommendations" className="flex items-center gap-2" data-testid="recommendations-tab">
-              <Sparkles className="h-4 w-4" />
-              Recommendations
+            <TabsTrigger value="recommendations" className="mobile-button flex items-center justify-center gap-1 sm:gap-2 p-3 focus-visible-metal" data-testid="recommendations-tab">
+              <Sparkles className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs sm:text-sm">Recommendations</span>
             </TabsTrigger>
-            <TabsTrigger value="analysis" className="flex items-center gap-2" data-testid="analysis-tab">
-              <BarChart3 className="h-4 w-4" />
-              Analysis
+            <TabsTrigger value="analysis" className="mobile-button flex items-center justify-center gap-1 sm:gap-2 p-3 focus-visible-metal" data-testid="analysis-tab">
+              <BarChart3 className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs sm:text-sm">Analysis</span>
             </TabsTrigger>
           </TabsList>
 
           {/* AI Chat Assistant */}
-          <TabsContent value="chat" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <TabsContent value="chat" className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
               <div className="lg:col-span-2">
                 <AIChat />
               </div>
-              <div className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+              <div className="space-y-4 order-first lg:order-last">
+                <Card className="mobile-card">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 mobile-text text-lg">
                       <Brain className="h-5 w-5" />
                       What I Can Help With
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
+                  <CardContent className="space-y-3">
                     <div className="flex items-start gap-2">
-                      <Music className="h-4 w-4 text-red-500 mt-0.5" />
-                      <span>Discover bands based on your taste</span>
+                      <Music className="h-4 w-4 text-red-500 mt-1 flex-shrink-0" />
+                      <span className="mobile-text">Discover bands based on your taste</span>
                     </div>
                     <div className="flex items-start gap-2">
-                      <Search className="h-4 w-4 text-red-500 mt-0.5" />
-                      <span>Explain metal genres and subgenres</span>
+                      <Search className="h-4 w-4 text-red-500 mt-1 flex-shrink-0" />
+                      <span className="mobile-text">Explain metal genres and subgenres</span>
                     </div>
                     <div className="flex items-start gap-2">
-                      <Zap className="h-4 w-4 text-red-500 mt-0.5" />
-                      <span>Find concerts and tour information</span>
+                      <Zap className="h-4 w-4 text-red-500 mt-1 flex-shrink-0" />
+                      <span className="mobile-text">Find concerts and tour information</span>
                     </div>
                     <div className="flex items-start gap-2">
-                      <BarChart3 className="h-4 w-4 text-red-500 mt-0.5" />
-                      <span>Analyze band characteristics and style</span>
+                      <BarChart3 className="h-4 w-4 text-red-500 mt-1 flex-shrink-0" />
+                      <span className="mobile-text">Analyze band characteristics and style</span>
                     </div>
                     <div className="flex items-start gap-2">
-                      <Bot className="h-4 w-4 text-red-500 mt-0.5" />
-                      <span>Answer metal music questions</span>
+                      <Bot className="h-4 w-4 text-red-500 mt-1 flex-shrink-0" />
+                      <span className="mobile-text">Answer metal music questions</span>
                     </div>
                   </CardContent>
                 </Card>

@@ -102,41 +102,43 @@ export function AIChat({ className }: AIChatProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <ScrollArea className="h-96 w-full rounded border p-4">
+        <ScrollArea className="h-[60vh] sm:h-96 w-full rounded border p-4 mobile-scrollbar">
           <div className="space-y-4">
             {messages.map((message) => (
               <div key={message.id} className="space-y-2">
                 <div
-                  className={`flex gap-3 ${
+                  className={`flex gap-3 items-start ${
                     message.role === 'user' ? 'justify-end' : 'justify-start'
                   }`}
                 >
                   {message.role === 'assistant' && (
-                    <Bot className="h-6 w-6 rounded-full bg-red-100 p-1 text-red-600 dark:bg-red-900 dark:text-red-400" />
+                    <Bot className="h-6 w-6 flex-shrink-0 rounded-full bg-red-100 p-1 text-red-600 dark:bg-red-900 dark:text-red-400" />
                   )}
                   <div
-                    className={`max-w-xs rounded-lg px-3 py-2 text-sm ${
+                    className={`max-w-[85%] sm:max-w-md lg:max-w-lg rounded-lg px-4 py-3 mobile-text leading-relaxed ${
                       message.role === 'user'
                         ? 'bg-red-600 text-white'
                         : 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100'
                     }`}
                   >
-                    {message.content}
+                    <div className="whitespace-pre-wrap break-words">
+                      {message.content}
+                    </div>
                   </div>
                   {message.role === 'user' && (
-                    <User className="h-6 w-6 rounded-full bg-gray-100 p-1 text-gray-600 dark:bg-gray-800 dark:text-gray-400" />
+                    <User className="h-6 w-6 flex-shrink-0 rounded-full bg-gray-100 p-1 text-gray-600 dark:bg-gray-800 dark:text-gray-400" />
                   )}
                 </div>
                 
                 {message.suggestions && message.suggestions.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pl-9">
+                  <div className="flex flex-wrap gap-2 pl-0 sm:pl-9 justify-center sm:justify-start">
                     {message.suggestions.map((suggestion, index) => (
                       <Button
                         key={index}
                         variant="outline"
                         size="sm"
                         onClick={() => handleSuggestionClick(suggestion)}
-                        className="h-8 text-xs"
+                        className="mobile-button h-auto py-2 px-3 text-xs active-scale focus-visible-metal"
                         data-testid={`suggestion-${index}`}
                       >
                         {suggestion}
@@ -165,14 +167,16 @@ export function AIChat({ className }: AIChatProps) {
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && !isLoading && sendMessage(input)}
             disabled={isLoading}
+            className="mobile-text focus-visible-metal"
             data-testid="chat-input"
           />
           <Button 
             onClick={() => sendMessage(input)}
             disabled={isLoading || !input.trim()}
+            className="mobile-button min-w-[48px] active-scale focus-visible-metal"
             data-testid="send-button"
           >
-            <MessageSquare className="h-4 w-4" />
+            <MessageSquare className="h-5 w-5" />
           </Button>
         </div>
       </CardContent>

@@ -81,3 +81,22 @@ Preferred communication style: Simple, everyday language.
 ### File Handling
 - **date-fns**: Modern JavaScript date utility library
 - **embla-carousel-react**: Carousel component for image galleries
+
+## Mobile Optimization Features
+
+### Mobile-First Design
+- **Safe Area Support**: CSS utilities for device safe areas (safe-top, safe-bottom, safe-left, safe-right)
+- **Touch-Friendly Interactions**: Optimized button sizes (minimum 48px touch targets) and active states
+- **Responsive Typography**: Fluid text scaling using clamp() for optimal readability across devices
+- **Mobile Grid System**: Adaptive grid layouts that stack on mobile and expand on larger screens
+
+### User Experience Enhancements
+- **Mobile CSS Utilities**: Custom classes for mobile-optimized cards, buttons, and scrollbars
+- **Accessibility Features**: Focus-visible states, reduced motion support, and high contrast mode
+- **AI Chat Improvements**: Enhanced message bubbles with proper text wrapping and scrollable containers
+- **Progressive Web App**: Service worker registration for offline capability and app-like experience
+
+### Mobile-Specific Features
+- **iOS Safari Optimization**: Input font-size set to 16px to prevent zoom on focus
+- **Android Chrome Support**: Viewport meta tag and touch-action optimizations
+- **Performance**: Lazy loading images and optimized mobile scrolling with custom scrollbars
