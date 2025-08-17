@@ -1,9 +1,14 @@
-// Simplified auth hook without React hooks for now
+import { useQuery } from "@tanstack/react-query";
+
 export function useAuth() {
+  const { data: user, isLoading } = useQuery({
+    queryKey: ["/api/auth/user"],
+    retry: false,
+  });
+
   return {
-    user: null,
-    isAuthenticated: false,
-    isLoading: false,
-    extendSession: () => {}
+    user,
+    isLoading,
+    isAuthenticated: !!user,
   };
 }

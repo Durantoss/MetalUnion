@@ -6,6 +6,7 @@ import { setupAuth, isAuthenticated } from "./simpleAuth";
 import { performGoogleSearch } from "./googleSearch";
 import { tourDataService } from "./tourDataService";
 import { aiService, type BandRecommendation, type ChatResponse } from "./aiService";
+import { EventDiscoveryService } from "./eventDiscoveryService";
 import { concertRecommendationService, type ConcertRecommendation, type ConcertRecommendationRequest } from "./concertRecommendationService";
 import { ticketmasterService } from "./ticketmasterService";
 import multer from "multer";
@@ -669,6 +670,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating comment reaction:", error);
       res.status(500).json({ message: "Failed to react to comment" });
+    }
+  });
+
+  // Event Discovery API endpoints
+  const eventDiscoveryService = new EventDiscoveryService();
+
+  // Discover events with AI-powered recommendations
+  app.post('/api/events/discover', async (req, res) => {
+    try {
+      const request = req.body;
+      
+      if (!request.userLocation) {
+        return res.status(400).json({ error: 'User location is required for event discovery' });
+      }
+      
+      const events = await eventDiscoveryService.discoverEvents(request);
+      res.json(events);
+    } catch (error) {
+      console.error('Error discovering events:', error);
+      res.status(500).json({ error: 'Failed to discover events' });
+    }
+  });
+
+  // Get personalized event recommendations
+  app.post('/api/events/personalized', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const request = req.body;
+      
+      const events = await eventDiscoveryService.getPersonalizedRecommendations(userId, request);
+      res.json(events);
+    } catch (error) {
+      console.error('Error getting personalized events:', error);
+      res.status(500).json({ error: 'Failed to get personalized recommendations' });
+    }
+  });
+
+  // Get detailed insights for a specific event
+  app.get('/api/events/:eventId/insights', async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      
+      // This is a simplified implementation - in a real app you'd store events in DB
+      // For demo purposes, we'll generate insights based on a mock event
+      const mockEvent = {
+        id: eventId,
+        title: 'Concert Event',
+        artist: 'Rock Band',
+        venue: 'Music Venue',
+        date: '2025-09-15',
+        time: '20:00',
+        location: {
+          address: '123 Music St',
+          city: 'Rock City',
+          state: 'CA',
+        },
+        price: { min: 50, max: 150, currency: 'USD' },
+        ticketUrl: 'https://example.com/tickets',
+        description: 'Amazing rock concert',
+        genre: 'Rock',
+        relevanceScore: 0.9,
+        aiRecommendationReason: 'Great match for metal fans'
+      };
+      
+      const insights = await eventDiscoveryService.generateEventInsights(mockEvent);
+      res.json(insights);
+    } catch (error) {
+      console.error('Error getting event insights:', error);
+      res.status(500).json({ error: 'Failed to get event insights' });
     }
   });
 

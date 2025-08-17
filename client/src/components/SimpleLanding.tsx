@@ -64,6 +64,20 @@ export function SimpleLanding({ onSectionChange, bands }: SimpleLandingProps) {
           Discover Bands
         </button>
         <button
+          onClick={() => onSectionChange('events')}
+          style={{
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#374151',
+            color: 'white',
+            border: 'none',
+            borderRadius: '0.5rem',
+            fontSize: '1rem',
+            cursor: 'pointer'
+          }}
+        >
+          Event Discovery
+        </button>
+        <button
           onClick={() => onSectionChange('reviews')}
           style={{
             padding: '0.75rem 1.5rem',

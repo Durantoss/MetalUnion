@@ -7,6 +7,7 @@ import { PhotosSection } from './components/PhotosSection';
 import { ThePit } from './components/ThePit';
 import { SimpleLanding } from './components/SimpleLanding';
 import { EnhancedSocialHub } from './components/EnhancedSocialHub';
+import { EnhancedEventsPage } from './components/EnhancedEventsPage';
 import { UserProfile } from './components/UserProfile';
 import { NotificationCenter } from './components/NotificationCenter';
 import { ActivityFeed } from './components/ActivityFeed';
@@ -332,7 +333,7 @@ const App = () => {
       case 'gamification':
         return <GameficationDashboard />;
       case 'events':
-        return <EventsHub />;
+        return <EnhancedEventsPage />;
       case 'polls':
         return <InteractivePolls />;
       case 'tours':
