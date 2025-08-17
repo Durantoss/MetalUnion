@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
 
-console.log('Starting MetalHub app...');
+console.log('Starting MOSHUNION app...');
 
 const container = document.getElementById('root');
 if (!container) {

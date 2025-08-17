@@ -33,7 +33,7 @@ const App = () => {
   };
 
   useEffect(() => {
-    console.log('App component mounted');
+    console.log('App component mounted - React is working!');
     
     fetch('/api/bands')
       .then(response => {
@@ -43,7 +43,7 @@ const App = () => {
         return response.json();
       })
       .then(data => {
-        console.log('Loaded bands:', data.length);
+        console.log('API call successful - Loaded bands:', data.length);
         setBands(data);
         setLoading(false);
       })
