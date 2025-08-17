@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 
-export function LoginPage() {
+interface LoginPageProps {
+  onBack?: () => void;
+}
+
+export function LoginPage({ onBack }: LoginPageProps) {
   const { user, isAuthenticated, extendSession } = useAuth();
   const [rememberMe, setRememberMe] = useState(false);
-  const [showRememberOption, setShowRememberOption] = useState(false);
 
   // Check if user has an active session
   useEffect(() => {
     if (isAuthenticated && user) {
       setRememberMe(user.rememberMe || false);
-      setShowRememberOption(true);
     }
   }, [isAuthenticated, user]);
 
@@ -21,14 +23,16 @@ export function LoginPage() {
 
   const handleRememberMeChange = (checked: boolean) => {
     setRememberMe(checked);
-    extendSession(checked);
+    if (extendSession) {
+      extendSession(checked);
+    }
   };
 
   if (isAuthenticated && user) {
     return (
       <div style={{ 
         minHeight: '100vh', 
-        backgroundColor: '#000000', 
+        background: 'linear-gradient(135deg, #1a1a1a 0%, #2d1b69 50%, #000000 100%)',
         color: '#ffffff', 
         padding: '32px',
         display: 'flex',
@@ -38,9 +42,11 @@ export function LoginPage() {
         <div style={{ 
           maxWidth: '400px', 
           width: '100%',
-          backgroundColor: '#1f2937',
+          background: 'rgba(31, 41, 55, 0.8)',
           padding: '32px',
-          borderRadius: '12px'
+          borderRadius: '16px',
+          border: '1px solid #374151',
+          backdropFilter: 'blur(10px)'
         }}>
           <h1 style={{ 
             fontSize: '1.75rem', 
@@ -79,97 +85,71 @@ export function LoginPage() {
             )}
           </div>
 
-          {showRememberOption && (
-            <div style={{ 
-              backgroundColor: '#374151',
-              padding: '16px',
-              borderRadius: '8px',
-              marginBottom: '24px'
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ fontSize: '1rem', marginBottom: '12px', color: '#f87171' }}>
+              Session Settings
+            </h3>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              cursor: 'pointer'
             }}>
-              <label style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                cursor: 'pointer',
-                fontSize: '0.875rem'
-              }}>
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => handleRememberMeChange(e.target.checked)}
-                  style={{
-                    marginRight: '8px',
-                    accentColor: '#dc2626'
-                  }}
-                />
-                Remember me for 90 days
-              </label>
-              <p style={{ 
-                color: '#9ca3af', 
-                fontSize: '0.75rem', 
-                marginTop: '8px' 
-              }}>
-                {rememberMe 
-                  ? "You'll stay logged in for 90 days of inactivity"
-                  : "You'll stay logged in for 30 days of inactivity"
-                }
-              </p>
-            </div>
-          )}
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => handleRememberMeChange(e.target.checked)}
+                style={{ accentColor: '#dc2626' }}
+              />
+              <span style={{ fontSize: '0.875rem' }}>
+                Remember me (extend session to 90 days)
+              </span>
+            </label>
+            <p style={{ 
+              color: '#6b7280', 
+              fontSize: '0.75rem', 
+              marginTop: '8px' 
+            }}>
+              {rememberMe 
+                ? 'Your session will last up to 90 days' 
+                : 'Your session will last up to 30 days'
+              }
+            </p>
+          </div>
 
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: '12px' 
-          }}>
-            <button
-              onClick={() => window.location.href = '/'}
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#dc2626',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '1rem',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
-            >
-              Continue to MetalHub
-            </button>
-            
+          <div style={{ display: 'flex', gap: '12px' }}>
+            {onBack && (
+              <button
+                onClick={onBack}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  backgroundColor: 'transparent',
+                  border: '1px solid #374151',
+                  borderRadius: '6px',
+                  color: '#9ca3af',
+                  cursor: 'pointer'
+                }}
+              >
+                Back to App
+              </button>
+            )}
             <button
               onClick={() => window.location.href = '/api/logout'}
               style={{
-                width: '100%',
+                flex: 1,
                 padding: '12px',
-                backgroundColor: 'transparent',
-                color: '#9ca3af',
-                border: '1px solid #374151',
+                backgroundColor: '#dc2626',
+                border: 'none',
                 borderRadius: '6px',
-                fontSize: '0.875rem',
+                color: 'white',
+                fontWeight: '600',
                 cursor: 'pointer'
               }}
             >
               Logout
             </button>
           </div>
-
-          {user.sessionStart && (
-            <div style={{ 
-              marginTop: '24px', 
-              padding: '12px',
-              backgroundColor: '#111827',
-              borderRadius: '6px',
-              fontSize: '0.75rem',
-              color: '#6b7280'
-            }}>
-              <p>Session started: {new Date(user.sessionStart).toLocaleString()}</p>
-              {user.expiresAt && (
-                <p>Expires: {new Date(user.expiresAt).toLocaleString()}</p>
-              )}
-            </div>
-          )}
         </div>
       </div>
     );
@@ -178,7 +158,7 @@ export function LoginPage() {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      backgroundColor: '#000000', 
+      background: 'linear-gradient(135deg, #1a1a1a 0%, #2d1b69 50%, #000000 100%)',
       color: '#ffffff', 
       padding: '32px',
       display: 'flex',
@@ -188,77 +168,147 @@ export function LoginPage() {
       <div style={{ 
         maxWidth: '400px', 
         width: '100%',
-        backgroundColor: '#1f2937',
-        padding: '32px',
-        borderRadius: '12px',
+        background: 'rgba(31, 41, 55, 0.8)',
+        padding: '48px 32px',
+        borderRadius: '16px',
+        border: '1px solid #374151',
+        backdropFilter: 'blur(10px)',
         textAlign: 'center'
       }}>
-        <h1 style={{ 
-          fontSize: '2.5rem', 
-          fontWeight: 'bold', 
-          color: '#dc2626', 
-          marginBottom: '16px' 
-        }}>
-          🤘 MetalHub
-        </h1>
-        
-        <p style={{ 
-          color: '#9ca3af', 
-          marginBottom: '32px',
-          fontSize: '1.125rem'
-        }}>
-          Join the ultimate metal community
-        </p>
-
         <div style={{ marginBottom: '32px' }}>
-          <p style={{ color: '#d1d5db', marginBottom: '16px' }}>
-            Discover bands, read reviews, and connect with metalheads worldwide
-          </p>
-          <ul style={{ 
-            textAlign: 'left', 
-            color: '#9ca3af', 
-            fontSize: '0.875rem',
-            listStyle: 'none',
-            padding: 0
+          <span style={{ fontSize: '4rem', display: 'block', marginBottom: '16px' }}>🤘</span>
+          <h1 style={{ 
+            fontSize: '2rem', 
+            fontWeight: 'bold', 
+            color: '#dc2626', 
+            marginBottom: '8px'
           }}>
-            <li style={{ marginBottom: '8px' }}>🎸 Discover new metal bands</li>
-            <li style={{ marginBottom: '8px' }}>📝 Write and read reviews</li>
-            <li style={{ marginBottom: '8px' }}>📷 Share band photos</li>
-            <li style={{ marginBottom: '8px' }}>🎫 Find tour dates</li>
-            <li style={{ marginBottom: '8px' }}>💬 Connect with fans</li>
-          </ul>
+            MetalHub
+          </h1>
+          <p style={{ color: '#d1d5db', fontSize: '1rem' }}>
+            The Ultimate Metal Community
+          </p>
         </div>
 
-        <button
-          onClick={handleLogin}
-          style={{
-            width: '100%',
+        <div style={{ marginBottom: '32px' }}>
+          <h2 style={{ 
+            fontSize: '1.5rem', 
+            marginBottom: '16px',
+            color: '#f87171'
+          }}>
+            Join the Community
+          </h2>
+          <p style={{ 
+            color: '#9ca3af', 
+            marginBottom: '24px',
+            lineHeight: '1.5'
+          }}>
+            Access exclusive features including band reviews, photo uploads, 
+            and personalized recommendations. Sign in with your Replit account.
+          </p>
+          
+          <div style={{ 
+            marginBottom: '24px',
             padding: '16px',
-            backgroundColor: '#dc2626',
-            color: 'white',
-            border: 'none',
+            backgroundColor: 'rgba(220, 38, 38, 0.1)',
             borderRadius: '8px',
-            fontSize: '1.125rem',
-            fontWeight: '600',
+            border: '1px solid rgba(220, 38, 38, 0.3)'
+          }}>
+            <h3 style={{ 
+              fontSize: '1rem', 
+              color: '#fca5a5', 
+              marginBottom: '8px',
+              fontWeight: '600'
+            }}>
+              Member Benefits
+            </h3>
+            <ul style={{ 
+              listStyle: 'none', 
+              padding: 0, 
+              margin: 0,
+              textAlign: 'left'
+            }}>
+              <li style={{ color: '#d1d5db', fontSize: '0.875rem', marginBottom: '4px' }}>
+                ✓ Upload band photos and reviews
+              </li>
+              <li style={{ color: '#d1d5db', fontSize: '0.875rem', marginBottom: '4px' }}>
+                ✓ Save favorite bands and get recommendations
+              </li>
+              <li style={{ color: '#d1d5db', fontSize: '0.875rem', marginBottom: '4px' }}>
+                ✓ Participate in community discussions
+              </li>
+              <li style={{ color: '#d1d5db', fontSize: '0.875rem', marginBottom: '4px' }}>
+                ✓ Track tour dates and events
+              </li>
+            </ul>
+          </div>
+
+          <label style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
             cursor: 'pointer',
-            transition: 'background-color 0.2s'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.backgroundColor = '#b91c1c';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.backgroundColor = '#dc2626';
-          }}
-        >
-          Login with Replit
-        </button>
+            marginBottom: '24px',
+            justifyContent: 'center'
+          }}>
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              style={{ accentColor: '#dc2626' }}
+            />
+            <span style={{ fontSize: '0.875rem', color: '#d1d5db' }}>
+              Remember me for 90 days
+            </span>
+          </label>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <button
+            onClick={handleLogin}
+            style={{
+              width: '100%',
+              padding: '16px 24px',
+              background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+              border: 'none',
+              borderRadius: '8px',
+              color: 'white',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)'
+            }}
+          >
+            Sign in with Replit
+          </button>
+          
+          {onBack && (
+            <button
+              onClick={onBack}
+              style={{
+                width: '100%',
+                padding: '12px 24px',
+                backgroundColor: 'transparent',
+                border: '1px solid #374151',
+                borderRadius: '8px',
+                color: '#9ca3af',
+                fontSize: '0.875rem',
+                cursor: 'pointer'
+              }}
+            >
+              Back to Browse
+            </button>
+          )}
+        </div>
 
         <p style={{ 
           color: '#6b7280', 
           fontSize: '0.75rem', 
-          marginTop: '16px' 
+          marginTop: '24px',
+          lineHeight: '1.4'
         }}>
-          Secure authentication powered by Replit
+          By signing in, you agree to our terms and join the MetalHub community. 
+          Your session will be {rememberMe ? 'extended to 90 days' : 'set to 30 days'}.
         </p>
       </div>
     </div>
