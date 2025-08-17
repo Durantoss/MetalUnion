@@ -69,7 +69,7 @@ export default function Home() {
               </Button>
             </Link>
             <Link href="/reviews" data-testid="button-write-review" className="w-full sm:w-auto">
-              <Button variant="outline" className="mobile-button border-2 border-white text-white hover:bg-white hover:text-black font-bold uppercase tracking-wider w-full sm:w-auto min-h-[52px] active-scale focus-visible-metal" size="lg">
+              <Button variant="outline" className="mobile-button border-2 border-white text-white hover:bg-white hover:text-black font-bold uppercase tracking-wider w-full sm:w-auto min-h-[52px] active-scale focus-visible-metal bg-[#ee2b2b]" size="lg">
                 Write Review
               </Button>
             </Link>
