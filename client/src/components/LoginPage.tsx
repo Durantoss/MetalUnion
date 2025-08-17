@@ -158,7 +158,7 @@ export function LoginPage({ onBack }: LoginPageProps) {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #1a1a1a 0%, #2d1b69 50%, #000000 100%)',
+      backgroundColor: '#000000', 
       color: '#ffffff', 
       padding: '32px',
       display: 'flex',
@@ -168,11 +168,9 @@ export function LoginPage({ onBack }: LoginPageProps) {
       <div style={{ 
         maxWidth: '400px', 
         width: '100%',
-        background: 'rgba(31, 41, 55, 0.8)',
+        backgroundColor: '#1f2937',
         padding: '48px 32px',
-        borderRadius: '16px',
-        border: '1px solid #374151',
-        backdropFilter: 'blur(10px)',
+        borderRadius: '12px',
         textAlign: 'center'
       }}>
         <div style={{ marginBottom: '32px' }}>

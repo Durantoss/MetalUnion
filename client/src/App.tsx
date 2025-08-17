@@ -93,40 +93,29 @@ function App() {
 
   return (
     <div style={{ 
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #1a1a1a 0%, #2d1b69 20%, #000000 100%)',
-      color: '#ffffff'
+      minHeight: '100vh', 
+      backgroundColor: '#000000', 
+      color: '#ffffff', 
+      padding: '32px',
+      fontFamily: 'system-ui, sans-serif'
     }}>
-      {/* Header */}
-      <header style={{
-        background: 'rgba(0, 0, 0, 0.9)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid #374151',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
-      }}>
+      <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
         <div style={{ 
-          maxWidth: '1200px', 
-          margin: '0 auto', 
-          padding: '16px 24px',
-          display: 'flex',
+          display: 'flex', 
+          justifyContent: 'space-between', 
           alignItems: 'center',
-          justifyContent: 'space-between',
+          marginBottom: '24px',
           flexWrap: 'wrap',
           gap: '16px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '2rem' }}>🤘</span>
-            <h1 style={{ 
-              fontSize: '1.75rem', 
-              fontWeight: 'bold', 
-              color: '#dc2626',
-              margin: 0
-            }}>
-              MetalHub
-            </h1>
-          </div>
+          <h1 style={{ 
+            fontSize: '2.5rem', 
+            fontWeight: 'bold', 
+            color: '#dc2626', 
+            margin: 0
+          }}>
+            🤘 MetalHub Band Database
+          </h1>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
             {isAuthenticated ? (
@@ -175,402 +164,199 @@ function App() {
                   cursor: 'pointer'
                 }}
               >
-                Login
+                Login to MetalHub
               </button>
             )}
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main style={{ padding: '32px 24px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          
-          {/* Hero Section */}
-          <div style={{
-            textAlign: 'center',
-            marginBottom: '48px',
-            padding: '48px 24px',
-            background: 'rgba(31, 41, 55, 0.6)',
-            borderRadius: '16px',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid #374151'
+        {/* Search Bar */}
+        <div style={{ marginBottom: '24px' }}>
+          <input
+            type="text"
+            placeholder="Search bands by name, genre, or description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              backgroundColor: '#1f2937',
+              border: '1px solid #374151',
+              borderRadius: '6px',
+              color: '#ffffff',
+              fontSize: '1rem',
+              outline: 'none'
+            }}
+          />
+        </div>
+        {/* Authentication Status */}
+        <div style={{ 
+          backgroundColor: '#1f2937', 
+          padding: '16px', 
+          borderRadius: '8px', 
+          marginBottom: '24px' 
+        }}>
+          <h3 style={{ 
+            fontSize: '1rem', 
+            color: '#f87171', 
+            marginBottom: '12px'
           }}>
-            <h2 style={{
-              fontSize: '3rem',
-              fontWeight: 'bold',
-              color: '#dc2626',
-              marginBottom: '16px',
-              textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
-            }}>
-              Discover Metal & Rock
-            </h2>
-            <p style={{
-              fontSize: '1.25rem',
-              color: '#d1d5db',
-              marginBottom: '32px',
-              maxWidth: '600px',
-              margin: '0 auto 32px'
-            }}>
-              Connect with the ultimate metal community. Discover bands, read reviews, 
-              share photos, and find tour dates.
-            </p>
-            
-            {/* Search Bar */}
-            <div style={{ maxWidth: '400px', margin: '0 auto' }}>
-              <input
-                type="text"
-                placeholder="Search bands, genres, or descriptions..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  backgroundColor: '#1f2937',
-                  border: '2px solid #374151',
-                  borderRadius: '8px',
-                  color: '#ffffff',
-                  fontSize: '1rem',
-                  outline: 'none'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#dc2626'}
-                onBlur={(e) => e.target.style.borderColor = '#374151'}
-              />
+            Authentication Status
+          </h3>
+          {isAuthenticated ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <p style={{ color: '#10b981', fontSize: '0.875rem' }}>✓ Logged in as {user?.firstName || user?.email || 'User'}</p>
+              <p style={{ color: '#10b981', fontSize: '0.875rem' }}>✓ Session active with persistent login</p>
+              <div style={{ marginTop: '8px' }}>
+                <button
+                  onClick={() => window.location.href = '/api/logout'}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: 'transparent',
+                    color: '#9ca3af',
+                    border: '1px solid #374151',
+                    borderRadius: '4px',
+                    fontSize: '0.75rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
             </div>
-          </div>
-          
-          {/* Authentication Status */}
-          <div style={{ 
-            background: 'rgba(31, 41, 55, 0.6)',
-            padding: '24px', 
-            borderRadius: '12px',
-            marginBottom: '32px',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid #374151'
-          }}>
-            <h3 style={{ 
-              fontSize: '1.25rem', 
-              color: '#f87171', 
-              marginBottom: '16px',
-              fontWeight: 'bold'
-            }}>
-              🔐 Authentication Status
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {isAuthenticated ? (
-                <>
-                  <p style={{ color: '#10b981' }}>✓ Logged in as {user?.firstName || user?.email || 'User'}</p>
-                  <p style={{ color: '#10b981' }}>✓ Session active - persistent login enabled</p>
-                  <p style={{ color: '#10b981' }}>✓ Access to all MetalHub features</p>
-                  <div style={{ marginTop: '12px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                    <button
-                      onClick={() => window.location.href = '/api/logout'}
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: 'transparent',
-                        color: '#9ca3af',
-                        border: '1px solid #374151',
-                        borderRadius: '4px',
-                        fontSize: '0.875rem',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Logout
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p style={{ color: '#fbbf24' }}>⚠ Not logged in - limited features available</p>
-                  <p style={{ color: '#9ca3af' }}>• Login to upload photos and write reviews</p>
-                  <p style={{ color: '#9ca3af' }}>• Save favorite bands and get personalized recommendations</p>
-                </>
-              )}
-            </div>
-          </div>
-          
-          {/* Error Display */}
-          {error && (
-            <div style={{ 
-              background: 'linear-gradient(135deg, #7f1d1d, #991b1b)',
-              padding: '16px 24px', 
-              borderRadius: '12px', 
-              marginBottom: '32px',
-              border: '1px solid #dc2626'
-            }}>
-              <p style={{ color: '#fca5a5', fontSize: '1rem', fontWeight: '500' }}>
-                ⚠️ {error}
-              </p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <p style={{ color: '#fbbf24', fontSize: '0.875rem' }}>⚠ Not logged in</p>
+              <p style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Login to access all features</p>
             </div>
           )}
-          
-          {/* Band Results Section */}
-          <div style={{ marginBottom: '48px' }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              marginBottom: '24px',
-              flexWrap: 'wrap',
-              gap: '16px'
-            }}>
-              <h2 style={{ 
-                fontSize: '2rem', 
-                color: '#f87171', 
-                fontWeight: 'bold',
-                margin: 0
-              }}>
-                🎸 Metal Bands Database
-              </h2>
-              <div style={{
-                padding: '8px 16px',
-                backgroundColor: 'rgba(31, 41, 55, 0.8)',
-                borderRadius: '20px',
-                border: '1px solid #374151'
-              }}>
-                <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>
-                  {loading ? 'Loading...' : `${filteredBands.length} of ${bands.length} bands`}
-                </span>
-              </div>
-            </div>
-            
-            {loading ? (
-              <div style={{ 
-                background: 'rgba(31, 41, 55, 0.6)',
-                padding: '48px 24px', 
-                borderRadius: '12px', 
-                textAlign: 'center',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid #374151'
-              }}>
-                <div style={{ fontSize: '2rem', marginBottom: '16px' }}>🎸</div>
-                <p style={{ color: '#9ca3af', fontSize: '1.125rem' }}>
-                  Loading the metal archives...
-                </p>
-              </div>
-            ) : filteredBands.length === 0 ? (
-              <div style={{ 
-                background: 'rgba(31, 41, 55, 0.6)',
-                padding: '48px 24px', 
-                borderRadius: '12px', 
-                textAlign: 'center',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid #374151'
-              }}>
-                <div style={{ fontSize: '2rem', marginBottom: '16px' }}>🔍</div>
-                <p style={{ color: '#9ca3af', fontSize: '1.125rem', marginBottom: '8px' }}>
-                  {searchQuery ? `No bands found for "${searchQuery}"` : 'No bands in the database'}
-                </p>
-                <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-                  {searchQuery ? 'Try a different search term' : 'Check back later for new additions'}
-                </p>
-              </div>
-            ) : (
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', 
-                gap: '24px' 
-              }}>
-                {filteredBands.map((band, index) => (
-                  <div 
-                    key={`${band.id}-${index}`}
-                    style={{ 
-                      background: 'rgba(31, 41, 55, 0.8)',
-                      padding: '24px', 
-                      borderRadius: '16px',
-                      border: '1px solid #374151',
-                      backdropFilter: 'blur(10px)',
-                      transition: 'all 0.3s ease',
-                      cursor: 'pointer'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-4px)';
-                      e.currentTarget.style.borderColor = '#dc2626';
-                      e.currentTarget.style.boxShadow = '0 20px 40px rgba(220, 38, 38, 0.1)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.borderColor = '#374151';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
-                  >
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-                      <div style={{ 
-                        width: '80px', 
-                        height: '80px', 
-                        background: 'linear-gradient(135deg, #374151, #1f2937)',
-                        borderRadius: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        border: '2px solid #4b5563'
-                      }}>
-                        {band.imageUrl ? (
-                          <img 
-                            src={band.imageUrl} 
-                            alt={band.name}
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                              borderRadius: '10px'
-                            }}
-                          />
-                        ) : (
-                          <div style={{ fontSize: '2rem' }}>🎸</div>
-                        )}
-                      </div>
-                      
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <h3 style={{ 
-                          fontSize: '1.375rem', 
-                          fontWeight: 'bold',
-                          color: '#dc2626',
-                          marginBottom: '8px',
-                          lineHeight: '1.2'
-                        }}>
-                          {band.name}
-                        </h3>
-                        <div style={{
-                          display: 'inline-block',
-                          padding: '4px 12px',
-                          backgroundColor: 'rgba(220, 38, 38, 0.2)',
-                          borderRadius: '12px',
-                          marginBottom: '12px'
-                        }}>
-                          <span style={{ 
-                            color: '#fca5a5', 
-                            fontSize: '0.875rem',
-                            fontWeight: '500'
-                          }}>
-                            {band.genre}
-                          </span>
-                        </div>
-                        <p style={{ 
-                          color: '#d1d5db', 
-                          fontSize: '0.875rem',
-                          lineHeight: '1.5',
-                          marginBottom: '16px'
-                        }}>
-                          {band.description}
-                        </p>
-                        
-                        {band.founded && (
-                          <p style={{ 
-                            color: '#9ca3af', 
-                            fontSize: '0.75rem',
-                            marginBottom: '8px'
-                          }}>
-                            Founded: {band.founded}
-                          </p>
-                        )}
-                        
-                        {band.members && band.members.length > 0 && (
-                          <p style={{ 
-                            color: '#9ca3af', 
-                            fontSize: '0.75rem',
-                            marginBottom: '16px'
-                          }}>
-                            Members: {band.members.slice(0, 3).join(', ')}
-                            {band.members.length > 3 && ` +${band.members.length - 3} more`}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div style={{ 
-                      display: 'flex', 
-                      gap: '8px', 
-                      marginTop: '16px',
-                      paddingTop: '16px',
-                      borderTop: '1px solid #374151'
-                    }}>
-                      <button
-                        style={{ 
-                          flex: 1,
-                          padding: '8px 16px', 
-                          background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
-                          borderRadius: '6px', 
-                          fontSize: '0.875rem',
-                          fontWeight: '600',
-                          border: 'none',
-                          color: 'white',
-                          cursor: 'pointer'
-                        }}
-                        onClick={() => console.log('View band:', band.name)}
-                      >
-                        View Details
-                      </button>
-                      {band.website && (
-                        <button
-                          style={{ 
-                            padding: '8px 12px', 
-                            backgroundColor: 'transparent',
-                            border: '1px solid #4b5563',
-                            borderRadius: '6px', 
-                            fontSize: '0.875rem',
-                            color: '#9ca3af',
-                            cursor: 'pointer'
-                          }}
-                          onClick={() => window.open(band.website, '_blank')}
-                        >
-                          🌐
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          {/* Feature Status */}
+        </div>
+        
+        {/* Error Display */}
+        {error && (
           <div style={{ 
-            background: 'rgba(31, 41, 55, 0.6)',
-            padding: '24px', 
-            borderRadius: '12px',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid #374151'
+            backgroundColor: '#7f1d1d', 
+            padding: '16px', 
+            borderRadius: '8px', 
+            marginBottom: '24px' 
           }}>
-            <h3 style={{ 
-              fontSize: '1.25rem', 
-              color: '#f87171', 
-              marginBottom: '16px',
-              fontWeight: 'bold'
+            <p style={{ color: '#fca5a5' }}>Error: {error}</p>
+          </div>
+        )}
+        
+        {/* Band Results Section */}
+        <div style={{ marginBottom: '24px' }}>
+          <h2 style={{ 
+            fontSize: '1.25rem', 
+            color: '#f87171', 
+            marginBottom: '16px' 
+          }}>
+            Band Search Results ({loading ? '...' : `${filteredBands.length} of ${bands.length}`} bands)
+          </h2>
+          
+          {loading ? (
+            <div style={{ 
+              backgroundColor: '#1f2937', 
+              padding: '24px', 
+              borderRadius: '8px', 
+              textAlign: 'center' 
             }}>
-              🚀 Platform Features
-            </h3>
+              <p style={{ color: '#9ca3af' }}>Loading bands...</p>
+            </div>
+          ) : filteredBands.length === 0 ? (
+            <div style={{ 
+              backgroundColor: '#1f2937', 
+              padding: '24px', 
+              borderRadius: '8px', 
+              textAlign: 'center' 
+            }}>
+              <p style={{ color: '#9ca3af' }}>
+                {searchQuery ? `No bands found for "${searchQuery}"` : 'No bands found'}
+              </p>
+            </div>
+          ) : (
             <div style={{ 
               display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-              gap: '12px' 
+              gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', 
+              gap: '16px' 
             }}>
-              <p style={{ color: '#10b981', fontSize: '0.875rem' }}>✓ Band search & discovery</p>
-              <p style={{ color: '#10b981', fontSize: '0.875rem' }}>✓ Real-time data deduplication</p>
-              <p style={{ color: '#10b981', fontSize: '0.875rem' }}>✓ Persistent authentication</p>
-              <p style={{ color: '#10b981', fontSize: '0.875rem' }}>✓ Object storage for photos</p>
-              <p style={{ color: '#10b981', fontSize: '0.875rem' }}>✓ Mobile-optimized design</p>
-              <p style={{ color: '#3b82f6', fontSize: '0.875rem' }}>🤖 Background AI services</p>
+              {filteredBands.map((band, index) => (
+                <div 
+                  key={`${band.id}-${index}`}
+                  style={{ 
+                    backgroundColor: '#1f2937', 
+                    padding: '16px', 
+                    borderRadius: '8px', 
+                    display: 'flex',
+                    gap: '12px',
+                    alignItems: 'flex-start'
+                  }}
+                >
+                  <div style={{ 
+                    width: '60px', 
+                    height: '60px', 
+                    backgroundColor: '#374151', 
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    {band.imageUrl ? (
+                      <img 
+                        src={band.imageUrl} 
+                        alt={band.name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          borderRadius: '8px'
+                        }}
+                      />
+                    ) : (
+                      <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                        🎸
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>{band.name}</h3>
+                    <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>{band.genre}</p>
+                    <p style={{ color: '#6b7280', fontSize: '0.75rem' }}>{band.description}</p>
+                    
+                    {band.founded && (
+                      <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '4px' }}>
+                        Founded: {band.founded}
+                      </p>
+                    )}
+                    
+                    {band.members && band.members.length > 0 && (
+                      <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '4px' }}>
+                        Members: {band.members.slice(0, 2).join(', ')}
+                        {band.members.length > 2 && ` +${band.members.length - 2} more`}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    style={{ 
+                      padding: '4px 12px', 
+                      backgroundColor: '#dc2626', 
+                      borderRadius: '4px', 
+                      fontSize: '0.875rem',
+                      border: 'none',
+                      color: 'white',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => console.log('Selected band:', band.name)}
+                  >
+                    View
+                  </button>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
         </div>
-      </main>
-      
-      {/* Footer */}
-      <footer style={{
-        background: 'rgba(0, 0, 0, 0.9)',
-        borderTop: '1px solid #374151',
-        padding: '24px',
-        textAlign: 'center'
-      }}>
-        <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>
-          MetalHub - The Ultimate Metal Community Platform
-        </p>
-        <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '8px' }}>
-          Discover • Connect • Rock On 🤘
-        </p>
-      </footer>
+      </div>
     </div>
   );
 }
