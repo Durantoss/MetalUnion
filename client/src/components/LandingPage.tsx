@@ -86,11 +86,19 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
     <div className="min-h-screen bg-black text-white relative">
       {/* Floating Navigation Button */}
       <button
-        onClick={() => onSectionChange('bands')}
+        onClick={() => {
+          console.log('Floating nav button clicked');
+          onSectionChange('bands');
+        }}
         className="fixed top-4 right-4 z-50 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full 
                    transition-all duration-300 transform hover:scale-110 shadow-lg"
         data-testid="button-floating-nav"
         title="Go to Bands"
+        style={{
+          touchAction: 'manipulation',
+          minWidth: '48px',
+          minHeight: '48px'
+        }}
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
@@ -153,11 +161,18 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
           )}
 
           <button
-            onClick={() => onSectionChange('bands')}
+            onClick={() => {
+              console.log('Enter the Union button clicked');
+              onSectionChange('bands');
+            }}
             className="bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 
                      text-white px-8 py-4 rounded-lg font-bold text-lg transition-all duration-300 
                      transform hover:scale-105 hover:shadow-lg hover:shadow-red-500/25"
             data-testid="button-enter-site"
+            style={{
+              touchAction: 'manipulation',
+              minHeight: '48px'
+            }}
           >
             ENTER THE UNION
           </button>
@@ -189,8 +204,21 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
                           hover:scale-105 ${index === 2 ? 'lg:col-span-1 lg:col-start-2' : ''}`}
                 onMouseEnter={() => setHoveredSection(section.id)}
                 onMouseLeave={() => setHoveredSection(null)}
-                onClick={() => onSectionChange(section.id)}
+                onClick={() => {
+                  console.log(`Section ${section.id} clicked`);
+                  onSectionChange(section.id);
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  console.log(`Section ${section.id} touched`);
+                  onSectionChange(section.id);
+                }}
                 data-testid={`section-${section.id}`}
+                style={{
+                  touchAction: 'manipulation',
+                  cursor: 'pointer',
+                  WebkitTapHighlightColor: 'transparent'
+                }}
               >
                 <div className={`relative h-80 rounded-2xl bg-gradient-to-br ${
                   hoveredSection === section.id ? section.hoverGradient : section.gradient
@@ -292,21 +320,35 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
-              onClick={() => onSectionChange('bands')}
+              onClick={() => {
+                console.log('Discover Bands clicked');
+                onSectionChange('bands');
+              }}
               className="bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 
                        text-white px-8 py-4 rounded-lg font-bold text-lg transition-all duration-300 
                        transform hover:scale-105"
               data-testid="button-discover-bands"
+              style={{
+                touchAction: 'manipulation',
+                minHeight: '48px'
+              }}
             >
               DISCOVER BANDS
             </button>
             
             <button
-              onClick={() => onSectionChange('pit')}
+              onClick={() => {
+                console.log('Enter The Pit clicked');
+                onSectionChange('pit');
+              }}
               className="bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-600 hover:to-gray-800 
                        text-white px-8 py-4 rounded-lg font-bold text-lg transition-all duration-300 
                        transform hover:scale-105 border-2 border-gray-600 hover:border-gray-500"
               data-testid="button-join-pit"
+              style={{
+                touchAction: 'manipulation',
+                minHeight: '48px'
+              }}
             >
               ENTER THE PIT
             </button>

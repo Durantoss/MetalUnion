@@ -5,23 +5,26 @@ interface NavigationProps {
   onSectionChange: (section: string) => void;
   onShowComparison: () => void;
   onShowLogin: () => void;
-  onReturnHome: () => void;
+  onReturnHome?: () => void;
 }
 
 export function Navigation({ currentSection, onSectionChange, onShowComparison, onShowLogin, onReturnHome }: NavigationProps) {
   const [animatingWord, setAnimatingWord] = useState<'mosh' | 'union' | null>(null);
 
   const handleLogoClick = () => {
+    console.log('Logo clicked, onReturnHome type:', typeof onReturnHome);
     // Start animation sequence
     setAnimatingWord('mosh');
     setTimeout(() => {
       setAnimatingWord('union');
       setTimeout(() => {
         setAnimatingWord(null);
-        if (typeof onReturnHome === 'function') {
+        if (onReturnHome && typeof onReturnHome === 'function') {
+          console.log('Calling onReturnHome function');
           onReturnHome();
         } else {
-          console.error('onReturnHome is not a function');
+          console.log('onReturnHome not available, using section change fallback');
+          onSectionChange('landing');
         }
       }, 150);
     }, 150);
