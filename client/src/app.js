@@ -266,20 +266,51 @@ if (!rootElement) {
       const bandsGrid = document.getElementById('bands-grid');
       
       if (bandsGrid && bands.length > 0) {
-        bandsGrid.innerHTML = bands.map(band => `
-          <div class="band-card">
-            <h3 class="band-name">${escapeHtml(band.name)}</h3>
-            <p class="band-genre">${escapeHtml(band.genre)}</p>
-            <p class="band-description">${escapeHtml(band.description)}</p>
-            <button 
-              class="ticket-button" 
-              onclick="openTicketSearch('${escapeHtml(band.name)}')"
-              data-testid="button-tickets-${band.name.toLowerCase().replace(/\s+/g, '-')}"
-            >
-              🎫 Get Tickets
-            </button>
-          </div>
-        `).join('');
+        // Clear existing content
+        bandsGrid.innerHTML = '';
+        
+        bands.forEach(band => {
+          // Create band card container
+          const bandCard = document.createElement('div');
+          bandCard.className = 'band-card';
+          
+          // Create and set band name
+          const bandName = document.createElement('h3');
+          bandName.className = 'band-name';
+          bandName.textContent = band.name;
+          
+          // Create and set band genre
+          const bandGenre = document.createElement('p');
+          bandGenre.className = 'band-genre';
+          bandGenre.textContent = band.genre;
+          
+          // Create and set band description
+          const bandDescription = document.createElement('p');
+          bandDescription.className = 'band-description';
+          bandDescription.textContent = band.description;
+          
+          // Create ticket button with safe event handling
+          const ticketButton = document.createElement('button');
+          ticketButton.className = 'ticket-button';
+          ticketButton.textContent = '🎫 Get Tickets';
+          // Safe data-testid generation
+          const safeTestId = `button-tickets-${band.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')}`;
+          ticketButton.setAttribute('data-testid', safeTestId);
+          
+          // Add safe event listener instead of onclick
+          ticketButton.addEventListener('click', () => {
+            openTicketSearch(band.name);
+          });
+          
+          // Assemble the card
+          bandCard.appendChild(bandName);
+          bandCard.appendChild(bandGenre);
+          bandCard.appendChild(bandDescription);
+          bandCard.appendChild(ticketButton);
+          
+          // Add to grid
+          bandsGrid.appendChild(bandCard);
+        });
         
         // Hide loading, show content
         loadingSection.style.display = 'none';
