@@ -64,7 +64,7 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center">
             <Link href="/bands" data-testid="button-explore-bands" className="w-full sm:w-auto">
-              <Button className="mobile-button bg-metal-red hover:bg-metal-red-bright text-white font-bold uppercase tracking-wider w-full sm:w-auto min-h-[52px] active-scale focus-visible-metal" size="lg">
+              <Button variant="outline" className="mobile-button border-2 border-white text-white hover:bg-white hover:text-black font-bold uppercase tracking-wider w-full sm:w-auto min-h-[52px] active-scale focus-visible-metal" size="lg">
                 Explore Bands
               </Button>
             </Link>
