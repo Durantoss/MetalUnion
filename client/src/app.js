@@ -324,25 +324,47 @@ if (!rootElement) {
     .catch(error => {
       console.error('❌ Error loading bands:', error);
       
-      loadingSection.innerHTML = `
-        <div class="error-section">
-          <h2>Error Loading Bands</h2>
-          <p>Please refresh the page to try again</p>
-          <details style="margin-top: 16px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto;">
-            <summary>Technical Details</summary>
-            <pre style="background: #1a1a1a; padding: 12px; border-radius: 6px; overflow-x: auto;">${escapeHtml(error.message)}</pre>
-          </details>
-        </div>
-      `;
+      // Clear existing content safely
+      loadingSection.textContent = '';
+      
+      // Create error section using safe DOM methods
+      const errorSection = document.createElement('div');
+      errorSection.className = 'error-section';
+      
+      const errorTitle = document.createElement('h2');
+      errorTitle.textContent = 'Error Loading Bands';
+      
+      const errorMessage = document.createElement('p');
+      errorMessage.textContent = 'Please refresh the page to try again';
+      
+      const details = document.createElement('details');
+      details.style.marginTop = '16px';
+      details.style.textAlign = 'left';
+      details.style.maxWidth = '600px';
+      details.style.marginLeft = 'auto';
+      details.style.marginRight = 'auto';
+      
+      const summary = document.createElement('summary');
+      summary.textContent = 'Technical Details';
+      
+      const pre = document.createElement('pre');
+      pre.style.background = '#1a1a1a';
+      pre.style.padding = '12px';
+      pre.style.borderRadius = '6px';
+      pre.style.overflowX = 'auto';
+      pre.textContent = error.message; // Safe: textContent prevents XSS
+      
+      // Assemble the error display
+      details.appendChild(summary);
+      details.appendChild(pre);
+      errorSection.appendChild(errorTitle);
+      errorSection.appendChild(errorMessage);
+      errorSection.appendChild(details);
+      loadingSection.appendChild(errorSection);
     });
 }
 
 // Helper functions
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
 
 function openTicketSearch(bandName) {
   const url = `https://www.ticketmaster.com/search?q=${encodeURIComponent(bandName)}`;
