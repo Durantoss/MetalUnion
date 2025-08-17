@@ -1,14 +1,20 @@
-# MetalHub - Music Community Platform
+# MoshUnion - Music Community Platform
 
 ## Overview
 
-MetalHub is a comprehensive full-stack music community platform designed for metal and rock enthusiasts. Beyond band discovery, it provides a complete social ecosystem where users can write reviews, upload concert photos, track tour dates, and connect with fellow metalheads. The platform combines modern React frontend architecture with a robust Node.js/Express backend, using PostgreSQL for reliable data persistence through Drizzle ORM.
+MoshUnion is a comprehensive full-stack music community platform designed for metal and rock enthusiasts. Beyond band discovery, it provides a complete social ecosystem where users can write reviews, upload concert photos, track tour dates, and connect with fellow metalheads. The platform combines modern React frontend architecture with a robust Node.js/Express backend, using PostgreSQL for reliable data persistence through Drizzle ORM.
 
 ## Recent Changes (August 17, 2025)
 
+**Complete Rebranding to MoshUnion**: Successfully rebranded the entire platform from "MetalHub" to "MoshUnion" with enhanced clickable logo functionality. Features include:
+- Updated all instances of "MetalHub" to "MoshUnion" across the codebase
+- Added clickable logo with individual word color-swapping animation (red to white)
+- Logo navigation returns users to the landing page/bands section
+- Enhanced user experience with smooth color transitions
+
 **Hero Design Recreation Complete**: Successfully recreated the original dramatic hero-style landing page design based on user's uploaded screenshot. User confirmed this is the design to work with moving forward. Features include:
 - Large "GAZE INTO THE ABYSS" hero section with dramatic red typography and text shadows
-- Professional navigation header with METALHUB branding and responsive design
+- Professional navigation header with MOSHUNION branding and responsive design
 - Featured bands displayed in large, image-focused cards with overlays and gradients
 - Star ratings and review counts for community engagement
 - Mobile-responsive typography using clamp() for optimal scaling
@@ -47,6 +53,12 @@ MetalHub is a comprehensive full-stack music community platform designed for met
 - Real-time thumbnail updates in band database
 - Public photo serving for search results
 - Direct band photo management system
+
+**Logo Animation System**: Implemented sophisticated clickable logo with sequential word animation:
+- "MOSH" and "UNION" words animate independently from red to white
+- 150ms animation timing between words for smooth visual effect  
+- Clickable logo provides immediate navigation back to home/bands section
+- Hover effects enhance user interaction feedback
 
 **Technical Details**:
 - Server: ✓ Working (curl tests successful)

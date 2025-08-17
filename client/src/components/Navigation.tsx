@@ -5,9 +5,23 @@ interface NavigationProps {
   onSectionChange: (section: string) => void;
   onShowComparison: () => void;
   onShowLogin: () => void;
+  onReturnHome: () => void;
 }
 
-export function Navigation({ currentSection, onSectionChange, onShowComparison, onShowLogin }: NavigationProps) {
+export function Navigation({ currentSection, onSectionChange, onShowComparison, onShowLogin, onReturnHome }: NavigationProps) {
+  const [animatingWord, setAnimatingWord] = useState<'mosh' | 'union' | null>(null);
+
+  const handleLogoClick = () => {
+    // Start animation sequence
+    setAnimatingWord('mosh');
+    setTimeout(() => {
+      setAnimatingWord('union');
+      setTimeout(() => {
+        setAnimatingWord(null);
+        onReturnHome();
+      }, 150);
+    }, 150);
+  };
   return (
     <nav style={{
       backgroundColor: '#1f2937',
@@ -24,14 +38,39 @@ export function Navigation({ currentSection, onSectionChange, onShowComparison, 
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
-        <div style={{
-          fontSize: '1.5rem',
-          fontWeight: 'bold',
-          color: '#dc2626',
-          letterSpacing: '0.1em'
-        }}>
-          METALHUB
-        </div>
+        <button
+          onClick={handleLogoClick}
+          style={{
+            background: 'none',
+            border: 'none',
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            letterSpacing: '0.1em',
+            cursor: 'pointer',
+            padding: '0.5rem',
+            borderRadius: '4px',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+        >
+          <span style={{
+            color: animatingWord === 'mosh' ? '#ffffff' : '#dc2626',
+            transition: 'color 0.15s ease'
+          }}>
+            MOSH
+          </span>
+          <span style={{
+            color: animatingWord === 'union' ? '#ffffff' : '#dc2626',
+            transition: 'color 0.15s ease'
+          }}>
+            UNION
+          </span>
+        </button>
         
         <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
           <button

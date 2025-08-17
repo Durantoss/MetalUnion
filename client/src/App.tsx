@@ -26,6 +26,11 @@ const App = () => {
   const [showComparison, setShowComparison] = useState(false);
   const [currentSection, setCurrentSection] = useState('bands');
 
+  const handleReturnHome = () => {
+    setCurrentSection('bands');
+    setShowComparison(false);
+  };
+
   useEffect(() => {
     console.log('App component mounted');
     
@@ -66,7 +71,7 @@ const App = () => {
             fontWeight: 'bold',
             marginBottom: '1rem'
           }}>
-            METALHUB
+            MOSHUNION
           </h1>
           <p style={{ color: '#9ca3af' }}>Loading bands...</p>
         </div>
@@ -92,7 +97,7 @@ const App = () => {
             fontWeight: 'bold',
             marginBottom: '1rem'
           }}>
-            METALHUB
+            MOSHUNION
           </h1>
           <p style={{ color: '#f87171' }}>{error}</p>
           <button 
@@ -336,6 +341,7 @@ const App = () => {
         onSectionChange={setCurrentSection}
         onShowComparison={() => setShowComparison(true)}
         onShowLogin={handleLogin}
+        onReturnHome={handleReturnHome}
       />
       
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>

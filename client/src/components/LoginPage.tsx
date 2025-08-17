@@ -47,7 +47,7 @@ export function LoginPage() {
               marginBottom: '8px'
             }}
           >
-            METALHUB
+            MOSHUNION
           </h1>
           <p 
             className="responsive-login-subtitle"
@@ -88,7 +88,7 @@ export function LoginPage() {
           marginTop: '24px',
           lineHeight: '1.4'
         }}>
-          By signing in, you agree to our terms and join the MetalHub community.
+          By signing in, you agree to our terms and join the MoshUnion community.
         </p>
       </div>
     </div>

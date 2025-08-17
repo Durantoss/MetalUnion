@@ -1,5 +1,5 @@
-// MetalHub - Pure JavaScript Implementation
-console.log('🤘 MetalHub Loading...');
+// MoshUnion - Pure JavaScript Implementation
+console.log('🤘 MoshUnion Loading...');
 
 // Clear any existing content
 const rootElement = document.getElementById("root");
@@ -222,7 +222,7 @@ if (!rootElement) {
   const header = document.createElement('header');
   header.className = 'header';
   header.innerHTML = `
-    <h1 class="main-title">MetalHub</h1>
+    <h1 class="main-title">MoshUnion</h1>
     <p class="subtitle">GAZE INTO THE ABYSS</p>
   `;
   
@@ -285,7 +285,7 @@ if (!rootElement) {
         loadingSection.style.display = 'none';
         contentSection.style.display = 'block';
         
-        console.log('✅ MetalHub loaded successfully!');
+        console.log('✅ MoshUnion loaded successfully!');
       } else {
         throw new Error('No bands data received');
       }
@@ -319,4 +319,4 @@ function openTicketSearch(bandName) {
   console.log(`🎫 Opening tickets for: ${bandName}`);
 }
 
-console.log('🚀 MetalHub JavaScript loaded');
+console.log('🚀 MoshUnion JavaScript loaded');
