@@ -30,8 +30,8 @@ export async function apiRequest(url: string, options?: RequestInit) {
 queryClient.setDefaultOptions({
   queries: {
     queryFn: async ({ queryKey }) => {
-      const url = Array.isArray(queryKey) ? queryKey[0] as string : queryKey as string;
-      return apiRequest(url);
+      const url = Array.isArray(queryKey) ? queryKey[0] : queryKey;
+      return apiRequest(url as string);
     },
   },
 });

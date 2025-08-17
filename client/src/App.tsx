@@ -1,33 +1,10 @@
-import { useState, useEffect } from 'react';
-import { QueryClientProvider } from '@tanstack/react-query';
 import { BandListPage } from './components/BandListPage';
 import { LoginPage } from './components/LoginPage';
-import { queryClient } from './lib/queryClient';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Check for existing session
-    fetch('/api/me', {
-      credentials: 'include',
-    })
-      .then(async (response) => {
-        if (response.ok) {
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
-      })
-      .catch((error) => {
-        console.error('Auth check failed:', error);
-        setIsAuthenticated(false);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, []);
+  // Simple hardcoded auth state to test if the basic structure works
+  const isAuthenticated = false;
+  const isLoading = false;
 
   if (isLoading) {
     return (
@@ -41,11 +18,9 @@ function App() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-gray-950 text-white">
-        {isAuthenticated ? <BandListPage /> : <LoginPage />}
-      </div>
-    </QueryClientProvider>
+    <div className="min-h-screen bg-gray-950 text-white">
+      {isAuthenticated ? <BandListPage /> : <LoginPage />}
+    </div>
   );
 }
 

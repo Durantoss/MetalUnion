@@ -1,8 +1,5 @@
-import { useState } from "react";
-
+// Simple login page without hooks to test if React works
 export function LoginPage() {
-  const [rememberMe, setRememberMe] = useState(false);
-
   const handleLogin = () => {
     // Redirect to Replit OAuth
     window.location.href = '/api/login';
@@ -63,26 +60,6 @@ export function LoginPage() {
           </p>
         </div>
 
-        <div style={{ marginBottom: '24px' }}>
-          <label style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px',
-            cursor: 'pointer',
-            justifyContent: 'center'
-          }}>
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              style={{ accentColor: '#dc2626' }}
-            />
-            <span style={{ fontSize: '0.875rem', color: '#d1d5db' }}>
-              Remember me for 90 days
-            </span>
-          </label>
-        </div>
-
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <button
             onClick={handleLogin}
@@ -111,8 +88,7 @@ export function LoginPage() {
           marginTop: '24px',
           lineHeight: '1.4'
         }}>
-          By signing in, you agree to our terms and join the MetalHub community. 
-          Your session will be {rememberMe ? 'extended to 90 days' : 'set to 30 days'}.
+          By signing in, you agree to our terms and join the MetalHub community.
         </p>
       </div>
     </div>
