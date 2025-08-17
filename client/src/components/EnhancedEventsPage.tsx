@@ -443,7 +443,7 @@ export function EnhancedEventsPage() {
                 animation: 'spin 1s linear infinite'
               }}></div>
               <span style={{ fontSize: '1.25rem', color: '#facc15' }}>
-                Searching SeatGeek, Ticketmaster & Bandsintown...
+                Searching SeatGeek, Ticketmaster, Bandsintown & Google...
               </span>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { searchConcerts } from './googleSearch';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -142,6 +143,18 @@ export class MultiPlatformEventService {
         console.log(`Found ${bandsintownEvents.length} Bandsintown events`);
       }
       
+      // Try Google Search API as a fallback if other platforms have no results
+      if (allEvents.length === 0 && process.env.GOOGLE_API_KEY) {
+        console.log('Trying Google Search API for real event data...');
+        try {
+          const googleEvents = await this.searchGoogleEvents(request);
+          allEvents.push(...googleEvents);
+          console.log(`Found ${googleEvents.length} Google events`);
+        } catch (error) {
+          console.error('Error searching Google events:', error);
+        }
+      }
+
       if (allEvents.length === 0) {
         console.log('No events found from any platform, returning demo events');
         return this.generateDemoEvents(request);
@@ -565,6 +578,160 @@ Provide insights in JSON format:
         recommendations: ["Arrive early for best spots", "Check out the opening acts", "Bring earplugs for comfort"],
         similarEvents: ["Other metal shows in the area", "Upcoming rock festivals"]
       };
+    }
+  }
+
+  private async searchGoogleEvents(request: EventDiscoveryRequest): Promise<DiscoveredEvent[]> {
+    try {
+      const searchQuery = this.buildGoogleSearchQuery(request);
+      const googleResults = await searchConcerts(searchQuery, request.userLocation || 'US');
+      
+      // Transform Google search results to our event format
+      const events: DiscoveredEvent[] = [];
+      
+      for (const result of googleResults.slice(0, 10)) {
+        try {
+          // Extract event information using AI
+          const eventData = await this.extractEventFromGoogleResult(result, request);
+          if (eventData) {
+            events.push(eventData);
+          }
+        } catch (error) {
+          console.error('Error processing Google result:', error);
+        }
+      }
+      
+      return events;
+    } catch (error) {
+      console.error('Error searching Google events:', error);
+      return [];
+    }
+  }
+
+  private buildGoogleSearchQuery(request: EventDiscoveryRequest): string {
+    const parts = [];
+    
+    if (request.query) {
+      parts.push(request.query);
+    } else if (request.preferredGenres?.length) {
+      parts.push(request.preferredGenres.join(' OR '));
+    } else {
+      parts.push('metal rock hardcore punk');
+    }
+    
+    parts.push('concert tickets 2025');
+    
+    if (request.userLocation) {
+      parts.push(`"${request.userLocation}"`);
+    }
+    
+    return parts.join(' ');
+  }
+
+  private async extractEventFromGoogleResult(result: any, request: EventDiscoveryRequest): Promise<DiscoveredEvent | null> {
+    if (!process.env.OPENAI_API_KEY) return null;
+    
+    try {
+      const prompt = `Extract concert event information from this search result:
+Title: ${result.title}
+Snippet: ${result.snippet}
+URL: ${result.link}
+
+Extract and return JSON with:
+{
+  "title": "Concert title",
+  "artist": "Artist name", 
+  "venue": "Venue name",
+  "date": "YYYY-MM-DD format",
+  "time": "HH:MM format",
+  "location": {
+    "city": "City",
+    "state": "State abbreviation",
+    "address": "Venue address if available"
+  },
+  "price": {
+    "min": 30,
+    "max": 100,
+    "currency": "USD"
+  },
+  "genre": "Music genre",
+  "description": "Brief description",
+  "isValidEvent": true
+}
+
+If this is not a valid concert event listing, return {"isValidEvent": false}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+        temperature: 0.3
+      });
+
+      const extracted = JSON.parse(response.choices[0].message.content || '{}');
+      
+      if (!extracted.isValidEvent) {
+        return null;
+      }
+
+      // Generate AI recommendation reason
+      const aiReason = await this.generateRecommendationReason(extracted, request);
+
+      return {
+        id: `google-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        title: extracted.title || 'Concert Event',
+        artist: extracted.artist || 'Various Artists',
+        venue: extracted.venue || 'TBD Venue',
+        date: extracted.date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        time: extracted.time || '20:00',
+        location: {
+          address: extracted.location?.address || '',
+          city: extracted.location?.city || request.userLocation?.split(',')[0] || 'TBD',
+          state: extracted.location?.state || 'CA'
+        },
+        price: {
+          min: extracted.price?.min || 25,
+          max: extracted.price?.max || 75,
+          currency: extracted.price?.currency || 'USD'
+        },
+        ticketUrl: result.link,
+        description: extracted.description || 'Concert event details',
+        genre: extracted.genre || 'Rock',
+        relevanceScore: 0.7,
+        aiRecommendationReason: aiReason,
+        platform: 'seatgeek' // Use consistent platform for UI display
+      };
+
+    } catch (error) {
+      console.error('Error extracting event from Google result:', error);
+      return null;
+    }
+  }
+
+  private async generateRecommendationReason(eventData: any, request: EventDiscoveryRequest): Promise<string> {
+    try {
+      const userPrefs = request.preferredGenres?.join(', ') || 'rock and metal';
+      const prompt = `Generate a brief recommendation reason for this concert:
+      
+Event: ${eventData.title} by ${eventData.artist}
+Genre: ${eventData.genre}
+User likes: ${userPrefs}
+Location: ${eventData.location?.city}
+
+Write 1-2 sentences explaining why this event matches the user's preferences.`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        max_tokens: 100
+      });
+
+      return response.choices[0].message.content?.trim() || 
+        `Great ${eventData.genre} event that matches your taste for ${userPrefs} music`;
+
+    } catch (error) {
+      return `Recommended based on your interest in ${request.preferredGenres?.join(' and ') || 'rock music'}`;
     }
   }
 }

@@ -35,3 +35,43 @@ export async function performGoogleSearch(
     return null;
   }
 }
+
+export async function searchConcerts(
+  query: string,
+  location: string = 'US'
+): Promise<GoogleSearchResult[]> {
+  try {
+    if (!process.env.GOOGLE_API_KEY) {
+      console.log('Google API key not available for concert search');
+      return [];
+    }
+
+    // Use a generic search engine ID or create a custom one for concert searches
+    const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID || '017576662512468239146:omuauf_lfve';
+    
+    const searchQuery = `${query} ${location} site:ticketmaster.com OR site:livenation.com OR site:seatgeek.com OR site:stubhub.com`;
+    
+    console.log(`Searching Google for concerts: "${searchQuery}"`);
+    
+    const response = await fetch(
+      `https://www.googleapis.com/customsearch/v1?key=${process.env.GOOGLE_API_KEY}&cx=${searchEngineId}&q=${encodeURIComponent(searchQuery)}&num=10`
+    );
+    
+    if (!response.ok) {
+      console.error('Google Custom Search API error:', response.status, response.statusText);
+      return [];
+    }
+    
+    const data: GoogleSearchResponse = await response.json();
+    
+    if (data.items && data.items.length > 0) {
+      console.log(`Found ${data.items.length} concert results from Google`);
+      return data.items;
+    }
+    
+    return [];
+  } catch (error) {
+    console.error('Error searching concerts via Google:', error);
+    return [];
+  }
+}
