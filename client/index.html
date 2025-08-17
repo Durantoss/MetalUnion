@@ -18,9 +18,33 @@
     <link rel="manifest" href="/manifest.json">
     <title>MetalHub - Reviews, photos, and tour dates for the heaviest bands on the planet</title>
   </head>
-  <body>
-    <div id="root"></div>
+  <body style="margin: 0; padding: 40px; font-family: Arial; background: #111; color: #fff; min-height: 100vh;">
+    <h1 style="color: #dc2626; font-size: 3rem; margin-bottom: 2rem;">🤘 MetalHub - Direct HTML</h1>
+    <p style="font-size: 1.2rem;">This HTML should display even without JavaScript</p>
+    <p>Server: Express on port 5000</p>
+    <p>Mapping: 5000 → 80 (external)</p>
+    <p id="js-test">JavaScript: Not loaded</p>
+    
+    <div id="root">
+      <div style="background: #222; padding: 20px; border-radius: 8px; margin-top: 20px;">
+        <p id="loading-status">React loading area...</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Test basic JavaScript execution
+      document.getElementById('js-test').innerHTML = 'JavaScript: Working!';
+      
+      // Test React loading
+      setTimeout(() => {
+        const status = document.getElementById('loading-status');
+        if (status && document.getElementById('root').children.length === 1) {
+          status.innerHTML = '⚠️ React module failed to load - check console';
+        }
+      }, 3000);
+      
+      console.log('Basic JavaScript executed successfully');
+    </script>
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
   </body>
