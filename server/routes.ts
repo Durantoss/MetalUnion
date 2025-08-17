@@ -985,6 +985,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
+  // Background AI Routes
+  app.post("/api/ai/recommendations", async (req, res) => {
+    try {
+      const { preferences } = req.body;
+      
+      const recommendations = await aiService.generateRecommendations(preferences);
+      res.json(recommendations);
+    } catch (error) {
+      console.error('AI recommendations error:', error);
+      res.status(500).json({ error: "Recommendation service unavailable" });
+    }
+  });
+
+  app.get("/api/analytics/user-activity", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Fetch recent user activity (reviews, searches, views)
+      const activity = await storage.getUserActivity(userId);
+      
+      res.json(activity);
+    } catch (error) {
+      console.error('User activity error:', error);
+      res.status(500).json({ error: "Activity data unavailable" });
+    }
+  });
+
   // AI Features Routes
   
   // Smart Band Recommendations
@@ -1023,7 +1050,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const enhancement = await aiService.enhanceSearchQuery(query);
       
       // Use enhanced query for better search results
-      let searchResults = [];
+      let searchResults: any[] = [];
       if (enhancement.enhancedQuery) {
         searchResults = await storage.searchBands(enhancement.enhancedQuery);
       }
@@ -1052,7 +1079,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         band.name,
         band.genre || '',
         band.description || '',
-        band.albums
+        band.albums || []
       );
       
       res.json({

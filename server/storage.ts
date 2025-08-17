@@ -68,6 +68,9 @@ export interface IStorage {
   updateMessage(id: string, message: Partial<InsertMessage>): Promise<Message | undefined>;
   deleteMessage(id: string): Promise<boolean>;
   likeMessage(id: string): Promise<Message | undefined>;
+
+  // Analytics for background AI
+  getUserActivity(userId: string): Promise<any[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -498,6 +501,34 @@ export class MemStorage implements IStorage {
       .sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime());
   }
 
+  // Analytics for background AI
+  async getUserActivity(userId: string): Promise<any[]> {
+    const userBands = Array.from(this.bands.values()).filter(band => band.ownerId === userId);
+    const allReviews = Array.from(this.reviews.values());
+    const userReviews = allReviews.filter(review => 
+      userBands.some(band => band.name === review.stagename)
+    );
+    
+    // Create activity timeline
+    const activity = [
+      ...userBands.map(band => ({
+        type: 'band_submission',
+        timestamp: band.createdAt || new Date(),
+        genre: band.genre,
+        item: band.name
+      })),
+      ...userReviews.map(review => ({
+        type: 'review',
+        timestamp: review.createdAt || new Date(),
+        genre: review.genre,
+        item: review.stagename,
+        rating: review.rating
+      }))
+    ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    return activity.slice(0, 50); // Last 50 activities
+  }
+
   // Messages (stub implementations - not used since we use DatabaseStorage)
   async getMessages(): Promise<Message[]> { return []; }
   async getMessage(id: string): Promise<Message | undefined> { return undefined; }
@@ -807,6 +838,40 @@ export class DatabaseStorage implements IStorage {
       .where(eq(messages.id, id))
       .returning();
     return message;
+  }
+
+  // Analytics for background AI
+  async getUserActivity(userId: string): Promise<any[]> {
+    try {
+      // Get user's recent activity patterns
+      const userBands = await this.getBandsByOwner(userId);
+      const allReviews = await this.getReviews();
+      const userReviews = allReviews.filter(review => 
+        userBands.some(band => band.name === review.stagename)
+      );
+      
+      // Create activity timeline
+      const activity = [
+        ...userBands.map(band => ({
+          type: 'band_submission',
+          timestamp: band.createdAt || new Date(),
+          genre: band.genre,
+          item: band.name
+        })),
+        ...userReviews.map(review => ({
+          type: 'review',
+          timestamp: review.createdAt || new Date(),
+          genre: review.genre,
+          item: review.stagename,
+          rating: review.rating
+        }))
+      ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      
+      return activity.slice(0, 50); // Last 50 activities
+    } catch (error) {
+      console.error('Error fetching user activity:', error);
+      return [];
+    }
   }
 }
 

@@ -33,6 +33,33 @@ export interface ChatResponse {
 
 export class AIService {
   
+  // Background AI: Generate recommendations based on user preferences
+  async generateRecommendations(preferences: any): Promise<BandRecommendation[]> {
+    try {
+      const prompt = `You are a metal music expert AI. Based on these user preferences:
+${JSON.stringify(preferences, null, 2)}
+
+Generate 3-5 personalized band recommendations. Consider:
+- Preferred genres and recent listening patterns
+- Activity level and engagement
+- Musical evolution and discovery patterns
+
+Respond in JSON format: {"recommendations": [{"name": "Band Name", "genre": "Genre", "reason": "Why they'd like it", "similarityScore": 85, "description": "Brief description"}]}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+      });
+
+      const result = JSON.parse(response.choices[0].message.content || '{"recommendations": []}');
+      return result.recommendations || [];
+    } catch (error) {
+      console.error('Background recommendations error:', error);
+      return [];
+    }
+  }
+  
   // Smart Band Recommendations
   async getRecommendations(
     userBands: string[],
