@@ -19,6 +19,8 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
+  console.log('LandingPage rendered with bands:', bands?.length);
+  
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [hoveredSection, setHoveredSection] = useState<string | null>(null);
   const [stats, setStats] = useState({
@@ -120,8 +122,26 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
     }
   ];
 
+  // Fallback content if no bands are available
+  if (!bands || bands.length === 0) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+        <div className="text-center">
+          <h1 className="text-4xl sm:text-6xl font-black text-red-500 mb-4">MOSHUNION</h1>
+          <p className="text-gray-400 mb-8">Loading the ultimate metal community...</p>
+          <button 
+            onClick={() => onSectionChange('bands')} 
+            className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg font-bold transition-all"
+          >
+            Enter Anyway
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-black text-white relative safe-top safe-bottom">
+    <div className="min-h-screen bg-black text-white relative safe-top safe-bottom" style={{ width: '100%', minHeight: '100vh', display: 'block', visibility: 'visible' }}>
       {/* Floating Navigation Button */}
       <button
         onClick={() => {
@@ -144,8 +164,20 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
                 d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
-      {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+      {/* Hero Section - Mobile Optimized */}
+      <section 
+        className="relative h-screen flex items-center justify-center overflow-hidden" 
+        style={{ 
+          minHeight: '100vh', 
+          background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+          position: 'relative',
+          zIndex: 1
+        }}
+      >
         {/* Background Images Carousel */}
         <div className="absolute inset-0 z-0">
           {featuredBands.map((band, index) => (
@@ -164,8 +196,8 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/90" />
         </div>
 
-        {/* Hero Content */}
-        <div className="relative z-10 text-center px-4 max-w-6xl mx-auto">
+        {/* Hero Content - Mobile First */}
+        <div className="relative z-10 text-center px-4 max-w-6xl mx-auto" style={{ width: '100%', maxWidth: '100vw' }}>
           <h1 
             className="text-4xl xs:text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-black mb-4 sm:mb-6"
             style={{
@@ -175,7 +207,9 @@ export function LandingPage({ onSectionChange, bands }: LandingPageProps) {
               WebkitTextFillColor: 'transparent',
               textShadow: '0 0 20px rgba(220, 38, 38, 0.5)',
               letterSpacing: 'clamp(0.05em, 0.1em, 0.15em)',
-              lineHeight: '0.9'
+              lineHeight: '0.9',
+              color: '#dc2626', // Fallback for older browsers
+              fontSize: 'clamp(2rem, 8vw, 6rem)' // Responsive fallback
             }}
           >
             MOSHUNION

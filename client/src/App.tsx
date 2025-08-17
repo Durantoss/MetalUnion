@@ -128,14 +128,19 @@ const App = () => {
   };
 
   const renderContent = () => {
+    console.log('Rendering section:', currentSection, 'with', bands.length, 'bands');
+    
+    // Always start with landing page
+    if (currentSection === 'landing' || !currentSection) {
+      return (
+        <LandingPage 
+          onSectionChange={setCurrentSection}
+          bands={bands}
+        />
+      );
+    }
+    
     switch (currentSection) {
-      case 'landing':
-        return (
-          <LandingPage 
-            onSectionChange={setCurrentSection}
-            bands={bands}
-          />
-        );
       case 'bands':
         return (
           <div>
@@ -333,8 +338,26 @@ const App = () => {
       minHeight: '100vh',
       backgroundColor: '#111827',
       color: 'white',
-      fontFamily: 'Arial, sans-serif'
+      fontFamily: 'Arial, sans-serif',
+      width: '100%',
+      position: 'relative'
     }}>
+      {/* Mobile Debug Info */}
+      <div style={{
+        position: 'fixed',
+        top: '10px',
+        right: '10px',
+        zIndex: 1000,
+        background: 'rgba(220, 38, 38, 0.9)',
+        color: 'white',
+        padding: '4px 8px',
+        borderRadius: '4px',
+        fontSize: '10px',
+        fontWeight: 'bold'
+      }}>
+        {currentSection || 'landing'} | {bands?.length || 0}
+      </div>
+      
       {currentSection !== 'landing' && (
         <Navigation
           currentSection={currentSection}
@@ -347,7 +370,8 @@ const App = () => {
       
       <div style={{ 
         maxWidth: currentSection === 'landing' ? '100%' : '1200px', 
-        margin: '0 auto' 
+        margin: '0 auto',
+        width: '100%'
       }}>
         {renderContent()}
         
