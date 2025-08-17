@@ -25,6 +25,15 @@ export function InstallPrompt() {
   const [isDismissedState, setIsDismissedState] = useState(false);
 
   useEffect(() => {
+    // Debug state
+    console.log("InstallPrompt state:", {
+      isInstalled,
+      isDismissed: isDismissedState,
+      showPrompt,
+      showManualGuide: false,
+      deferredPrompt: !!deferredPrompt
+    });
+    
     // Check if already dismissed
     const dismissed = sessionStorage.getItem('installPromptDismissed') === 'true';
     setIsDismissedState(dismissed);

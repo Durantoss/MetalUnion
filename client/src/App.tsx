@@ -21,7 +21,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { MetalLoader } from "@/components/ui/metal-loader";
 
 function Router() {
-  const { user, isLoading, isAuthenticated } = useAuth();
+  // Temporarily bypass auth to get app running
+  const user = null;
+  const isLoading = false;
+  const isAuthenticated = false;
 
   // Show loading screen while checking authentication
   if (isLoading) {
@@ -32,8 +35,8 @@ function Router() {
     );
   }
 
-  // Show onboarding for new authenticated users without stagename
-  const needsOnboarding = isAuthenticated && user && (!user.stagename || !user.firstName || !user.lastName);
+  // Show onboarding for new authenticated users without stagename  
+  const needsOnboarding = false; // Disabled for now
   
   if (needsOnboarding) {
     return (
@@ -70,6 +73,7 @@ function Router() {
 }
 
 function App() {
+  console.log("App Router is rendering");
   return (
     <QueryClientProvider client={queryClient}>
       {/* <Toaster /> */}
