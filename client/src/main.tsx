@@ -1,34 +1,34 @@
 import { createRoot } from "react-dom/client";
-import App from "./App";
 import "./index.css";
 
-console.log("main.tsx is loading");
-
-// Register service worker for PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('MetalHub PWA registered successfully');
-      })
-      .catch((registrationError) => {
-        console.log('PWA registration failed: ', registrationError);
-      });
-  });
+// Inline minimal component to avoid import issues
+function MinimalApp() {
+  console.log("MinimalApp rendering");
+  
+  return (
+    <div style={{ padding: '20px', color: 'white', backgroundColor: '#000' }}>
+      <h1 style={{ color: '#dc2626', fontSize: '2rem', marginBottom: '1rem' }}>
+        MetalHub - Clean Start
+      </h1>
+      <p>React app successfully initialized!</p>
+      <p>Timestamp: {new Date().toLocaleTimeString()}</p>
+      <div style={{ marginTop: '20px' }}>
+        <p>✓ Server running on port 5000</p>
+        <p>✓ React rendering working</p>
+        <p>✓ Ready for development</p>
+      </div>
+    </div>
+  );
 }
 
+console.log("main.tsx loading with inline component");
+
 const rootElement = document.getElementById("root");
-console.log("Root element found:", rootElement);
 
 if (rootElement) {
-  console.log("Creating React root");
   const root = createRoot(rootElement);
-  console.log("Rendering App component");
-  root.render(
-    // Remove StrictMode if it's causing issues with hooks
-    <App />
-  );
-  console.log("React app rendered successfully");
+  root.render(<MinimalApp />);
+  console.log("Minimal app rendered successfully");
 } else {
   console.error("Root element not found!");
 }

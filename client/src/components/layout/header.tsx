@@ -9,10 +9,7 @@ export default function Header() {
   const [location] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  // Temporarily bypass auth to get app running
-  const user = null;
-  const isAuthenticated = false;
-  const isLoading = false;
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   const isActive = (path: string) => {
     if (path === "/" && location === "/") return true;
