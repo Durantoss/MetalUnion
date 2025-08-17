@@ -94,53 +94,53 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
   const sections = [
     {
       id: 'bands',
-      title: 'DISCOVER',
-      subtitle: 'Bands',
-      description: 'Explore the universe of metal and rock',
-      icon: '🎸',
+      title: 'SCAN',
+      subtitle: 'Entities',
+      description: 'Decrypt underground resistance networks',
+      icon: '▼',
       stats: `${stats.bands}`,
       gradient: 'from-neon-cyan via-electric-blue to-neon-purple',
       glowColor: 'neon-cyan'
     },
     {
       id: 'tours',
-      title: 'LIVE',
-      subtitle: 'Tours',
-      description: 'Never miss a show in the digital age',
-      icon: '🎫',
+      title: 'TRACK',
+      subtitle: 'Operations',
+      description: 'Monitor live field activities',
+      icon: '◉',
       stats: `${stats.tours}`,
-      gradient: 'from-neon-purple via-neon-pink to-vivid-orange',
+      gradient: 'from-neon-purple via-neon-pink to-cyber-red',
       glowColor: 'neon-purple'
     },
     {
       id: 'reviews',
       title: 'ANALYZE',
-      subtitle: 'Reviews',
-      description: 'Critical analysis of sound and fury',
-      icon: '⭐',
+      subtitle: 'Intel',
+      description: 'Decode sonic warfare patterns',
+      icon: '◈',
       stats: `${stats.reviews}`,
-      gradient: 'from-electric-blue via-neon-cyan to-neon-yellow',
+      gradient: 'from-electric-blue via-neon-cyan to-toxic-yellow',
       glowColor: 'electric-blue'
     },
     {
       id: 'photos',
-      title: 'CAPTURE',
-      subtitle: 'Photos',
-      description: 'Visual documentation of chaos',
-      icon: '📸',
+      title: 'ARCHIVE',
+      subtitle: 'Evidence',
+      description: 'Visual surveillance data',
+      icon: '◆',
       stats: `${stats.photos}`,
-      gradient: 'from-neon-yellow via-vivid-orange to-neon-pink',
-      glowColor: 'neon-yellow'
+      gradient: 'from-toxic-yellow via-rust-orange to-neon-pink',
+      glowColor: 'toxic-yellow'
     },
     {
       id: 'pit',
-      title: 'CONNECT',
-      subtitle: 'The Pit',
-      description: 'Digital convergence of metalheads',
-      icon: '🤘',
+      title: 'LINK',
+      subtitle: 'Network',
+      description: 'Neural mesh convergence',
+      icon: '⬢',
       stats: '∞',
-      gradient: 'from-vivid-orange via-neon-pink to-neon-purple',
-      glowColor: 'vivid-orange'
+      gradient: 'from-rust-orange via-neon-pink to-void-purple',
+      glowColor: 'rust-orange'
     }
   ];
 
@@ -154,12 +154,12 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
           transition={{ duration: 0.6 }}
         >
           <motion.h1 
-            className="text-6xl font-black gradient-text-neon mb-6 glow-text"
+            className="text-6xl font-black gradient-text-neon mb-6 glow-text cyberpunk-flicker"
             initial={{ y: -30 }}
             animate={{ y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
           >
-            MOSHUNION
+            NEURAL.NET
           </motion.h1>
           <motion.p 
             className="text-muted-foreground mb-8 text-lg font-mono"
@@ -167,7 +167,7 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            Initializing neural networks...
+            INITIALIZING NEURAL PATHWAYS...
           </motion.p>
           <motion.button 
             onClick={() => onSectionChange('bands')}
@@ -179,7 +179,7 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
             whileTap={{ scale: 0.98 }}
             data-testid="button-enter-site"
           >
-            ENTER SYSTEM
+            JACK IN
           </motion.button>
         </motion.div>
       </div>
@@ -266,8 +266,8 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.8 }}
           >
-            <h1 className="text-8xl md:text-9xl font-black mb-4 gradient-text-neon font-mono tracking-tighter">
-              MOSHUNION
+            <h1 className="text-8xl md:text-9xl font-black mb-4 gradient-text-neon font-mono tracking-tighter cyberpunk-flicker">
+              CYBERPIT.SYS
             </h1>
             <div className="h-1 w-32 mx-auto animated-gradient rounded-full"></div>
           </motion.div>
@@ -278,7 +278,7 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
-            <span className="text-neon-cyan">&gt;</span> NEURAL NETWORK FOR METALHEADS <span className="text-neon-cyan">_</span>
+            <span className="text-neon-cyan">&gt;</span> DYSTOPIAN METAL GRID <span className="text-neon-cyan cyberpunk-flicker">_</span>
           </motion.p>
           
           <motion.p 
@@ -287,8 +287,8 @@ export function ModernLandingPage({ onSectionChange, bands }: ModernLandingPageP
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
           >
-            Advanced algorithms connecting the global metal community through 
-            digital discovery, live tracking, and social convergence protocols.
+            Corporate overlords have fallen. Underground metal networks rise from the digital ashes. 
+            Connect through encrypted channels, track resistance shows, analyze sonic warfare.
           </motion.p>
 
           {/* Featured Band Terminal */}
