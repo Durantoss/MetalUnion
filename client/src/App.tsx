@@ -214,7 +214,7 @@ function App() {
         <div style={{ marginBottom: '24px' }}>
           <input
             type="text"
-            placeholder="Search bands, genres, members, or descriptions..."
+            placeholder="Search bands by name, genre, or description..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
@@ -229,7 +229,7 @@ function App() {
             }}
           />
         </div>
-        {/* Community Features */}
+        {/* Authentication Status */}
         <div style={{ 
           backgroundColor: '#1f2937', 
           padding: '16px', 
@@ -241,14 +241,12 @@ function App() {
             color: '#f87171', 
             marginBottom: '12px'
           }}>
-            Community Features
+            Authentication Status
           </h3>
           {isAuthenticated ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <p style={{ color: '#10b981', fontSize: '0.875rem' }}>✓ Write band reviews and ratings</p>
-              <p style={{ color: '#10b981', fontSize: '0.875rem' }}>✓ Upload concert photos</p>
-              <p style={{ color: '#10b981', fontSize: '0.875rem' }}>✓ Track tour dates and events</p>
-              <p style={{ color: '#10b981', fontSize: '0.875rem' }}>✓ Connect with other fans</p>
+              <p style={{ color: '#10b981', fontSize: '0.875rem' }}>✓ Logged in as {user?.firstName || user?.email || 'User'}</p>
+              <p style={{ color: '#10b981', fontSize: '0.875rem' }}>✓ Session active with persistent login</p>
               <div style={{ marginTop: '8px' }}>
                 <button
                   onClick={() => window.location.href = '/api/logout'}
@@ -268,10 +266,8 @@ function App() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <p style={{ color: '#fbbf24', fontSize: '0.875rem' }}>⚠ Login to unlock all features</p>
-              <p style={{ color: '#9ca3af', fontSize: '0.75rem' }}>• Write reviews and upload photos</p>
-              <p style={{ color: '#9ca3af', fontSize: '0.75rem' }}>• Save favorite bands and get recommendations</p>
-              <p style={{ color: '#9ca3af', fontSize: '0.75rem' }}>• Connect with fellow metalheads</p>
+              <p style={{ color: '#fbbf24', fontSize: '0.875rem' }}>⚠ Not logged in</p>
+              <p style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Login to access all features</p>
             </div>
           )}
         </div>
@@ -288,28 +284,15 @@ function App() {
           </div>
         )}
         
-        {/* Welcome Section */}
+        {/* Band Results Section */}
         <div style={{ marginBottom: '24px' }}>
-          <div style={{ marginBottom: '16px' }}>
-            <h2 style={{ 
-              fontSize: '1.5rem', 
-              color: '#f87171', 
-              marginBottom: '8px' 
-            }}>
-              Welcome to the Metal Community
-            </h2>
-            <p style={{ color: '#9ca3af', fontSize: '1rem', marginBottom: '16px' }}>
-              Discover bands, read reviews, upload photos, and find tour dates. Connect with fellow metalheads worldwide.
-            </p>
-          </div>
-          
-          <h3 style={{ 
+          <h2 style={{ 
             fontSize: '1.25rem', 
             color: '#f87171', 
             marginBottom: '16px' 
           }}>
-            Featured Bands ({loading ? '...' : `${filteredBands.length} of ${bands.length}`})
-          </h3>
+            Band Search Results ({loading ? '...' : `${filteredBands.length} of ${bands.length}`} bands)
+          </h2>
           
           {loading ? (
             <div style={{ 
@@ -461,12 +444,9 @@ function App() {
                       cursor: 'pointer',
                       flexShrink: 0
                     }}
-                    onClick={() => {
-                      console.log('Selected band:', band.name);
-                      // Future: Navigate to band profile page
-                    }}
+                    onClick={() => console.log('Selected band:', band.name)}
                   >
-                    Profile
+                    View
                   </button>
                 </div>
               ))}
