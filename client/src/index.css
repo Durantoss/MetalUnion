@@ -1044,3 +1044,54 @@ input, select, textarea {
       border-color: var(--metal-gray);
     }
   }
+
+/* Mobile-Specific Optimizations for Social Hub */
+
+/* Hide scrollbar for horizontal scroll on mobile */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Enhanced touch targets for mobile */
+.touch-manipulation {
+  touch-action: manipulation;
+  min-height: 44px; /* iOS recommended touch target size */
+}
+
+/* Mobile text scaling */
+@media (max-width: 640px) {
+  .mobile-text-sm { font-size: 0.75rem; }
+  .mobile-text-xs { font-size: 0.625rem; }
+}
+
+/* Responsive font scaling */
+.responsive-text {
+  font-size: clamp(0.875rem, 2.5vw, 1.125rem);
+}
+
+/* Mobile-optimized spacing */
+.mobile-spacing {
+  padding: clamp(0.5rem, 2vw, 1rem);
+}
+
+/* Mobile navigation optimization */
+@media (max-width: 768px) {
+  .mobile-nav-item {
+    min-width: 80px;
+    text-align: center;
+  }
+  
+  .mobile-scroll-container {
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+  }
+  
+  .mobile-scroll-item {
+    scroll-snap-align: center;
+  }
+}

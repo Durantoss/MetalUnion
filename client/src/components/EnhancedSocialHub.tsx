@@ -23,8 +23,7 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
 
   const handleTabChange = (tab: string) => {
     window.location.hash = `social-${tab}`;
-    // Force a re-render by triggering a page refresh
-    setTimeout(() => window.location.reload(), 10);
+    // Simple navigation without page refresh for better mobile UX
   };
 
   const tabs = [
@@ -67,16 +66,16 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
       case 'feed':
         return (
           <div className="space-y-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-bold text-white">Community Feed</h2>
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2 bg-black/40 px-4 py-2 rounded-lg border border-green-500/30">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
+              <h2 className="text-2xl md:text-3xl font-bold text-white">Community Feed</h2>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                <div className="flex items-center space-x-2 bg-black/40 px-3 py-2 rounded-lg border border-green-500/30">
                   <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-green-400 font-semibold">{stats.onlineUsers} online</span>
+                  <span className="text-green-400 font-semibold text-sm">{stats.onlineUsers} online</span>
                 </div>
-                <div className="flex items-center space-x-2 bg-black/40 px-4 py-2 rounded-lg border border-blue-500/30">
+                <div className="flex items-center space-x-2 bg-black/40 px-3 py-2 rounded-lg border border-blue-500/30">
                   <TrendingUp className="h-4 w-4 text-blue-400" />
-                  <span className="text-blue-400 font-semibold">{stats.todaysPosts} posts today</span>
+                  <span className="text-blue-400 font-semibold text-sm">{stats.todaysPosts} posts today</span>
                 </div>
               </div>
             </div>
@@ -99,16 +98,16 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
       case 'community':
         return (
           <div className="space-y-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-bold text-white">Metal Community</h2>
-              <div className="flex items-center space-x-2 bg-black/40 px-4 py-2 rounded-lg border border-red-500/30">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
+              <h2 className="text-2xl md:text-3xl font-bold text-white">Metal Community</h2>
+              <div className="flex items-center space-x-2 bg-black/40 px-3 py-2 rounded-lg border border-red-500/30">
                 <Users className="h-4 w-4 text-red-400" />
-                <span className="text-red-400 font-semibold">{stats.totalMembers} total members</span>
+                <span className="text-red-400 font-semibold text-sm">{stats.totalMembers} total members</span>
               </div>
             </div>
             
-            {/* Community Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            {/* Mobile-Optimized Community Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               <div className="bg-black/40 border border-red-500/30 rounded-lg p-6 text-center">
                 <div className="text-3xl font-bold text-red-400 mb-2">{stats.onlineUsers}</div>
                 <div className="text-gray-400">Online Now</div>
@@ -162,25 +161,25 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
                   <Zap className="h-6 w-6 text-yellow-500" />
                   <h3 className="text-xl font-semibold text-white">Quick Actions</h3>
                 </div>
-                <div className="grid grid-cols-1 gap-4">
-                  <button className="flex items-center space-x-3 w-full bg-gradient-to-r from-red-600/20 to-red-700/20 border border-red-500/30 text-red-400 py-4 px-6 rounded-lg hover:from-red-600/30 hover:to-red-700/30 transition-all">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+                  <button className="flex items-center justify-center sm:justify-start space-x-3 w-full bg-gradient-to-r from-red-600/20 to-red-700/20 border border-red-500/30 text-red-400 py-3 px-4 rounded-lg hover:from-red-600/30 hover:to-red-700/30 transition-all touch-manipulation">
                     <TrendingUp className="h-5 w-5" />
-                    <span>Start a Poll</span>
+                    <span className="text-sm font-medium">Start a Poll</span>
                   </button>
-                  <button className="flex items-center space-x-3 w-full bg-gradient-to-r from-yellow-600/20 to-yellow-700/20 border border-yellow-500/30 text-yellow-400 py-4 px-6 rounded-lg hover:from-yellow-600/30 hover:to-yellow-700/30 transition-all">
+                  <button className="flex items-center justify-center sm:justify-start space-x-3 w-full bg-gradient-to-r from-yellow-600/20 to-yellow-700/20 border border-yellow-500/30 text-yellow-400 py-3 px-4 rounded-lg hover:from-yellow-600/30 hover:to-yellow-700/30 transition-all touch-manipulation">
                     <Camera className="h-5 w-5" />
-                    <span>Share Concert Photo</span>
+                    <span className="text-sm font-medium">Share Photo</span>
                   </button>
-                  <button className="flex items-center space-x-3 w-full bg-gradient-to-r from-blue-600/20 to-blue-700/20 border border-blue-500/30 text-blue-400 py-4 px-6 rounded-lg hover:from-blue-600/30 hover:to-blue-700/30 transition-all">
+                  <button className="flex items-center justify-center sm:justify-start space-x-3 w-full bg-gradient-to-r from-blue-600/20 to-blue-700/20 border border-blue-500/30 text-blue-400 py-3 px-4 rounded-lg hover:from-blue-600/30 hover:to-blue-700/30 transition-all touch-manipulation">
                     <Music className="h-5 w-5" />
-                    <span>Recommend Band</span>
+                    <span className="text-sm font-medium">Recommend Band</span>
                   </button>
                   <button 
                     onClick={() => handleTabChange('events')}
-                    className="flex items-center space-x-3 w-full bg-gradient-to-r from-purple-600/20 to-purple-700/20 border border-purple-500/30 text-purple-400 py-4 px-6 rounded-lg hover:from-purple-600/30 hover:to-purple-700/30 transition-all"
+                    className="flex items-center justify-center sm:justify-start space-x-3 w-full bg-gradient-to-r from-purple-600/20 to-purple-700/20 border border-purple-500/30 text-purple-400 py-3 px-4 rounded-lg hover:from-purple-600/30 hover:to-purple-700/30 transition-all touch-manipulation"
                   >
                     <Calendar className="h-5 w-5" />
-                    <span>Find Events</span>
+                    <span className="text-sm font-medium">Find Events</span>
                   </button>
                 </div>
               </div>
@@ -261,10 +260,10 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
         </div>
       </div>
 
-      {/* Navigation Tabs */}
+      {/* Mobile-Optimized Navigation Tabs */}
       <div className="bg-black/30 border-b border-red-900/20">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex space-x-1 overflow-x-auto">
+        <div className="max-w-7xl mx-auto px-2 md:px-4">
+          <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -273,7 +272,7 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`flex items-center space-x-3 px-6 py-4 border-b-2 transition-all min-w-fit ${
+                  className={`flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-3 px-3 md:px-6 py-3 md:py-4 border-b-2 transition-all min-w-fit ${
                     isActive
                       ? 'border-red-500 bg-red-500/10 text-red-400'
                       : 'border-transparent text-gray-400 hover:text-red-300 hover:border-red-300/50'
@@ -287,9 +286,9 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
                       </span>
                     )}
                   </div>
-                  <div className="text-left">
-                    <div className="font-semibold">{tab.name}</div>
-                    <div className="text-xs opacity-75 hidden sm:block">{tab.description}</div>
+                  <div className="text-center md:text-left">
+                    <div className="font-semibold text-xs md:text-sm">{tab.name}</div>
+                    <div className="text-xs opacity-75 hidden lg:block">{tab.description}</div>
                   </div>
                 </button>
               );
@@ -298,10 +297,13 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Main Content - Mobile Optimized */}
+      <div className="max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-8">
         {renderTabContent()}
       </div>
+      
+      {/* Mobile Bottom Padding for Safe Area */}
+      <div className="h-6 md:hidden"></div>
     </div>
   );
 }
