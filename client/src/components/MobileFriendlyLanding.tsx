@@ -212,38 +212,68 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
       {/* Quick Access Grid */}
       <div style={{
         display: 'grid',
-        gap: '1.5rem',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gap: window.innerWidth < 768 ? '1rem' : '1.5rem',
+        gridTemplateColumns: window.innerWidth < 768 
+          ? '1fr' 
+          : window.innerWidth < 1024 
+            ? 'repeat(auto-fit, minmax(280px, 1fr))' 
+            : 'repeat(auto-fit, minmax(320px, 1fr))',
         maxWidth: '1400px',
-        margin: '0 auto'
+        margin: '0 auto',
+        padding: window.innerWidth < 768 ? '0 0.75rem' : '0 1rem'
       }}>
         {quickAccessSections.map((section, index) => (
           <div
             key={section.id}
             onClick={() => onSectionChange(section.id)}
-            style={{
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
-              borderRadius: '16px',
-              border: '1px solid rgba(153, 27, 27, 0.5)',
-              padding: section.featured ? '2rem' : '1.5rem',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              position: 'relative',
-              overflow: 'hidden',
-              gridColumn: section.featured ? 'span 2' : 'span 1',
-              minHeight: section.featured ? '200px' : '160px'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-8px)';
+
+            onTouchStart={(e) => {
+              e.currentTarget.style.transform = 'translateY(-8px) scale(0.98)';
               e.currentTarget.style.borderColor = 'rgba(220, 38, 38, 0.8)';
               e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
               e.currentTarget.style.boxShadow = '0 20px 40px rgba(220, 38, 38, 0.3)';
             }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
+            onTouchEnd={(e) => {
+              e.currentTarget.style.transform = 'translateY(0) scale(1)';
               e.currentTarget.style.borderColor = 'rgba(153, 27, 27, 0.5)';
               e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
               e.currentTarget.style.boxShadow = 'none';
+            }}
+            onMouseEnter={(e) => {
+              if (!('ontouchstart' in window)) {
+                e.currentTarget.style.transform = 'translateY(-8px)';
+                e.currentTarget.style.borderColor = 'rgba(220, 38, 38, 0.8)';
+                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+                e.currentTarget.style.boxShadow = '0 20px 40px rgba(220, 38, 38, 0.3)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!('ontouchstart' in window)) {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.borderColor = 'rgba(153, 27, 27, 0.5)';
+                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                e.currentTarget.style.boxShadow = 'none';
+              }
+            }}
+            style={{
+              ...{
+                background: section.gradient,
+                borderRadius: '16px',
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                border: '1px solid rgba(153, 27, 27, 0.5)',
+                padding: section.featured ? '2rem' : '1.5rem',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                position: 'relative',
+                overflow: 'hidden',
+                gridColumn: section.featured ? 'span 2' : 'span 1',
+                minHeight: section.featured ? '200px' : '160px'
+              },
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent',
+              minHeight: window.innerWidth < 768 ? (section.featured ? '180px' : '140px') : (section.featured ? '200px' : '160px'),
+              padding: window.innerWidth < 768 ? (section.featured ? '1.5rem' : '1rem') : (section.featured ? '2rem' : '1.5rem'),
+              fontSize: window.innerWidth < 768 ? '0.9rem' : '1rem'
             }}
           >
             {/* Background Gradient */}
@@ -251,8 +281,8 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
               position: 'absolute',
               top: 0,
               right: 0,
-              width: '100px',
-              height: '100px',
+              width: window.innerWidth < 768 ? '80px' : '100px',
+              height: window.innerWidth < 768 ? '80px' : '100px',
               background: section.gradient,
               borderRadius: '50%',
               opacity: 0.1,
@@ -261,26 +291,31 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
             
             <div style={{
               display: 'flex',
+              flexDirection: window.innerWidth < 768 ? 'column' : 'row',
               alignItems: 'flex-start',
-              gap: '1rem',
+              gap: window.innerWidth < 768 ? '0.75rem' : '1rem',
               position: 'relative',
               zIndex: 1
             }}>
-
               
               <div style={{ flex: 1 }}>
                 <h3 style={{
                   color: '#ffffff',
-                  fontSize: section.featured ? '1.5rem' : '1.25rem',
+                  fontSize: window.innerWidth < 768 
+                    ? (section.featured ? '1.25rem' : '1.1rem') 
+                    : (section.featured ? '1.5rem' : '1.25rem'),
                   fontWeight: '700',
-                  marginBottom: '0.25rem'
+                  marginBottom: '0.25rem',
+                  lineHeight: '1.2'
                 }}>
                   {section.title}
                 </h3>
                 
                 <div style={{
                   color: '#dc2626',
-                  fontSize: section.featured ? '0.95rem' : '0.85rem',
+                  fontSize: window.innerWidth < 768 
+                    ? (section.featured ? '0.85rem' : '0.75rem') 
+                    : (section.featured ? '0.95rem' : '0.85rem'),
                   fontWeight: '600',
                   marginBottom: '0.5rem'
                 }}>
@@ -289,21 +324,24 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
                 
                 <p style={{
                   color: '#9ca3af',
-                  fontSize: section.featured ? '0.9rem' : '0.8rem',
+                  fontSize: window.innerWidth < 768 
+                    ? (section.featured ? '0.8rem' : '0.7rem') 
+                    : (section.featured ? '0.9rem' : '0.8rem'),
                   lineHeight: '1.4',
-                  marginBottom: '1rem'
+                  marginBottom: '1rem',
+                  display: window.innerWidth < 768 && !section.featured ? 'none' : 'block'
                 }}>
                   {section.description}
                 </p>
                 
                 <div style={{
                   display: 'inline-block',
-                  padding: '0.25rem 0.75rem',
+                  padding: window.innerWidth < 768 ? '0.2rem 0.6rem' : '0.25rem 0.75rem',
                   backgroundColor: 'rgba(220, 38, 38, 0.2)',
                   borderRadius: '20px',
                   border: '1px solid rgba(220, 38, 38, 0.3)',
                   color: '#ffffff',
-                  fontSize: '0.75rem',
+                  fontSize: window.innerWidth < 768 ? '0.7rem' : '0.75rem',
                   fontWeight: '600'
                 }}>
                   {section.stats}
@@ -347,20 +385,37 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
                   backgroundColor: 'rgba(0, 0, 0, 0.7)',
                   borderRadius: '12px',
                   border: '1px solid rgba(153, 27, 27, 0.5)',
-                  padding: '1.5rem',
+                  padding: window.innerWidth < 768 ? '1rem' : '1.5rem',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
-                  textAlign: 'left'
+                  textAlign: 'left',
+                  touchAction: 'manipulation',
+                  WebkitTapHighlightColor: 'transparent',
+                  minHeight: window.innerWidth < 768 ? '120px' : 'auto'
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-4px)';
+                onTouchStart={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px) scale(0.98)';
                   e.currentTarget.style.borderColor = 'rgba(220, 38, 38, 0.8)';
                   e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
                 }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
+                onTouchEnd={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
                   e.currentTarget.style.borderColor = 'rgba(153, 27, 27, 0.5)';
                   e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                }}
+                onMouseEnter={(e) => {
+                  if (!('ontouchstart' in window)) {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.borderColor = 'rgba(220, 38, 38, 0.8)';
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!('ontouchstart' in window)) {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.borderColor = 'rgba(153, 27, 27, 0.5)';
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                  }
                 }}
               >
                 <h3 style={{
@@ -440,23 +495,39 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
         <button
           onClick={() => onSectionChange('events')}
           style={{
-            padding: '1rem 2rem',
+            padding: window.innerWidth < 768 ? '0.875rem 1.5rem' : '1rem 2rem',
             background: 'linear-gradient(45deg, #dc2626, #ffffff)',
             color: 'white',
             border: 'none',
             borderRadius: '8px',
-            fontSize: '1rem',
+            fontSize: window.innerWidth < 768 ? '0.9rem' : '1rem',
             fontWeight: '700',
             cursor: 'pointer',
-            transition: 'all 0.3s ease'
+            transition: 'all 0.3s ease',
+            touchAction: 'manipulation',
+            WebkitTapHighlightColor: 'transparent',
+            minHeight: '44px',
+            minWidth: window.innerWidth < 768 ? '140px' : '160px'
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
+          onTouchStart={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px) scale(0.98)';
             e.currentTarget.style.boxShadow = '0 10px 25px rgba(220, 38, 38, 0.4)';
           }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
+          onTouchEnd={(e) => {
+            e.currentTarget.style.transform = 'translateY(0) scale(1)';
             e.currentTarget.style.boxShadow = 'none';
+          }}
+          onMouseEnter={(e) => {
+            if (!('ontouchstart' in window)) {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 10px 25px rgba(220, 38, 38, 0.4)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!('ontouchstart' in window)) {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }
           }}
         >
           Start Event Discovery

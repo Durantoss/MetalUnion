@@ -50,19 +50,33 @@ export function Navigation({ currentSection, onSectionChange, onShowComparison, 
           style={{
             background: 'none',
             border: 'none',
-            fontSize: '1.5rem',
+            fontSize: window.innerWidth < 768 ? '1.25rem' : '1.5rem',
             fontWeight: 'bold',
             letterSpacing: '0.1em',
             cursor: 'pointer',
-            padding: '0.5rem',
+            padding: window.innerWidth < 768 ? '0.75rem' : '0.5rem',
             borderRadius: '4px',
-            transition: 'all 0.2s'
+            transition: 'all 0.2s',
+            touchAction: 'manipulation',
+            WebkitTapHighlightColor: 'transparent',
+            minHeight: '44px',
+            minWidth: '120px'
+          }}
+          onTouchStart={(e) => {
+            e.currentTarget.style.transform = 'scale(0.95)';
+          }}
+          onTouchEnd={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.05)';
+            if (!('ontouchstart' in window)) {
+              e.currentTarget.style.transform = 'scale(1.05)';
+            }
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
+            if (!('ontouchstart' in window)) {
+              e.currentTarget.style.transform = 'scale(1)';
+            }
           }}
         >
           <span style={{
