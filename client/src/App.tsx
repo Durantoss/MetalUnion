@@ -40,7 +40,7 @@ const App = () => {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   
-  // Use useAuth hook for persistent authentication - simplified
+  // Use useAuth hook for persistent authentication
   const { user: currentUser, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   
@@ -234,7 +234,7 @@ const App = () => {
     setShowAuthModal(true);
   };
 
-  const handleAuthSuccess = (user) => {
+  const handleAuthSuccess = (user: any) => {
     // Update React Query cache with user data for immediate persistence
     queryClient.setQueryData(['/api/auth/user'], user);
     setShowAuthModal(false);

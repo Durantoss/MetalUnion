@@ -32,7 +32,6 @@ export function GlobalAuthHandler() {
       isOpen={showAuthModal}
       onClose={() => setShowAuthModal(false)}
       onAuthSuccess={handleAuthSuccess}
-      initialMode="register"
     />
   );
 }

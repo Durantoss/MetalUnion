@@ -228,8 +228,8 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
         <h1 
           onClick={() => {
             // Color swapping animation sequence
-            const moshSpan = document.querySelector('.mosh-span');
-            const unionSpan = document.querySelector('.union-span');
+            const moshSpan = document.querySelector('.mosh-span') as HTMLElement;
+            const unionSpan = document.querySelector('.union-span') as HTMLElement;
             
             if (moshSpan && unionSpan) {
               // Start animation sequence
