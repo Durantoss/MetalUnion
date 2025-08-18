@@ -10,8 +10,12 @@ interface SocialHubProps {
 
 export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }: SocialHubProps) {
   // Using hash-based navigation instead of hooks to avoid compatibility issues
-  const currentHash = window.location.hash.replace('#', '') || 'social-feed';
-  const activeTab = currentHash.split('-')[1] || 'feed';
+  const [currentActiveTab, setCurrentActiveTab] = React.useState(() => {
+    const currentHash = window.location.hash.replace('#', '') || 'social-feed';
+    return currentHash.split('-')[1] || 'feed';
+  });
+  
+  const activeTab = currentActiveTab;
 
   const stats = {
     onlineUsers: 147,
@@ -23,9 +27,27 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
   };
 
   const handleTabChange = (tab: string) => {
+    console.log('Tab change requested:', tab);
+    setCurrentActiveTab(tab);
     window.location.hash = `social-${tab}`;
-    // Simple navigation without page refresh for better mobile UX
+    // Force re-render by triggering a small DOM update
+    document.body.classList.add('tab-changing');
+    setTimeout(() => {
+      document.body.classList.remove('tab-changing');
+    }, 100);
   };
+
+  // Listen for hash changes (back/forward navigation)
+  React.useEffect(() => {
+    const handleHashChange = () => {
+      const currentHash = window.location.hash.replace('#', '') || 'social-feed';
+      const newTab = currentHash.split('-')[1] || 'feed';
+      setCurrentActiveTab(newTab);
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const tabs = [
     {
@@ -311,11 +333,13 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-3 px-3 md:px-6 py-3 md:py-4 border-b-2 transition-all min-w-fit ${
+                  onTouchStart={() => {}} // Ensure touch events are registered
+                  className={`flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-3 px-3 md:px-6 py-3 md:py-4 border-b-2 transition-all min-w-fit touch-manipulation active:scale-95 ${
                     isActive
                       ? 'border-red-500 bg-red-500/10 text-red-400'
-                      : 'border-transparent text-gray-400 hover:text-red-300 hover:border-red-300/50'
+                      : 'border-transparent text-gray-400 hover:text-red-300 hover:border-red-300/50 active:bg-red-500/5'
                   }`}
+                  data-testid={`tab-${tab.id}`}
                 >
                   <div className="relative">
                     <Icon className="h-5 w-5" />
