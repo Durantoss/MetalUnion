@@ -2,6 +2,7 @@ import React from 'react';
 import { ActivityFeed } from './ActivityFeed';
 import { BasicMessagingFallback } from './BasicMessagingFallback';
 import { ProximityMatcher } from './ProximityMatcher';
+import { CommunityFeed } from './CommunityFeed';
 import { MessageCircle, Users, TrendingUp, Heart, Calendar, Camera, Bell, Settings, Star, Music, Zap, Navigation, MapPin } from 'lucide-react';
 
 interface SocialHubProps {
@@ -116,7 +117,7 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
                 </div>
               </div>
             </div>
-            <ActivityFeed />
+            <CommunityFeed />
           </div>
         );
       case 'messaging':

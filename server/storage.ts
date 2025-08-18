@@ -11,11 +11,15 @@ import {
   type PitReply, type InsertPitReply,
   type Comment, type InsertComment,
   type CommentReaction, type InsertCommentReaction,
+  type Post, type InsertPost,
+  type PostComment, type InsertPostComment,
+  type PostLike, type PostCommentLike,
   type Conversation, type InsertConversation,
   type DirectMessage, type InsertDirectMessage,
   type MessageEncryptionKey, type InsertMessageEncryptionKey,
   type MessageDeliveryReceipt, type InsertMessageDeliveryReceipt,
   users, bands, reviews, photos, tours, messages, pitMessages, pitReplies, comments, commentReactions,
+  posts, postComments, postLikes, postCommentLikes,
   conversations, directMessages, messageEncryptionKeys, messageDeliveryReceipts,
   userLocations, proximityMatches
 } from "@shared/schema";

@@ -64,6 +64,53 @@ export const bands = pgTable("bands", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Community posts table
+export const posts = pgTable("posts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  postType: varchar("post_type").default("text"), // 'text', 'image', 'link', 'poll'
+  imageUrl: text("image_url"),
+  linkUrl: text("link_url"),
+  tags: text("tags").array(),
+  isPublic: boolean("is_public").default(true),
+  isPinned: boolean("is_pinned").default(false),
+  likesCount: integer("likes_count").default(0),
+  commentsCount: integer("comments_count").default(0),
+  sharesCount: integer("shares_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Post comments table  
+export const postComments = pgTable("post_comments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  postId: varchar("post_id").notNull().references(() => posts.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  parentId: varchar("parent_id").references(() => postComments.id), // For nested comments
+  likesCount: integer("likes_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Post likes table
+export const postLikes = pgTable("post_likes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  postId: varchar("post_id").notNull().references(() => posts.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Post comment likes table
+export const postCommentLikes = pgTable("post_comment_likes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  commentId: varchar("comment_id").notNull().references(() => postComments.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const reviews = pgTable("reviews", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   bandId: varchar("band_id").notNull().references(() => bands.id),
@@ -115,7 +162,7 @@ export const messages = pgTable("messages", {
 });
 
 // Comments system for reviews, bands, and other content
-export const comments: any = pgTable("comments", {
+export const comments = pgTable("comments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   content: text("content").notNull(),
   authorId: varchar("author_id").notNull().references(() => users.id),
@@ -301,10 +348,12 @@ export type Tour = typeof tours.$inferSelect;
 export type InsertTour = z.infer<typeof insertTourSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
-export type Comment = typeof comments.$inferSelect;
-export type InsertComment = z.infer<typeof insertCommentSchema>;
-export type CommentReaction = typeof commentReactions.$inferSelect;
-export type InsertCommentReaction = z.infer<typeof insertCommentReactionSchema>;
+export type Post = typeof posts.$inferSelect;
+export type InsertPost = typeof posts.$inferInsert;
+export type PostComment = typeof postComments.$inferSelect;
+export type InsertPostComment = typeof postComments.$inferInsert;
+export type PostLike = typeof postLikes.$inferSelect;
+export type PostCommentLike = typeof postCommentLikes.$inferSelect;
 
 
 
