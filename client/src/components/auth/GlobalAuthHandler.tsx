@@ -21,9 +21,8 @@ export function GlobalAuthHandler() {
   }, []);
 
   const handleAuthSuccess = (user: any) => {
-    // Update the query cache with the authenticated user
+    // Update the query cache with the authenticated user - no need to invalidate since we're setting fresh data
     queryClient.setQueryData(['/api/auth/user'], user);
-    queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     setShowAuthModal(false);
     console.log('Global auth success:', user);
   };

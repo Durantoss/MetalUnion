@@ -237,7 +237,6 @@ const App = () => {
   const handleAuthSuccess = (user) => {
     // Update React Query cache with user data for immediate persistence
     queryClient.setQueryData(['/api/auth/user'], user);
-    queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     setShowAuthModal(false);
     console.log('User authenticated:', user);
   };
@@ -248,9 +247,8 @@ const App = () => {
         method: 'POST',
         credentials: 'include'
       });
-      // Clear auth cache and refetch to update state
+      // Clear auth cache
       queryClient.setQueryData(['/api/auth/user'], null);
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       console.log('User logged out');
     } catch (error) {
       console.error('Logout error:', error);
