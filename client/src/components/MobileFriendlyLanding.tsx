@@ -99,6 +99,34 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
         padding: '3rem 0'
       }}>
         <h1 
+          onClick={() => {
+            // Color swapping animation sequence
+            const moshSpan = document.querySelector('.mosh-span');
+            const unionSpan = document.querySelector('.union-span');
+            
+            if (moshSpan && unionSpan) {
+              // Start animation sequence
+              setTimeout(() => {
+                moshSpan.style.color = '#ffffff';
+                unionSpan.style.color = '#dc2626';
+              }, 100);
+              
+              setTimeout(() => {
+                moshSpan.style.color = '#dc2626';
+                unionSpan.style.color = '#ffffff';
+              }, 300);
+              
+              setTimeout(() => {
+                moshSpan.style.color = '#ffffff';
+                unionSpan.style.color = '#dc2626';
+              }, 500);
+              
+              setTimeout(() => {
+                moshSpan.style.color = '#dc2626';
+                unionSpan.style.color = '#ffffff';
+              }, 700);
+            }
+          }}
           style={{
             fontSize: 'clamp(3rem, 8vw, 5rem)',
             fontWeight: '900',
@@ -108,18 +136,24 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
             userSelect: 'none'
           }}
         >
-          <span style={{
-            color: '#dc2626',
-            textShadow: '0 4px 20px rgba(220, 38, 38, 0.3)',
-            transition: 'all 0.3s ease'
-          }}>
+          <span 
+            className="mosh-span"
+            style={{
+              color: '#dc2626',
+              textShadow: '0 4px 20px rgba(220, 38, 38, 0.3)',
+              transition: 'color 0.15s ease'
+            }}
+          >
             MOSH
           </span>
-          <span style={{
-            color: '#ffffff',
-            textShadow: '0 4px 20px rgba(255, 255, 255, 0.3)',
-            transition: 'all 0.3s ease'
-          }}>
+          <span 
+            className="union-span"
+            style={{
+              color: '#ffffff',
+              textShadow: '0 4px 20px rgba(255, 255, 255, 0.3)',
+              transition: 'color 0.15s ease'
+            }}
+          >
             UNION
           </span>
         </h1>
