@@ -123,6 +123,51 @@ app.use((req, res, next) => {
       process.exit(1);
     }
 
+    // Add emergency SPA fallback for external deployments
+    app.get("*", (req, res) => {
+      // Only serve index.html for non-API routes
+      if (!req.path.startsWith('/api/')) {
+        log(`SPA fallback serving index.html for: ${req.path}`);
+        const indexPath = path.resolve(import.meta.dirname, "..", "client", "index.html");
+        if (fs.existsSync(indexPath)) {
+          res.sendFile(indexPath);
+        } else {
+          log("Index.html not found, serving emergency response");
+          res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <title>MoshUnion</title>
+              <style>
+                body { 
+                  background: #0a0a0a; 
+                  color: #fff; 
+                  font-family: Arial; 
+                  display: flex; 
+                  align-items: center; 
+                  justify-content: center; 
+                  min-height: 100vh; 
+                  margin: 0; 
+                }
+                .container { text-align: center; }
+                h1 { color: #dc2626; font-size: 3rem; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <h1>🤘 MOSHUNION 🤘</h1>
+                <p>Loading metal community platform...</p>
+                <script>
+                  setTimeout(() => window.location.reload(), 2000);
+                </script>
+              </div>
+            </body>
+            </html>
+          `);
+        }
+      }
+    });
+
     // Server listening with comprehensive error handling
     const port = parseInt(process.env.PORT || '5000', 10);
     
