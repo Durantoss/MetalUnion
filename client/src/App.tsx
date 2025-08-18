@@ -7,6 +7,7 @@ import { PhotosSection } from './components/PhotosSection';
 import { ThePit } from './components/ThePit';
 import { MobileFriendlyLanding } from './components/MobileFriendlyLanding';
 import { SimpleLandingFallback } from './components/SimpleLandingFallback';
+import { EmergencyLanding } from './components/EmergencyLanding';
 import { MobileCompatibilityCheck } from './components/MobileCompatibilityCheck';
 import { EnhancedSocialHub } from './components/EnhancedSocialHub';
 import { EnhancedEventsPage } from './components/EnhancedEventsPage';
@@ -156,23 +157,13 @@ const App = () => {
     if (currentSection === 'landing' || !currentSection || currentSection === '' || currentSection === undefined) {
       console.log('Rendering MobileFriendlyLanding component');
       
-      // Use fallback for mobile deployment compatibility
-      try {
-        return (
-          <MobileFriendlyLanding 
-            onSectionChange={setCurrentSection}
-            bands={bands}
-          />
-        );
-      } catch (error) {
-        console.error('MobileFriendlyLanding error:', error);
-        return (
-          <SimpleLandingFallback 
-            onSectionChange={setCurrentSection}
-            bands={bands}
-          />
-        );
-      }
+      // Use emergency landing for guaranteed loading
+      return (
+        <EmergencyLanding 
+          onSectionChange={setCurrentSection}
+          bands={bands}
+        />
+      );
     }
     
     switch (currentSection) {

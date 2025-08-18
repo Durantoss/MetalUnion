@@ -1,4 +1,15 @@
-import { Band } from '../types';
+interface Band {
+  id: string;
+  name: string;
+  genre: string;
+  description: string;
+  imageUrl?: string;
+  founded?: number;
+  members?: string[];
+  albums?: string[];
+  website?: string;
+  instagram?: string;
+}
 
 interface SimpleLandingFallbackProps {
   onSectionChange: (section: string) => void;
