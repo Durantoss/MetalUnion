@@ -27,7 +27,7 @@ import {
   userLocations, proximityMatches, badges, userBadges, concertAttendance
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, gt } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -532,11 +532,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTours(): Promise<Tour[]> {
-    return [];
+    return await db.select().from(tours).orderBy(tours.date);
+  }
+
+  async getUpcomingTours(): Promise<Tour[]> {
+    const now = new Date();
+    return await db
+      .select()
+      .from(tours)
+      .where(gt(tours.date, now))
+      .orderBy(tours.date);
   }
 
   async getTour(id: string): Promise<Tour | undefined> {
-    return undefined;
+    const [tour] = await db.select().from(tours).where(eq(tours.id, id));
+    return tour;
   }
 
   async createTour(insertTour: InsertTour): Promise<Tour> {
@@ -615,7 +625,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getToursByBand(bandId: string): Promise<Tour[]> {
-    return [];
+    return await db
+      .select()
+      .from(tours)
+      .where(eq(tours.bandId, bandId))
+      .orderBy(tours.date);
   }
 
   async getToursByLocation(location: string): Promise<Tour[]> {
