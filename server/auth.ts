@@ -75,8 +75,18 @@ export async function setupAuth(app: Express) {
       const existingUser = await storage.getUserByStagename(stagename);
       if (existingUser) {
         return res.status(409).json({ 
-          error: 'Stagename already taken' 
+          error: 'Stagename already taken. Please choose a different one.' 
         });
+      }
+      
+      // Check if email is already taken (if provided)
+      if (email) {
+        const existingEmailUser = await storage.getUserByEmail(email);
+        if (existingEmailUser) {
+          return res.status(409).json({ 
+            error: 'Email already registered. Please use a different email or try logging in.' 
+          });
+        }
       }
       
       // Hash the password
@@ -148,7 +158,7 @@ export async function setupAuth(app: Express) {
       }
       
       // Verify password
-      const isValidPassword = await verifyPassword(safeword, user.safeword);
+      const isValidPassword = await verifyPassword(safeword, user.safeword || '');
       if (!isValidPassword) {
         return res.status(401).json({ 
           error: 'Invalid credentials' 
