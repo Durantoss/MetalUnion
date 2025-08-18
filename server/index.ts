@@ -108,9 +108,16 @@ app.use((req, res, next) => {
       }
     });
 
+    // Detect if running in external deployment environment
+    const isExternalDeployment = process.env.REPL_SLUG && process.env.REPL_SLUG !== 'workspace';
+    const useProduction = process.env.NODE_ENV === "production" || isExternalDeployment;
+    
+    log(`Deployment mode: ${useProduction ? 'production' : 'development'}`);
+    log(`External deployment: ${isExternalDeployment ? 'yes' : 'no'}`);
+
     // Setup Vite or static serving with error handling
     try {
-      if (app.get("env") === "development") {
+      if (!useProduction) {
         log("Setting up Vite development server...");
         await setupVite(app, server);
         log("Vite development server configured");
@@ -132,67 +139,46 @@ app.use((req, res, next) => {
       app.use(express.static(productionAssetsPath, {
         maxAge: '1d',
         etag: true,
-        lastModified: true
+        lastModified: true,
+        index: false // Don't serve index.html from here
       }));
     }
 
-    // Add emergency SPA fallback for external deployments
+    // Add comprehensive SPA fallback for external deployments
     app.get("*", (req, res) => {
-      // Only serve index.html for non-API routes
-      if (!req.path.startsWith('/api/')) {
-        log(`SPA fallback serving index.html for: ${req.path}`);
-        
-        // Try multiple possible locations for index.html
-        const possibleIndexPaths = [
-          path.resolve(import.meta.dirname, "..", "dist", "public", "index.html"),
-          path.resolve(import.meta.dirname, "..", "client", "index.html"),
-          path.resolve(import.meta.dirname, "public", "index.html")
-        ];
-        
-        let indexPath = null;
-        for (const possiblePath of possibleIndexPaths) {
-          if (fs.existsSync(possiblePath)) {
-            indexPath = possiblePath;
-            log(`Found index.html at: ${indexPath}`);
-            break;
-          }
+      // Skip API routes
+      if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'API endpoint not found' });
+      }
+      
+      log(`SPA fallback serving content for: ${req.path}`);
+      
+      // Try to serve the appropriate index.html based on deployment mode
+      let indexPath = null;
+      const possibleIndexPaths = [
+        path.resolve(import.meta.dirname, "public", "index.html"),
+        path.resolve(import.meta.dirname, "..", "dist", "public", "index.html"),
+        path.resolve(import.meta.dirname, "..", "client", "index.html")
+      ];
+      
+      for (const possiblePath of possibleIndexPaths) {
+        if (fs.existsSync(possiblePath)) {
+          indexPath = possiblePath;
+          log(`Found index.html at: ${indexPath}`);
+          break;
         }
-        
-        if (indexPath) {
-          res.sendFile(indexPath);
+      }
+      
+      if (indexPath) {
+        res.sendFile(indexPath);
+      } else {
+        // Serve emergency static HTML that works in any environment
+        log("Serving emergency static HTML interface");
+        const emergencyPath = path.resolve(import.meta.dirname, "emergency.html");
+        if (fs.existsSync(emergencyPath)) {
+          res.sendFile(emergencyPath);
         } else {
-          log("Index.html not found in any location, serving emergency response");
-          res.send(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <title>MoshUnion</title>
-              <style>
-                body { 
-                  background: #0a0a0a; 
-                  color: #fff; 
-                  font-family: Arial; 
-                  display: flex; 
-                  align-items: center; 
-                  justify-content: center; 
-                  min-height: 100vh; 
-                  margin: 0; 
-                }
-                .container { text-align: center; }
-                h1 { color: #dc2626; font-size: 3rem; }
-              </style>
-            </head>
-            <body>
-              <div class="container">
-                <h1>🤘 MOSHUNION 🤘</h1>
-                <p>Loading metal community platform...</p>
-                <script>
-                  setTimeout(() => window.location.reload(), 2000);
-                </script>
-              </div>
-            </body>
-            </html>
-          `);
+          res.status(500).send('Application not available');
         }
       }
     });
