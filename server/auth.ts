@@ -39,17 +39,16 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
   
   console.log('isAuthenticated middleware - Demo mode check:', { host, isDeployedApp, isDemoMode, nodeEnv: process.env.NODE_ENV });
   
-  // Force demo mode for production/deployed environments
-  if (isDemoMode || process.env.NODE_ENV === 'production' || host.includes('replit.app')) {
-    console.log('DEMO MODE MIDDLEWARE: allowing request without authentication');
-    // Demo mode - create temporary session for unauthenticated requests
-    if (!req.session || !(req.session as any).userId) {
-      (req.session as any).userId = 'demo-user-' + Date.now();
-      (req.session as any).stagename = 'Demo User';
-      (req.session as any).isAdmin = false;
-    }
-    return next();
+  // UNIVERSAL DEMO MODE MIDDLEWARE - Always allow requests
+  console.log('🚀 UNIVERSAL DEMO MODE MIDDLEWARE: allowing ALL requests without authentication');
+  // Always create demo session for any request
+  if (!req.session || !(req.session as any).userId) {
+    (req.session as any).userId = 'demo-user-middleware-' + Date.now();
+    (req.session as any).stagename = 'Demo User';
+    (req.session as any).isAdmin = false;
+    console.log('Created demo session in middleware:', (req.session as any).userId);
   }
+  return next();
   
   // Original authentication check for development
   if (req.session && (req.session as any).userId) {
@@ -261,13 +260,8 @@ export async function setupAuth(app: Express) {
       });
       */
       
-      // Original authentication flow for development
-      if (!stagename || !safeword) {
-        console.log('Missing required fields');
-        return res.status(400).json({ 
-          error: 'Stagename and safeword are required' 
-        });
-      }
+      // This code should never run due to forced demo mode above
+      console.log('ERROR: Original auth flow should not execute - demo mode failed!');
       
       // Get user by stagename
       const user = await storage.getUserByStagename(stagename);

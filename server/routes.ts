@@ -360,20 +360,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nodeEnv: process.env.NODE_ENV 
       });
 
-      // UNIVERSAL DEMO MODE - Always return demo user for production-like environments
-      if (true) { // Force demo mode always for now
-        console.log('🚀 UNIVERSAL DEMO MODE: returning demo user data');
-        const demoUser = {
-          id: 'demo-user-deployed',
-          email: 'demo@moshunion.com',
-          stagename: 'Demo User',
-          isAdmin: false,
-          permissions: {},
-          theme: 'dark',
-          role: 'user'
-        };
-        return res.json(demoUser);
-      }
+      // UNIVERSAL DEMO MODE - Always return demo user regardless of environment
+      console.log('🚀 UNIVERSAL DEMO MODE: returning demo user data for ALL requests');
+      const demoUser = {
+        id: 'demo-user-deployed',
+        email: 'demo@moshunion.com',
+        stagename: 'Demo User',
+        isAdmin: false,
+        permissions: {},
+        theme: 'dark',
+        role: 'user'
+      };
+      return res.json(demoUser);
 
       // Original authentication check for development
       if (!req.session || !req.session.userId) {

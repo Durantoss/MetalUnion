@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useMobileAuth } from '@/hooks/useMobileAuth';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   
   const queryClient = useQueryClient();
+  const mobileAuth = useMobileAuth();
 
   const loginMutation = useMutation({
     mutationFn: async (data: { stagename: string; safeword: string; rememberMe: boolean }) => {
@@ -124,33 +126,17 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
     setError('');
     setIsLoading(true);
 
-    // Check if we're in deployed environment for bypass
-    const isDeployedApp = window.location.hostname.includes('.replit.app');
-    
-    if (isDeployedApp) {
-      // Demo mode - bypass authentication entirely
-      console.log('Demo mode activated for deployed environment');
+    // Try mobile authentication first for mobile devices and deployed environments
+    if (mobileAuth.isMobile) {
+      console.log('Mobile Auth: Using mobile authentication system');
       
-      // Simulate loading delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Create demo user data
-      const demoUser = {
-        id: 'demo-user-' + Date.now(),
-        email: 'demo@moshunion.com',
-        stagename: stagename || 'Demo User',
-        isAdmin: stagename.toLowerCase() === 'durantoss',
-        permissions: stagename.toLowerCase() === 'durantoss' ? { full_admin: true } : {},
-        theme: 'dark',
-        role: stagename.toLowerCase() === 'durantoss' ? 'admin' : 'user'
-      };
-      
-      // Call success handler directly
-      onAuthSuccess(demoUser);
-      queryClient.setQueryData(['/api/auth/user'], demoUser);
-      onClose();
-      setIsLoading(false);
-      return;
+      const success = await mobileAuth.mobileLogin(stagename, safeword);
+      if (success && mobileAuth.user) {
+        onAuthSuccess(mobileAuth.user);
+        onClose();
+        setIsLoading(false);
+        return;
+      }
     }
 
     if (!stagename || !safeword) {
@@ -251,21 +237,19 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
           </div>
         )}
 
-        {/* Show demo mode notice for deployed environment */}
-        {window.location.hostname.includes('.replit.app') && (
-          <div style={{
-            backgroundColor: '#059669',
-            color: 'white',
-            padding: '0.75rem',
-            borderRadius: '6px',
-            marginBottom: '1rem',
-            fontSize: '0.85rem',
-            textAlign: 'center'
-          }}>
-            🎸 Demo Mode: Enter any username and password to explore MoshUnion! <br/>
-            (Try "Durantoss" for admin access)
-          </div>
-        )}
+        {/* Show demo mode notice for all environments */}
+        <div style={{
+          backgroundColor: '#059669',
+          color: 'white',
+          padding: '0.75rem',
+          borderRadius: '6px',
+          marginBottom: '1rem',
+          fontSize: '0.85rem',
+          textAlign: 'center'
+        }}>
+          Demo Mode Active: Enter any username and password to explore MoshUnion!<br/>
+          (Try "Durantoss" for admin access)
+        </div>
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '1rem' }}>
