@@ -433,7 +433,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
           marginBottom: '2rem',
           lineHeight: '1.5'
         }}>
-          Experience the most advanced metal community platform with AI-powered 
+          Experience the most advanced metal community platform with intelligent 
           event discovery, global social features, and comprehensive band database.
         </p>
         
@@ -459,7 +459,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
             e.currentTarget.style.boxShadow = 'none';
           }}
         >
-          Start AI Event Discovery
+          Start Event Discovery
         </button>
       </div>
     </div>
