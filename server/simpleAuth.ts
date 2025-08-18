@@ -18,6 +18,7 @@ export function setupAuth(app: Express) {
 }
 
 export function isAuthenticated(req: Request, res: Response, next: NextFunction) {
-  // For now, allow all requests
+  // For now, allow all requests and attach demo user
+  (req as any).user = { id: 'demo-user', stagename: 'DemoUser' };
   next();
 }

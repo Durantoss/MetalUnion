@@ -1107,7 +1107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Real-time messaging API endpoints
   app.post('/api/messaging/conversations', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = 'demo-user'; // Use demo user for testing
       const conversationData = insertConversationSchema.parse({
         ...req.body,
         participant1Id: userId
@@ -1122,7 +1122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/messaging/conversations', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = 'demo-user'; // Use demo user for testing
       const conversations = await storage.getUserConversations(userId);
       res.json(conversations);
     } catch (error) {
@@ -1145,7 +1145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/messaging/encryption-keys', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = 'demo-user'; // Use demo user for testing
       
       // Generate new RSA key pair
       const keyPair = await MessageEncryption.generateKeyPair();
@@ -1180,7 +1180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/messaging/encryption-keys', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = 'demo-user'; // Use demo user for testing
       const keys = await storage.getUserEncryptionKeys(userId);
       
       if (!keys) {
