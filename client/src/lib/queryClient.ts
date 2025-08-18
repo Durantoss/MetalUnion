@@ -14,6 +14,7 @@ export async function apiRequest(url: string, options?: RequestInit) {
   
   const response = await fetch(url, {
     credentials: 'include',
+    mode: 'cors',
     headers: {
       'Content-Type': 'application/json',
       ...options?.headers,
@@ -31,7 +32,8 @@ export async function apiRequest(url: string, options?: RequestInit) {
     const errorData = await response.text();
     console.error(`API Error ${response.status}:`, errorData);
     console.error('Request details:', { url, method: options?.method, headers: options?.headers });
-    throw new Error(`${response.status}: ${errorData || response.statusText}`);
+    console.error('Response headers:', Object.fromEntries(response.headers.entries()));
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
 
   const data = await response.json();

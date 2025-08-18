@@ -9,7 +9,7 @@ const app = express();
 // Add security and CORS headers for mobile compatibility
 app.use((req, res, next) => {
   // Allow credentials with specific origin
-  const origin = req.headers.origin || req.get('host') || 'http://localhost:5000';
+  const origin = req.headers.origin || 'http://localhost:5000';
   res.header('Access-Control-Allow-Origin', origin);
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
