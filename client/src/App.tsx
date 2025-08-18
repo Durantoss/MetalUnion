@@ -85,19 +85,78 @@ const App = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center max-w-md mx-auto">
-          <h1 className="text-6xl font-black gradient-text-neon mb-6 glow-text font-mono">
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#0a0a0a',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1rem'
+      }}>
+        <div style={{ textAlign: 'center', maxWidth: '400px', margin: '0 auto' }}>
+          <h1 style={{
+            fontSize: '3.5rem',
+            fontWeight: '900',
+            marginBottom: '2rem',
+            background: 'linear-gradient(45deg, #dc2626, #ffffff)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            letterSpacing: '0.1em'
+          }}>
             MOSHUNION
           </h1>
-          <div className="glass neo-border rounded-2xl p-6 mb-6 font-mono">
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <div className="w-3 h-3 rounded-full bg-neon-cyan animate-pulse"></div>
-              <div className="w-3 h-3 rounded-full bg-neon-purple animate-pulse delay-100"></div>
-              <div className="w-3 h-3 rounded-full bg-neon-pink animate-pulse delay-200"></div>
+          
+          <div style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            border: '1px solid rgba(220, 38, 38, 0.3)',
+            borderRadius: '16px',
+            padding: '2rem',
+            marginBottom: '2rem'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              marginBottom: '1.5rem'
+            }}>
+              <div style={{
+                width: '12px',
+                height: '12px',
+                borderRadius: '50%',
+                backgroundColor: '#dc2626',
+                animation: 'pulse 1.5s ease-in-out infinite'
+              }}></div>
+              <div style={{
+                width: '12px',
+                height: '12px',
+                borderRadius: '50%',
+                backgroundColor: '#ffffff',
+                animation: 'pulse 1.5s ease-in-out infinite 0.2s'
+              }}></div>
+              <div style={{
+                width: '12px',
+                height: '12px',
+                borderRadius: '50%',
+                backgroundColor: '#dc2626',
+                animation: 'pulse 1.5s ease-in-out infinite 0.4s'
+              }}></div>
             </div>
-            <p className="text-neon-cyan text-sm">$ system --initialize</p>
-            <p className="text-muted-foreground">Loading neural networks...</p>
+            <p style={{
+              color: '#dc2626',
+              fontSize: '0.9rem',
+              marginBottom: '0.5rem',
+              fontFamily: 'monospace'
+            }}>
+              $ loading --metal-community
+            </p>
+            <p style={{
+              color: '#9ca3af',
+              fontSize: '0.9rem'
+            }}>
+              Initializing the pit...
+            </p>
           </div>
         </div>
       </div>
