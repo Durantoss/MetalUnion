@@ -87,17 +87,26 @@ export function TicketPriceComparison({ tourId, className = '', compact = false 
       }
       setError(null);
       
-      const response = await fetch(`/api/tours/${tourId}/ticket-comparison`);
+      const response = await fetch(`/api/tours/${tourId}/ticket-comparison`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Include cookies for session
+      });
+      
       if (response.ok) {
         const data = await response.json();
         setComparison(data);
         setLastUpdated(new Date());
+        console.log('Ticket comparison updated:', data);
       } else {
-        setError('Failed to load ticket prices');
+        console.error('Ticket comparison API error:', response.status, response.statusText);
+        setError(`Failed to load ticket prices (${response.status})`);
       }
     } catch (error) {
       console.error('Failed to fetch ticket comparison:', error);
-      setError('Unable to load ticket prices');
+      setError('Network error - unable to load ticket prices');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -107,8 +116,8 @@ export function TicketPriceComparison({ tourId, className = '', compact = false 
   useEffect(() => {
     fetchComparison();
     
-    // Auto-refresh every 5 minutes
-    const interval = setInterval(() => fetchComparison(true), 5 * 60 * 1000);
+    // Auto-refresh every 3 minutes for better real-time experience
+    const interval = setInterval(() => fetchComparison(true), 3 * 60 * 1000);
     
     return () => clearInterval(interval);
   }, [tourId]);
@@ -437,7 +446,10 @@ export function useTicketComparisons(tourIds: string[]) {
         setLoading(true);
         const response = await fetch('/api/tours/ticket-comparisons', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include', // Include session cookies
           body: JSON.stringify({ tourIds })
         });
 
@@ -448,6 +460,9 @@ export function useTicketComparisons(tourIds: string[]) {
             return acc;
           }, {});
           setComparisons(comparisonMap);
+          console.log('Batch ticket comparisons updated:', Object.keys(comparisonMap).length, 'tours');
+        } else {
+          console.error('Ticket comparisons batch API error:', response.status, response.statusText);
         }
       } catch (error) {
         console.error('Failed to fetch ticket comparisons:', error);
@@ -458,8 +473,8 @@ export function useTicketComparisons(tourIds: string[]) {
 
     fetchComparisons();
     
-    // Refresh every 5 minutes
-    const interval = setInterval(fetchComparisons, 5 * 60 * 1000);
+    // Refresh every 4 minutes for batch operations
+    const interval = setInterval(fetchComparisons, 4 * 60 * 1000);
     
     return () => clearInterval(interval);
   }, [tourIds]);

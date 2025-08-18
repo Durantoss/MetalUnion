@@ -55,12 +55,23 @@ export function VenueCapacityIndicator({ tourId, className = '', compact = false
   useEffect(() => {
     const fetchVenueData = async () => {
       try {
-        setLoading(true);
-        const response = await fetch(`/api/tours/${tourId}/venue-data`);
+        if (!loading) setLoading(true);
+        
+        const response = await fetch(`/api/tours/${tourId}/venue-data`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include', // Include cookies for session
+        });
+        
         if (response.ok) {
           const data = await response.json();
           setVenueData(data);
           setLastUpdated(new Date());
+          console.log('Venue data updated:', data);
+        } else {
+          console.error('Venue data API error:', response.status, response.statusText);
         }
       } catch (error) {
         console.error('Failed to fetch venue data:', error);
@@ -71,8 +82,8 @@ export function VenueCapacityIndicator({ tourId, className = '', compact = false
 
     fetchVenueData();
     
-    // Set up real-time updates every 30 seconds
-    const interval = setInterval(fetchVenueData, 30000);
+    // Set up real-time updates every 45 seconds (increased interval for better performance)
+    const interval = setInterval(fetchVenueData, 45000);
     
     return () => clearInterval(interval);
   }, [tourId]);
@@ -276,7 +287,10 @@ export function useVenueStatuses(tourIds: string[]) {
         setLoading(true);
         const response = await fetch('/api/tours/venue-status', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include', // Include session cookies
           body: JSON.stringify({ tourIds })
         });
 
@@ -287,6 +301,9 @@ export function useVenueStatuses(tourIds: string[]) {
             return acc;
           }, {});
           setVenueStatuses(statusMap);
+          console.log('Batch venue statuses updated:', Object.keys(statusMap).length, 'tours');
+        } else {
+          console.error('Venue status batch API error:', response.status, response.statusText);
         }
       } catch (error) {
         console.error('Failed to fetch venue statuses:', error);
@@ -297,8 +314,8 @@ export function useVenueStatuses(tourIds: string[]) {
 
     fetchVenueStatuses();
     
-    // Real-time updates
-    const interval = setInterval(fetchVenueStatuses, 45000);
+    // Real-time updates (60 seconds for batch operations)
+    const interval = setInterval(fetchVenueStatuses, 60000);
     
     return () => clearInterval(interval);
   }, [tourIds]);
