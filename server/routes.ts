@@ -792,6 +792,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const multiPlatformEventService = new MultiPlatformEventService();
 
   // Discover events with multi-platform search and AI-powered recommendations
+  // Basic tours endpoint to get all upcoming tours
+  app.get('/api/tours', async (req, res) => {
+    try {
+      res.setHeader('Content-Type', 'application/json');
+      const tours = await storage.getUpcomingTours();
+      
+      // Enhance tours with band information
+      const enhancedTours = await Promise.all(
+        tours.map(async (tour) => {
+          const band = await storage.getBand(tour.bandId);
+          return {
+            ...tour,
+            bandName: band?.name || 'Unknown Band',
+            bandImageUrl: band?.imageUrl || null,
+            bandGenres: band?.genres || []
+          };
+        })
+      );
+      
+      res.json(enhancedTours);
+    } catch (error) {
+      console.error("Error fetching tours:", error);
+      res.status(500).json({ message: "Failed to fetch tours" });
+    }
+  });
+
   // Tour discovery endpoint with Google + OpenAI integration
   app.post('/api/tours/discover', async (req, res) => {
     try {
