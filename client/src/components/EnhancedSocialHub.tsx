@@ -190,7 +190,7 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-red-500 to-yellow-500 bg-clip-text text-transparent">
-                🤘 Social Hub
+                The Pit
               </h1>
               <div className="hidden md:flex items-center space-x-2 text-sm text-gray-400">
                 <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
