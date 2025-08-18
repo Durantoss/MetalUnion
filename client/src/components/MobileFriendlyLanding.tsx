@@ -177,7 +177,14 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
           <>
             {/* Login Button */}
             <button
-              onClick={onLogin}
+              onClick={() => {
+                console.log('Enter The Pit clicked - triggering login');
+                if (onLogin) {
+                  onLogin();
+                } else {
+                  console.warn('onLogin prop not provided');
+                }
+              }}
               style={{
                 backgroundColor: '#dc2626',
                 color: '#ffffff',
@@ -198,6 +205,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
                 e.currentTarget.style.backgroundColor = '#dc2626';
                 e.currentTarget.style.transform = 'translateY(0)';
               }}
+              data-testid="button-enter-the-pit"
             >
               Enter The Pit
             </button>
