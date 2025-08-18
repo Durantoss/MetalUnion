@@ -1,4 +1,5 @@
 // Hook-free reviews section component
+import { InteractionButton } from './auth/InteractionButton';
 
 export function ReviewsSection() {
   return (
@@ -113,18 +114,23 @@ export function ReviewsSection() {
               alignItems: 'center',
               gap: '1rem'
             }}>
-              <button style={{
-                background: 'none',
-                border: 'none',
-                color: '#9ca3af',
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem'
-              }}>
+              <InteractionButton
+                onClick={() => console.log('Like review')}
+                action="like reviews"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#9ca3af',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem'
+                }}
+                data-testid={`button-like-review-${i}`}
+              >
                 🔥 {12 + i} likes
-              </button>
+              </InteractionButton>
               <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>
                 2 days ago
               </span>
@@ -142,23 +148,29 @@ export function ReviewsSection() {
         border: '1px solid rgba(153, 27, 27, 0.5)'
       }}>
         <h3 style={{ color: '#facc15', marginBottom: '1rem' }}>
-          🎸 Share Your Experience
+          Share Your Experience
         </h3>
         <p style={{ color: '#9ca3af', marginBottom: '1.5rem' }}>
           Join the community and share your reviews of bands, albums, and concerts
         </p>
-        <div style={{
-          display: 'inline-block',
-          padding: '0.75rem 1.5rem',
-          backgroundColor: 'rgba(220, 38, 38, 0.2)',
-          border: '1px solid rgba(220, 38, 38, 0.5)',
-          borderRadius: '6px',
-          color: '#dc2626',
-          fontSize: '0.9rem',
-          fontWeight: '600'
-        }}>
-          Review System Coming Soon
-        </div>
+        <InteractionButton
+          onClick={() => console.log('Write review')}
+          action="write reviews"
+          style={{
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#dc2626',
+            border: 'none',
+            borderRadius: '6px',
+            color: '#ffffff',
+            fontSize: '0.9rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+          data-testid="button-write-review"
+        >
+          Write a Review
+        </InteractionButton>
       </div>
     </div>
   );

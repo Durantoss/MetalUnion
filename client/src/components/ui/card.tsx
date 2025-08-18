@@ -1,75 +1,106 @@
-import * as React from "react"
+import React from 'react';
 
-import { cn } from "@/lib/utils"
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string;
+}
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
-      className
-    )}
-    {...props}
-  />
-))
-Card.displayName = "Card"
+export const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={className}
+        style={{
+          borderRadius: '8px',
+          border: '1px solid #374151',
+          backgroundColor: '#111827',
+          textAlign: 'left',
+          color: '#ffffff',
+          ...props.style
+        }}
+        {...props}
+      />
+    );
+  }
+);
 
-const CardHeader = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("flex flex-col space-y-1.5 p-6", className)} {...props} />
-))
-CardHeader.displayName = "CardHeader"
+export const CardHeader = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={className}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.375rem',
+          padding: '1.5rem',
+          paddingBottom: '0',
+          ...props.style
+        }}
+        {...props}
+      />
+    );
+  }
+);
 
-const CardTitle = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
-  <h3
-    ref={ref}
-    className={cn(
-      "text-2xl font-semibold leading-none tracking-tight",
-      className
-    )}
-    {...props}
-  />
-))
-CardTitle.displayName = "CardTitle"
+export const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <h3
+        ref={ref}
+        className={className}
+        style={{
+          fontSize: '1.125rem',
+          fontWeight: '600',
+          lineHeight: '1.25',
+          color: '#ffffff',
+          margin: 0,
+          ...props.style
+        }}
+        {...props}
+      />
+    );
+  }
+);
 
-const CardDescription = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
-  <p
-    ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
-    {...props}
-  />
-))
-CardDescription.displayName = "CardDescription"
+export const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <p
+        ref={ref}
+        className={className}
+        style={{
+          fontSize: '0.875rem',
+          color: '#9ca3af',
+          margin: 0,
+          ...props.style
+        }}
+        {...props}
+      />
+    );
+  }
+);
 
-const CardContent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
-))
-CardContent.displayName = "CardContent"
+export const CardContent = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={className}
+        style={{
+          padding: '1.5rem',
+          paddingTop: '0',
+          ...props.style
+        }}
+        {...props}
+      />
+    );
+  }
+);
 
-const CardFooter = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("flex items-center p-6 pt-0", className)}
-    {...props}
-  />
-))
-CardFooter.displayName = "CardFooter"
-
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+Card.displayName = 'Card';
+CardHeader.displayName = 'CardHeader';
+CardTitle.displayName = 'CardTitle';
+CardDescription.displayName = 'CardDescription';
+CardContent.displayName = 'CardContent';

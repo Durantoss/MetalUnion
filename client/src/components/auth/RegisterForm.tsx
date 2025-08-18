@@ -3,14 +3,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createUserSchema, type CreateUser } from '@shared/schema';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Alert, AlertDescription } from '../ui/alert';
 import { Loader2, Eye, EyeOff, Check, X } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
-import { cn } from '@/lib/utils';
+import { apiRequest } from '../../lib/queryClient';
+import { cn } from '../../lib/utils';
 
 interface RegisterFormProps {
   onSuccess?: () => void;
@@ -41,6 +41,8 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
     enabled: stagename.length >= 3,
     staleTime: 1000,
   });
+  
+  const isAvailable = stagenameAvailability?.available;
 
   const registerMutation = useMutation({
     mutationFn: async (data: CreateUser) => {

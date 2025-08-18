@@ -4,6 +4,7 @@ import { BasicMessagingFallback } from './BasicMessagingFallback';
 import { ProximityMatcher } from './ProximityMatcher';
 import { CommunityFeed } from './CommunityFeed';
 import { CommunityHub } from './CommunityHub';
+import { InteractionButton } from './auth/InteractionButton';
 import { MessageCircle, Users, TrendingUp, Heart, Calendar, Camera, Bell, Settings, Star, Music, Zap, Navigation, MapPin } from 'lucide-react';
 
 interface SocialHubProps {
@@ -12,16 +13,16 @@ interface SocialHubProps {
 }
 
 export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }: SocialHubProps) {
-  // Using state for reliable tab management
-  const [currentActiveTab, setCurrentActiveTab] = React.useState(() => {
+  // Static tab management without hooks for stability
+  const getCurrentTab = () => {
     if (typeof window !== 'undefined') {
       const currentHash = window.location.hash.replace('#', '') || 'social-feed';
       return currentHash.split('-')[1] || 'feed';
     }
     return 'feed';
-  });
+  };
   
-  const activeTab = currentActiveTab;
+  const activeTab = getCurrentTab();
 
   const stats = {
     onlineUsers: 147,
@@ -34,28 +35,14 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
 
   const handleTabChange = (tab: string) => {
     console.log('Tab change requested:', tab);
-    setCurrentActiveTab(tab);
     window.location.hash = `social-${tab}`;
     // Force re-render by triggering a small DOM update
     document.body.classList.add('tab-changing');
     setTimeout(() => {
       document.body.classList.remove('tab-changing');
+      window.location.reload(); // Simple refresh to ensure correct tab display
     }, 100);
   };
-
-  // Listen for hash changes (back/forward navigation)
-  React.useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const handleHashChange = () => {
-      const currentHash = window.location.hash.replace('#', '') || 'social-feed';
-      const newTab = currentHash.split('-')[1] || 'feed';
-      setCurrentActiveTab(newTab);
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
 
   const tabs = [
     {

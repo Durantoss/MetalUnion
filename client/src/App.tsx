@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BandComparison } from './components/BandComparison';
 import { ModernNavigation } from './components/ModernNavigation';
+import { GlobalAuthHandler } from './components/auth/GlobalAuthHandler';
 
 import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
@@ -593,6 +594,9 @@ const App = () => {
           color: white;
         }
       `}} />
+      
+      {/* Global Authentication Handler */}
+      <GlobalAuthHandler />
 
     </div>
   );

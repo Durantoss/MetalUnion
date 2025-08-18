@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '../ui/dialog';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 
