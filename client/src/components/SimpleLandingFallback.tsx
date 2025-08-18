@@ -61,7 +61,7 @@ export function SimpleLandingFallback({ onSectionChange, bands }: SimpleLandingF
           borderRadius: '12px',
           border: '1px solid rgba(220, 38, 38, 0.3)'
         }}>
-          <div style={{ fontSize: '2rem', color: '#facc15' }}>🎸</div>
+
           <div style={{ color: '#dc2626', fontWeight: 'bold' }}>{bands.length}</div>
           <div style={{ color: '#9ca3af', fontSize: '0.9rem' }}>Bands</div>
         </div>
@@ -72,7 +72,7 @@ export function SimpleLandingFallback({ onSectionChange, bands }: SimpleLandingF
           borderRadius: '12px',
           border: '1px solid rgba(220, 38, 38, 0.3)'
         }}>
-          <div style={{ fontSize: '2rem', color: '#facc15' }}>🎯</div>
+
           <div style={{ color: '#dc2626', fontWeight: 'bold' }}>Live</div>
           <div style={{ color: '#9ca3af', fontSize: '0.9rem' }}>Events</div>
         </div>
@@ -87,10 +87,10 @@ export function SimpleLandingFallback({ onSectionChange, bands }: SimpleLandingF
         margin: '0 auto'
       }}>
         {[
-          { id: 'bands', title: 'Bands', icon: '🎸', desc: 'Discover metal bands' },
-          { id: 'tours', title: 'Tours', icon: '🚌', desc: 'Find concert dates' },
-          { id: 'events', title: 'Events', icon: '🎯', desc: 'Smart event discovery' },
-          { id: 'social', title: 'Social', icon: '💬', desc: 'Connect with fans' }
+          { id: 'bands', title: 'Bands', desc: 'Discover metal bands' },
+          { id: 'tours', title: 'Tours', desc: 'Find concert dates' },
+          { id: 'events', title: 'Events', desc: 'Smart event discovery' },
+          { id: 'social', title: 'Social', desc: 'Connect with fans' }
         ].map((section) => (
           <button
             key={section.id}
@@ -116,7 +116,7 @@ export function SimpleLandingFallback({ onSectionChange, bands }: SimpleLandingF
               e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
             }}
           >
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{section.icon}</div>
+
             <h3 style={{
               color: '#facc15',
               fontSize: '1.5rem',

@@ -20,7 +20,7 @@ export function ThePit() {
           color: 'transparent',
           marginBottom: '1rem'
         }}>
-          🔥 THE PIT
+          THE PIT
         </h1>
         <p style={{
           color: '#d1d5db',
@@ -38,10 +38,10 @@ export function ThePit() {
         marginBottom: '3rem'
       }}>
         {[
-          { icon: '🎸', title: 'Band Discussions', desc: 'Talk about your favorite metal acts' },
-          { icon: '🏟️', title: 'Tour Talk', desc: 'Share concert experiences and upcoming shows' },
-          { icon: '🎧', title: 'Gear & Equipment', desc: 'Discuss instruments, amps, and sound gear' },
-          { icon: '📰', title: 'Metal News', desc: 'Latest updates from the metal world' }
+          { title: 'Band Discussions', desc: 'Talk about your favorite metal acts' },
+          { title: 'Tour Talk', desc: 'Share concert experiences and upcoming shows' },
+          { title: 'Gear & Equipment', desc: 'Discuss instruments, amps, and sound gear' },
+          { title: 'Metal News', desc: 'Latest updates from the metal world' }
         ].map((category, i) => (
           <div
             key={i}
@@ -63,12 +63,7 @@ export function ThePit() {
               e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
             }}
           >
-            <div style={{
-              fontSize: '2rem',
-              marginBottom: '1rem'
-            }}>
-              {category.icon}
-            </div>
+
             <h3 style={{
               color: '#facc15',
               fontSize: '1.1rem',

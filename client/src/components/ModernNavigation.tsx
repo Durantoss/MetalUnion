@@ -24,13 +24,13 @@ export function ModernNavigation({
   };
 
   const navItems = [
-    { id: 'bands', label: 'DISCOVER', icon: '🎸' },
-    { id: 'social', label: 'THE PIT', icon: '🔥' },
-    { id: 'events', label: 'EVENT DISCOVERY', icon: '🎤' },
-    { id: 'messaging-test', label: 'MESSAGING TEST', icon: '🔒' },
-    { id: 'tours', label: 'TOURS', icon: '🚌' },
-    { id: 'reviews', label: 'REVIEWS', icon: '⭐' },
-    { id: 'photos', label: 'PHOTOS', icon: '📸' }
+    { id: 'bands', label: 'DISCOVER' },
+    { id: 'social', label: 'THE PIT' },
+    { id: 'events', label: 'EVENT DISCOVERY' },
+    { id: 'messaging-test', label: 'MESSAGING TEST' },
+    { id: 'tours', label: 'TOURS' },
+    { id: 'reviews', label: 'REVIEWS' },
+    { id: 'photos', label: 'PHOTOS' }
   ];
 
   return (
@@ -126,7 +126,7 @@ export function ModernNavigation({
               }}
               data-testid={`nav-${item.id}`}
             >
-              <span>{item.icon}</span>
+
               <span>{item.label}</span>
             </button>
           ))}

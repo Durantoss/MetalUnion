@@ -35,7 +35,7 @@ export function QuickFix({ bands, onSectionChange }: QuickFixProps) {
           fontWeight: 'bold',
           marginBottom: '1rem'
         }}>
-          🤘 MOSHUNION 🤘
+          MOSHUNION
         </h1>
         <p style={{
           fontSize: '1.2rem',
@@ -60,10 +60,10 @@ export function QuickFix({ bands, onSectionChange }: QuickFixProps) {
         marginBottom: '3rem'
       }}>
         {[
-          { id: 'tours', title: '🎯 Events & Tours', bg: '#dc2626' },
-          { id: 'social', title: '💬 Social Hub', bg: '#7c3aed' },
-          { id: 'reviews', title: '⭐ Reviews', bg: '#059669' },
-          { id: 'photos', title: '📸 Photo Gallery', bg: '#ea580c' }
+          { id: 'tours', title: 'Events & Tours', bg: '#dc2626' },
+          { id: 'social', title: 'Social Hub', bg: '#7c3aed' },
+          { id: 'reviews', title: 'Reviews', bg: '#059669' },
+          { id: 'photos', title: 'Photo Gallery', bg: '#ea580c' }
         ].map(section => (
           <button
             key={section.id}
@@ -193,7 +193,7 @@ export function QuickFix({ bands, onSectionChange }: QuickFixProps) {
         borderTop: '1px solid #374151'
       }}>
         <p style={{ color: '#9ca3af' }}>
-          MoshUnion - Connecting metalheads worldwide 🤘
+          MoshUnion - Connecting metalheads worldwide
         </p>
       </footer>
     </div>

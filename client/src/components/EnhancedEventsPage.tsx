@@ -96,7 +96,7 @@ export function EnhancedEventsPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-red-500 to-yellow-500 bg-clip-text text-transparent mb-4">
-            🎸 Event Discovery
+            Event Discovery
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
             Discover the best metal and rock concerts with AI-powered recommendations. 

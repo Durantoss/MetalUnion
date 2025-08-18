@@ -102,7 +102,7 @@ export function GameficationDashboard({ userId }: { userId?: string }) {
         fetch('/api/leaderboard'),
         fetch('/api/achievements/progress'),
         fetch('/api/daily-challenges'),
-        userId ? fetch(`/api/users/${userId}/stats`) : Promise.resolve({ ok: false })
+        userId ? fetch(`/api/users/${userId}/stats`) : Promise.resolve({ ok: false, json: () => Promise.resolve({}) } as Response)
       ]);
 
       if (leaderboardRes.status === 'fulfilled' && leaderboardRes.value.ok) {

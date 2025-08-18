@@ -396,9 +396,9 @@ export function UserProfile({ userId, isOwnProfile = false, onClose }: UserProfi
                           className="flex items-start gap-3 p-3 rounded-lg bg-void-black/40 border border-fire-red/10"
                         >
                           <div className="w-8 h-8 rounded-full bg-gradient-to-r from-fire-red to-electric-yellow flex items-center justify-center text-xs font-bold text-void-black">
-                            {activity.activityType === 'review_posted' ? '📝' :
-                             activity.activityType === 'photo_uploaded' ? '📸' :
-                             activity.activityType === 'achievement_earned' ? '🏆' : '⚡'}
+                            {activity.activityType === 'review_posted' ? 'R' :
+                             activity.activityType === 'photo_uploaded' ? 'P' :
+                             activity.activityType === 'achievement_earned' ? 'A' : 'E'}
                           </div>
                           <div className="flex-1">
                             <h4 className="font-semibold text-sm">{activity.title}</h4>

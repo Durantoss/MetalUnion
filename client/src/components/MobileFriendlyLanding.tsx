@@ -65,7 +65,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
       title: 'Event Discovery',
       subtitle: 'Intelligent Concert Discovery',
       description: 'Discover metal concerts tailored to your taste with smart recommendations',
-      icon: '🎯',
+
       gradient: 'linear-gradient(135deg, #dc2626, #facc15)',
       stats: `${stats.events} events`,
       featured: true
@@ -75,7 +75,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
       title: 'Social Hub',
       subtitle: 'Global Metal Community',
       description: 'Connect with metalheads worldwide and share experiences',
-      icon: '🌐',
+
       gradient: 'linear-gradient(135deg, #facc15, #dc2626)',
       stats: `${stats.activeUsers} online`,
       featured: true
@@ -85,7 +85,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
       title: 'Band Discovery',
       subtitle: 'Explore Metal Universe',
       description: 'Deep dive into band profiles, albums, and histories',
-      icon: '🎸',
+
       gradient: 'linear-gradient(135deg, #dc2626, #991b1b)',
       stats: `${stats.bands} bands`
     },
@@ -94,7 +94,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
       title: 'Reviews & Ratings',
       subtitle: 'Community Insights',
       description: 'Share and discover authentic metal community reviews',
-      icon: '⭐',
+
       gradient: 'linear-gradient(135deg, #facc15, #eab308)',
       stats: `${stats.reviews} reviews`
     },
@@ -103,7 +103,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
       title: 'Metal Photography',
       subtitle: 'Visual Stories',
       description: 'Capture and share the raw energy of metal culture',
-      icon: '📸',
+
       gradient: 'linear-gradient(135deg, #dc2626, #facc15)',
       stats: `${stats.photos} photos`
     },
@@ -112,7 +112,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
       title: 'Tour Dates',
       subtitle: 'Live Experience Tracker',
       description: 'Track upcoming tours and live performances',
-      icon: '🚌',
+
       gradient: 'linear-gradient(135deg, #991b1b, #dc2626)',
       stats: `${stats.tours} tours`
     },
@@ -121,7 +121,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
       title: 'The Pit',
       subtitle: 'Community Discussions',
       description: 'Dive into heated debates and metal discussions',
-      icon: '🔥',
+
       gradient: 'linear-gradient(135deg, #facc15, #dc2626)',
       stats: `${stats.posts} posts`
     }
@@ -174,9 +174,9 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
           marginTop: '2rem'
         }}>
           {[
-            { label: 'Active Users', value: stats.activeUsers, icon: '👥' },
-            { label: 'Bands', value: stats.bands, icon: '🎸' },
-            { label: 'Events', value: stats.events, icon: '🎯' }
+            { label: 'Active Users', value: stats.activeUsers },
+            { label: 'Bands', value: stats.bands },
+            { label: 'Events', value: stats.events }
           ].map((stat, i) => (
             <div
               key={i}
@@ -193,7 +193,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
                 fontWeight: '600'
               }}
             >
-              <span>{stat.icon}</span>
+
               <span>{stat.value}</span>
               <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
                 {stat.label}
@@ -260,12 +260,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
               position: 'relative',
               zIndex: 1
             }}>
-              <div style={{
-                fontSize: section.featured ? '2.5rem' : '2rem',
-                minWidth: section.featured ? '60px' : '50px'
-              }}>
-                {section.icon}
-              </div>
+
               
               <div style={{ flex: 1 }}>
                 <h3 style={{

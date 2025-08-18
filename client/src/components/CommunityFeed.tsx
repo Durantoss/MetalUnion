@@ -50,7 +50,7 @@ const mockPosts: Post[] = [
     userName: 'MetalMaster',
     userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face',
     title: 'Just saw Iron Maiden live!',
-    content: 'What an incredible show! Bruce still has it at his age. The energy was absolutely insane! 🤘 Anyone else catch them on this tour?',
+    content: 'What an incredible show! Bruce still has it at his age. The energy was absolutely insane! Anyone else catch them on this tour?',
     imageUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&h=300&fit=crop',
     tags: ['iron-maiden', 'live-show', 'metal'],
     likes: 47,
