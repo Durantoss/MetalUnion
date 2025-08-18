@@ -3,6 +3,8 @@ import { ActivityFeed } from './ActivityFeed';
 import { InteractivePolls } from './InteractivePolls';
 import { GameficationDashboard } from './GameficationDashboard';
 import { PhotosSection } from './PhotosSection';
+import { SocialFeatures } from './SocialFeatures';
+import { LiveChat } from './LiveChat';
 import { Button } from './ui/button';
 
 interface SocialHubProps {
@@ -30,11 +32,11 @@ export function EnhancedSocialHub({ userId, initialTab = 'feed' }: SocialHubProp
   const tabContent = () => {
     switch (activeTab) {
       case 'feed':
-        return <ActivityFeed featured={false} />;
+        return <ActivityFeed userId={userId} />;
       case 'gamification':
         return <GameficationDashboard />;
       case 'polls':
-        return <InteractivePolls featured={false} />;
+        return <InteractivePolls userId={userId} />;
       case 'events':
         return (
           <div style={{ padding: '2rem', textAlign: 'center' }}>
@@ -162,8 +164,12 @@ export function EnhancedSocialHub({ userId, initialTab = 'feed' }: SocialHubProp
             </div>
           </div>
         );
+      case 'social':
+        return <SocialFeatures userId={userId} />;
+      case 'chat':
+        return <LiveChat roomId="general" currentUser={{ id: userId, stagename: 'MetalFan' }} />;
       default:
-        return <ActivityFeed featured={false} />;
+        return <ActivityFeed userId={userId} />;
     }
   };
 
@@ -260,6 +266,8 @@ export function EnhancedSocialHub({ userId, initialTab = 'feed' }: SocialHubProp
         }}>
           {[
             { id: 'feed', label: 'Activity Feed', icon: '🔥' },
+            { id: 'social', label: 'Social Features', icon: '👥' },
+            { id: 'chat', label: 'Live Chat', icon: '💬' },
             { id: 'gamification', label: 'Achievements', icon: '🏆' },
             { id: 'polls', label: 'Polls', icon: '📊' },
             { id: 'events', label: 'Events', icon: '📅' },

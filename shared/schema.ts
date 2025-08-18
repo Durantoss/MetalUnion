@@ -1,5 +1,5 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, jsonb, index, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, jsonb, index, boolean, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -111,7 +111,7 @@ export const messages = pgTable("messages", {
 });
 
 // Comments system for reviews, bands, and other content
-export const comments = pgTable("comments", {
+export const comments: any = pgTable("comments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   content: text("content").notNull(),
   authorId: varchar("author_id").notNull().references(() => users.id),
@@ -120,7 +120,7 @@ export const comments = pgTable("comments", {
   targetType: text("target_type").notNull(), // 'review', 'band', 'photo', 'tour', 'message'
   targetId: varchar("target_id").notNull(), // ID of the target (review ID, band ID, etc.)
   // Thread support for nested comments
-  parentCommentId: varchar("parent_comment_id").references(() => comments.id),
+  parentCommentId: varchar("parent_comment_id").references((): any => comments.id),
   // Engagement metrics
   likes: integer("likes").default(0),
   dislikes: integer("dislikes").default(0),
@@ -469,6 +469,159 @@ export const directMessages = pgTable("direct_messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// User Groups & Communities
+export const userGroups = pgTable("user_groups", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  category: varchar("category").notNull(), // 'genre', 'location', 'interest'
+  isPrivate: boolean("is_private").default(false),
+  creatorId: varchar("creator_id").notNull().references(() => users.id),
+  memberCount: integer("member_count").default(0),
+  avatarUrl: varchar("avatar_url"),
+  tags: text("tags").array(),
+  rules: text("rules"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const groupMembers = pgTable("group_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => userGroups.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  role: varchar("role").default("member"), // 'admin', 'moderator', 'member'
+  joinedAt: timestamp("joined_at").defaultNow(),
+});
+
+export const groupPosts = pgTable("group_posts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => userGroups.id),
+  authorId: varchar("author_id").notNull().references(() => users.id),
+  title: varchar("title"),
+  content: text("content").notNull(),
+  postType: varchar("post_type").default("text"), // 'text', 'poll', 'event', 'photo'
+  isPinned: boolean("is_pinned").default(false),
+  likes: integer("likes").default(0),
+  commentsCount: integer("comments_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Mentorship System
+export const mentorProfiles = pgTable("mentor_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  bio: text("bio").notNull(),
+  expertise: text("expertise").array(), // 'concert_photography', 'band_discovery', 'venue_knowledge'
+  experience: varchar("experience").notNull(), // 'beginner', 'intermediate', 'expert'
+  languages: text("languages").array(),
+  availability: varchar("availability").default("flexible"), // 'flexible', 'weekends', 'evenings'
+  maxMentees: integer("max_mentees").default(3),
+  currentMentees: integer("current_mentees").default(0),
+  rating: real("rating").default(0),
+  totalSessions: integer("total_sessions").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const mentorships = pgTable("mentorships", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  mentorId: varchar("mentor_id").notNull().references(() => users.id),
+  menteeId: varchar("mentee_id").notNull().references(() => users.id),
+  status: varchar("status").default("pending"), // 'pending', 'active', 'completed', 'cancelled'
+  focus: text("focus").array(), // What areas they're working on
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  totalSessions: integer("total_sessions").default(0),
+  lastSessionDate: timestamp("last_session_date"),
+  notes: text("notes"),
+  menteeRating: integer("mentee_rating"), // 1-5 stars from mentee
+  mentorRating: integer("mentor_rating"), // 1-5 stars from mentor
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Social Media Integration
+export const socialConnections = pgTable("social_connections", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  platform: varchar("platform").notNull(), // 'instagram', 'twitter', 'youtube', 'spotify'
+  username: varchar("username").notNull(),
+  profileUrl: varchar("profile_url"),
+  isVerified: boolean("is_verified").default(false),
+  isPublic: boolean("is_public").default(true),
+  followerCount: integer("follower_count"),
+  connectedAt: timestamp("connected_at").defaultNow(),
+});
+
+// Enhanced Reactions System
+export const reactionTypes = pgTable("reaction_types", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull().unique(),
+  emoji: varchar("emoji").notNull(),
+  category: varchar("category").notNull(), // 'emotion', 'music', 'approval'
+  isActive: boolean("is_active").default(true),
+});
+
+export const contentReactions = pgTable("content_reactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  targetType: varchar("target_type").notNull(), // 'review', 'photo', 'post', 'comment'
+  targetId: varchar("target_id").notNull(),
+  reactionTypeId: varchar("reaction_type_id").notNull().references(() => reactionTypes.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Live Chat Rooms
+export const chatRooms = pgTable("chat_rooms", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  topic: varchar("topic"), // 'general', 'concert_live', 'band_discussion'
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  maxUsers: integer("max_users").default(100),
+  currentUsers: integer("current_users").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const chatMessages = pgTable("chat_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  roomId: varchar("room_id").notNull().references(() => chatRooms.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  messageType: varchar("message_type").default("text"), // 'text', 'emoji', 'system'
+  replyToId: varchar("reply_to_id").references(() => chatMessages.id),
+  isEdited: boolean("is_edited").default(false),
+  isDeleted: boolean("is_deleted").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const chatParticipants = pgTable("chat_participants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  roomId: varchar("room_id").notNull().references(() => chatRooms.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  role: varchar("role").default("member"), // 'admin', 'moderator', 'member'
+  isOnline: boolean("is_online").default(false),
+  lastSeen: timestamp("last_seen").defaultNow(),
+  joinedAt: timestamp("joined_at").defaultNow(),
+});
+
+// User Connections & Friends
+export const friendRequests = pgTable("friend_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  senderId: varchar("sender_id").notNull().references(() => users.id),
+  receiverId: varchar("receiver_id").notNull().references(() => users.id),
+  status: varchar("status").default("pending"), // 'pending', 'accepted', 'rejected'
+  message: text("message"),
+  createdAt: timestamp("created_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+});
+
+export const userConnections = pgTable("user_connections", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId1: varchar("user_id1").notNull().references(() => users.id),
+  userId2: varchar("user_id2").notNull().references(() => users.id),
+  connectionType: varchar("connection_type").default("friend"), // 'friend', 'close_friend', 'favorite'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // User saved content
 export const savedContent = pgTable("saved_content", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -662,6 +815,135 @@ export const albumPhotosRelations = relations(albumPhotos, ({ one }) => ({
   }),
 }));
 
+// Relations for new social features
+export const userGroupsRelations = relations(userGroups, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [userGroups.creatorId],
+    references: [users.id],
+  }),
+  members: many(groupMembers),
+  posts: many(groupPosts),
+}));
+
+export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
+  group: one(userGroups, {
+    fields: [groupMembers.groupId],
+    references: [userGroups.id],
+  }),
+  user: one(users, {
+    fields: [groupMembers.userId],
+    references: [users.id],
+  }),
+}));
+
+export const groupPostsRelations = relations(groupPosts, ({ one }) => ({
+  group: one(userGroups, {
+    fields: [groupPosts.groupId],
+    references: [userGroups.id],
+  }),
+  author: one(users, {
+    fields: [groupPosts.authorId],
+    references: [users.id],
+  }),
+}));
+
+export const mentorProfilesRelations = relations(mentorProfiles, ({ one, many }) => ({
+  user: one(users, {
+    fields: [mentorProfiles.userId],
+    references: [users.id],
+  }),
+  mentorships: many(mentorships, { relationName: "mentor" }),
+}));
+
+export const mentorshipsRelations = relations(mentorships, ({ one }) => ({
+  mentor: one(users, {
+    fields: [mentorships.mentorId],
+    references: [users.id],
+    relationName: "mentor",
+  }),
+  mentee: one(users, {
+    fields: [mentorships.menteeId],
+    references: [users.id],
+    relationName: "mentee",
+  }),
+}));
+
+export const socialConnectionsRelations = relations(socialConnections, ({ one }) => ({
+  user: one(users, {
+    fields: [socialConnections.userId],
+    references: [users.id],
+  }),
+}));
+
+export const contentReactionsRelations = relations(contentReactions, ({ one }) => ({
+  user: one(users, {
+    fields: [contentReactions.userId],
+    references: [users.id],
+  }),
+  reactionType: one(reactionTypes, {
+    fields: [contentReactions.reactionTypeId],
+    references: [reactionTypes.id],
+  }),
+}));
+
+export const chatRoomsRelations = relations(chatRooms, ({ many }) => ({
+  messages: many(chatMessages),
+  participants: many(chatParticipants),
+}));
+
+export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
+  room: one(chatRooms, {
+    fields: [chatMessages.roomId],
+    references: [chatRooms.id],
+  }),
+  user: one(users, {
+    fields: [chatMessages.userId],
+    references: [users.id],
+  }),
+  replyTo: one(chatMessages, {
+    fields: [chatMessages.replyToId],
+    references: [chatMessages.id],
+    relationName: "reply",
+  }),
+}));
+
+export const chatParticipantsRelations = relations(chatParticipants, ({ one }) => ({
+  room: one(chatRooms, {
+    fields: [chatParticipants.roomId],
+    references: [chatRooms.id],
+  }),
+  user: one(users, {
+    fields: [chatParticipants.userId],
+    references: [users.id],
+  }),
+}));
+
+export const friendRequestsRelations = relations(friendRequests, ({ one }) => ({
+  sender: one(users, {
+    fields: [friendRequests.senderId],
+    references: [users.id],
+    relationName: "sender",
+  }),
+  receiver: one(users, {
+    fields: [friendRequests.receiverId],
+    references: [users.id],
+    relationName: "receiver",
+  }),
+}));
+
+export const userConnectionsRelations = relations(userConnections, ({ one }) => ({
+  user1: one(users, {
+    fields: [userConnections.userId1],
+    references: [users.id],
+    relationName: "user1",
+  }),
+  user2: one(users, {
+    fields: [userConnections.userId2],
+    references: [users.id],
+    relationName: "user2",
+  }),
+}));
+
 // Insert schemas for message board
 export const insertPitMessageSchema = createInsertSchema(pitMessages).omit({
   id: true,
@@ -702,6 +984,21 @@ export const insertSavedContentSchema = createInsertSchema(savedContent).omit({ 
 export const insertPhotoAlbumSchema = createInsertSchema(photoAlbums).omit({ id: true, createdAt: true, photoCount: true });
 export const insertAlbumPhotoSchema = createInsertSchema(albumPhotos).omit({ id: true, addedAt: true });
 
+// Insert schemas for new social features
+export const insertUserGroupSchema = createInsertSchema(userGroups).omit({ id: true, createdAt: true, memberCount: true });
+export const insertGroupMemberSchema = createInsertSchema(groupMembers).omit({ id: true, joinedAt: true });
+export const insertGroupPostSchema = createInsertSchema(groupPosts).omit({ id: true, createdAt: true, likes: true, commentsCount: true });
+export const insertMentorProfileSchema = createInsertSchema(mentorProfiles).omit({ id: true, createdAt: true, currentMentees: true, rating: true, totalSessions: true });
+export const insertMentorshipSchema = createInsertSchema(mentorships).omit({ id: true, createdAt: true, totalSessions: true });
+export const insertSocialConnectionSchema = createInsertSchema(socialConnections).omit({ id: true, connectedAt: true, isVerified: true });
+export const insertReactionTypeSchema = createInsertSchema(reactionTypes).omit({ id: true });
+export const insertContentReactionSchema = createInsertSchema(contentReactions).omit({ id: true, createdAt: true });
+export const insertChatRoomSchema = createInsertSchema(chatRooms).omit({ id: true, createdAt: true, currentUsers: true });
+export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({ id: true, createdAt: true, isEdited: true, isDeleted: true });
+export const insertChatParticipantSchema = createInsertSchema(chatParticipants).omit({ id: true, joinedAt: true, lastSeen: true });
+export const insertFriendRequestSchema = createInsertSchema(friendRequests).omit({ id: true, createdAt: true, respondedAt: true });
+export const insertUserConnectionSchema = createInsertSchema(userConnections).omit({ id: true, createdAt: true });
+
 // Types for all new tables
 export type UserFollow = typeof userFollows.$inferSelect;
 export type InsertUserFollow = z.infer<typeof insertUserFollowSchema>;
@@ -723,6 +1020,34 @@ export type Event = typeof events.$inferSelect;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type EventAttendee = typeof eventAttendees.$inferSelect;
 export type InsertEventAttendee = z.infer<typeof insertEventAttendeeSchema>;
+
+// Types for new social features
+export type UserGroup = typeof userGroups.$inferSelect;
+export type InsertUserGroup = z.infer<typeof insertUserGroupSchema>;
+export type GroupMember = typeof groupMembers.$inferSelect;
+export type InsertGroupMember = z.infer<typeof insertGroupMemberSchema>;
+export type GroupPost = typeof groupPosts.$inferSelect;
+export type InsertGroupPost = z.infer<typeof insertGroupPostSchema>;
+export type MentorProfile = typeof mentorProfiles.$inferSelect;
+export type InsertMentorProfile = z.infer<typeof insertMentorProfileSchema>;
+export type Mentorship = typeof mentorships.$inferSelect;
+export type InsertMentorship = z.infer<typeof insertMentorshipSchema>;
+export type SocialConnection = typeof socialConnections.$inferSelect;
+export type InsertSocialConnection = z.infer<typeof insertSocialConnectionSchema>;
+export type ReactionType = typeof reactionTypes.$inferSelect;
+export type InsertReactionType = z.infer<typeof insertReactionTypeSchema>;
+export type ContentReaction = typeof contentReactions.$inferSelect;
+export type InsertContentReaction = z.infer<typeof insertContentReactionSchema>;
+export type ChatRoom = typeof chatRooms.$inferSelect;
+export type InsertChatRoom = z.infer<typeof insertChatRoomSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type ChatParticipant = typeof chatParticipants.$inferSelect;
+export type InsertChatParticipant = z.infer<typeof insertChatParticipantSchema>;
+export type FriendRequest = typeof friendRequests.$inferSelect;
+export type InsertFriendRequest = z.infer<typeof insertFriendRequestSchema>;
+export type UserConnection = typeof userConnections.$inferSelect;
+export type InsertUserConnection = z.infer<typeof insertUserConnectionSchema>;
 export type ReviewRating = typeof reviewRatings.$inferSelect;
 export type InsertReviewRating = z.infer<typeof insertReviewRatingSchema>;
 export type Conversation = typeof conversations.$inferSelect;

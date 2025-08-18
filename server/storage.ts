@@ -101,6 +101,44 @@ export interface IStorage {
   updateComment(id: string, content: string): Promise<Comment>;
   deleteComment(id: string, reason: string): Promise<void>;
   createCommentReaction(reaction: InsertCommentReaction): Promise<CommentReaction>;
+
+  // Enhanced Social Features Methods
+  
+  // User Groups & Communities
+  getUserGroups(): Promise<any[]>;
+  createUserGroup(group: any): Promise<any>;
+  joinGroup(groupId: string, userId: string): Promise<any>;
+  getGroupPosts(groupId: string): Promise<any[]>;
+  createGroupPost(post: any): Promise<any>;
+
+  // Mentorship System
+  getMentorProfiles(): Promise<any[]>;
+  createMentorProfile(profile: any): Promise<any>;
+  requestMentorship(mentorship: any): Promise<any>;
+
+  // Live Chat System
+  getChatRooms(): Promise<any[]>;
+  getChatRoom(roomId: string): Promise<any>;
+  getChatMessages(roomId: string): Promise<any[]>;
+  createChatMessage(message: any): Promise<any>;
+  joinChatRoom(roomId: string, userId: string): Promise<any>;
+  getChatRoomUsers(roomId: string): Promise<any[]>;
+
+  // Enhanced Reactions System
+  getReactionTypes(): Promise<any[]>;
+  addReaction(messageId: string, userId: string, emoji: string): Promise<any>;
+
+  // Friend System
+  getFriendRequests(userId: string): Promise<any[]>;
+  sendFriendRequest(request: any): Promise<any>;
+  updateFriendRequest(requestId: string, status: string): Promise<any>;
+
+  // Social Media Connections
+  getSocialConnections(userId: string): Promise<any[]>;
+  createSocialConnection(connection: any): Promise<any>;
+
+  // Online Users
+  getOnlineUsers(): Promise<any[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -593,6 +631,414 @@ export class MemStorage implements IStorage {
   async updateMessage(id: string, message: Partial<InsertMessage>): Promise<Message | undefined> { return undefined; }
   async deleteMessage(id: string): Promise<boolean> { return false; }
   async likeMessage(id: string): Promise<Message | undefined> { return undefined; }
+
+  // Enhanced Social Features Implementation
+  
+  // User Groups & Communities
+  async getUserGroups(): Promise<any[]> {
+    return [
+      {
+        id: '1',
+        name: 'Metal Heads United',
+        description: 'A community for metal music enthusiasts',
+        category: 'Music Discussion',
+        memberCount: 1247,
+        isPrivate: false,
+        imageUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=200',
+        createdAt: new Date('2024-01-15'),
+        tags: ['metal', 'community', 'discussion']
+      },
+      {
+        id: '2',
+        name: 'Concert Photography',
+        description: 'Share your best concert photos and tips',
+        category: 'Photography',
+        memberCount: 823,
+        isPrivate: false,
+        imageUrl: 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=200',
+        createdAt: new Date('2024-02-10'),
+        tags: ['photography', 'concerts', 'sharing']
+      },
+      {
+        id: '3',
+        name: 'Local Venue Reviews',
+        description: 'Review and discover local metal venues',
+        category: 'Venues',
+        memberCount: 456,
+        isPrivate: false,
+        imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=200',
+        createdAt: new Date('2024-03-05'),
+        tags: ['venues', 'reviews', 'local']
+      }
+    ];
+  }
+
+  async createUserGroup(group: any): Promise<any> {
+    return {
+      id: randomUUID(),
+      ...group,
+      memberCount: 1,
+      createdAt: new Date(),
+      tags: group.tags || []
+    };
+  }
+
+  async joinGroup(groupId: string, userId: string): Promise<any> {
+    return {
+      groupId,
+      userId,
+      joinedAt: new Date(),
+      role: 'member'
+    };
+  }
+
+  async getGroupPosts(groupId: string): Promise<any[]> {
+    return [
+      {
+        id: '1',
+        groupId,
+        authorId: 'user1',
+        authorName: 'MetalFan',
+        content: 'Just discovered this amazing underground band!',
+        imageUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300',
+        likes: 15,
+        comments: 8,
+        createdAt: new Date('2024-08-17'),
+        tags: ['discovery', 'underground']
+      },
+      {
+        id: '2',
+        groupId,
+        authorId: 'user2',
+        authorName: 'ConcertGoer',
+        content: 'Amazing show last night! The energy was incredible.',
+        likes: 23,
+        comments: 12,
+        createdAt: new Date('2024-08-16'),
+        tags: ['concert', 'review']
+      }
+    ];
+  }
+
+  async createGroupPost(post: any): Promise<any> {
+    return {
+      id: randomUUID(),
+      ...post,
+      likes: 0,
+      comments: 0,
+      createdAt: new Date()
+    };
+  }
+
+  // Mentorship System
+  async getMentorProfiles(): Promise<any[]> {
+    return [
+      {
+        id: '1',
+        userId: 'mentor1',
+        stagename: 'VeteranMetalhead',
+        expertise: ['Concert Photography', 'Band Management', 'Music Production'],
+        bio: '20+ years in the metal scene. Helped launch several local bands.',
+        availability: 'weekends',
+        rating: 4.8,
+        totalMentees: 15,
+        profileImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150',
+        badges: ['Top Mentor', 'Photography Expert'],
+        specializations: ['Technical Skills', 'Industry Connections']
+      },
+      {
+        id: '2',
+        userId: 'mentor2',
+        stagename: 'StageVeteran',
+        expertise: ['Live Performance', 'Stage Presence', 'Audience Engagement'],
+        bio: 'Former touring musician with 30+ years of stage experience.',
+        availability: 'evenings',
+        rating: 4.9,
+        totalMentees: 22,
+        profileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150',
+        badges: ['Legend', 'Performance Coach'],
+        specializations: ['Performance', 'Career Guidance']
+      }
+    ];
+  }
+
+  async createMentorProfile(profile: any): Promise<any> {
+    return {
+      id: randomUUID(),
+      ...profile,
+      rating: 0,
+      totalMentees: 0,
+      createdAt: new Date()
+    };
+  }
+
+  async requestMentorship(mentorship: any): Promise<any> {
+    return {
+      id: randomUUID(),
+      ...mentorship,
+      status: 'pending',
+      requestedAt: new Date()
+    };
+  }
+
+  // Live Chat System
+  async getChatRooms(): Promise<any[]> {
+    return [
+      {
+        id: 'general',
+        name: 'General Discussion',
+        description: 'Main chat for all metal fans',
+        memberCount: 342,
+        isActive: true,
+        category: 'general',
+        lastActivity: new Date(),
+        tags: ['general', 'discussion']
+      },
+      {
+        id: 'concerts',
+        name: 'Concert Updates',
+        description: 'Live updates from concerts and festivals',
+        memberCount: 156,
+        isActive: true,
+        category: 'events',
+        lastActivity: new Date(),
+        tags: ['concerts', 'live', 'updates']
+      },
+      {
+        id: 'gear',
+        name: 'Gear Talk',
+        description: 'Discuss instruments, amps, and equipment',
+        memberCount: 89,
+        isActive: true,
+        category: 'equipment',
+        lastActivity: new Date(),
+        tags: ['gear', 'equipment', 'instruments']
+      }
+    ];
+  }
+
+  async getChatRoom(roomId: string): Promise<any> {
+    const rooms = await this.getChatRooms();
+    return rooms.find(room => room.id === roomId);
+  }
+
+  async getChatMessages(roomId: string): Promise<any[]> {
+    return [
+      {
+        id: '1',
+        roomId,
+        userId: 'user1',
+        username: 'MetalFan',
+        message: 'Anyone going to the Metallica concert next month?',
+        timestamp: new Date('2024-08-18T11:30:00'),
+        reactions: [{ emoji: '🤘', count: 5 }, { emoji: '🔥', count: 3 }],
+        profileImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40'
+      },
+      {
+        id: '2',
+        roomId,
+        userId: 'user2',
+        username: 'ConcertGoer',
+        message: 'Yes! Already got my tickets. Can\'t wait!',
+        timestamp: new Date('2024-08-18T11:32:00'),
+        reactions: [{ emoji: '🎸', count: 2 }],
+        profileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40'
+      },
+      {
+        id: '3',
+        roomId,
+        userId: 'user3',
+        username: 'MetalQueen',
+        message: 'The setlist for this tour looks amazing!',
+        timestamp: new Date('2024-08-18T11:35:00'),
+        reactions: [{ emoji: '🤘', count: 4 }, { emoji: '🔥', count: 6 }],
+        profileImage: 'https://images.unsplash.com/photo-1494790108755-2616b612b169?w=40&h=40'
+      }
+    ];
+  }
+
+  async createChatMessage(message: any): Promise<any> {
+    return {
+      id: randomUUID(),
+      ...message,
+      timestamp: new Date(),
+      reactions: []
+    };
+  }
+
+  async joinChatRoom(roomId: string, userId: string): Promise<any> {
+    return {
+      roomId,
+      userId,
+      joinedAt: new Date(),
+      role: 'member'
+    };
+  }
+
+  async getChatRoomUsers(roomId: string): Promise<any[]> {
+    return [
+      {
+        id: 'user1',
+        username: 'MetalFan',
+        isOnline: true,
+        role: 'member',
+        profileImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40'
+      },
+      {
+        id: 'user2',
+        username: 'ConcertGoer',
+        isOnline: true,
+        role: 'member',
+        profileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40'
+      },
+      {
+        id: 'user3',
+        username: 'MetalQueen',
+        isOnline: false,
+        role: 'member',
+        profileImage: 'https://images.unsplash.com/photo-1494790108755-2616b612b169?w=40&h=40'
+      }
+    ];
+  }
+
+  // Enhanced Reactions System
+  async getReactionTypes(): Promise<any[]> {
+    return [
+      { emoji: '🤘', name: 'rock_on', category: 'metal' },
+      { emoji: '🔥', name: 'fire', category: 'general' },
+      { emoji: '🎸', name: 'guitar', category: 'instruments' },
+      { emoji: '🥁', name: 'drums', category: 'instruments' },
+      { emoji: '🎤', name: 'mic', category: 'vocals' },
+      { emoji: '⚡', name: 'lightning', category: 'energy' },
+      { emoji: '🖤', name: 'black_heart', category: 'metal' },
+      { emoji: '💀', name: 'skull', category: 'metal' }
+    ];
+  }
+
+  async addReaction(messageId: string, userId: string, emoji: string): Promise<any> {
+    return {
+      id: randomUUID(),
+      messageId,
+      userId,
+      emoji,
+      createdAt: new Date()
+    };
+  }
+
+  // Friend System
+  async getFriendRequests(userId: string): Promise<any[]> {
+    return [
+      {
+        id: '1',
+        senderId: 'user2',
+        senderName: 'ConcertGoer',
+        senderImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50',
+        receiverId: userId,
+        status: 'pending',
+        sentAt: new Date('2024-08-17'),
+        mutualFriends: 3
+      },
+      {
+        id: '2',
+        senderId: 'user3',
+        senderName: 'MetalQueen',
+        senderImage: 'https://images.unsplash.com/photo-1494790108755-2616b612b169?w=50&h=50',
+        receiverId: userId,
+        status: 'pending',
+        sentAt: new Date('2024-08-16'),
+        mutualFriends: 1
+      }
+    ];
+  }
+
+  async sendFriendRequest(request: any): Promise<any> {
+    return {
+      id: randomUUID(),
+      ...request,
+      status: 'pending',
+      sentAt: new Date()
+    };
+  }
+
+  async updateFriendRequest(requestId: string, status: string): Promise<any> {
+    return {
+      id: requestId,
+      status,
+      updatedAt: new Date()
+    };
+  }
+
+  // Social Media Connections
+  async getSocialConnections(userId: string): Promise<any[]> {
+    return [
+      {
+        id: '1',
+        userId,
+        platform: 'instagram',
+        username: 'metalfan_official',
+        isConnected: true,
+        followers: 1234,
+        connectedAt: new Date('2024-08-01')
+      },
+      {
+        id: '2',
+        userId,
+        platform: 'spotify',
+        username: 'metalfan2024',
+        isConnected: true,
+        playlists: 15,
+        connectedAt: new Date('2024-07-15')
+      },
+      {
+        id: '3',
+        userId,
+        platform: 'youtube',
+        username: 'MetalFanChannel',
+        isConnected: false,
+        subscribers: 567,
+        connectedAt: null
+      }
+    ];
+  }
+
+  async createSocialConnection(connection: any): Promise<any> {
+    return {
+      id: randomUUID(),
+      ...connection,
+      isConnected: true,
+      connectedAt: new Date()
+    };
+  }
+
+  // Online Users
+  async getOnlineUsers(): Promise<any[]> {
+    return [
+      {
+        id: 'user1',
+        username: 'MetalFan',
+        profileImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40',
+        status: 'online',
+        lastSeen: new Date(),
+        activity: 'Browsing concerts'
+      },
+      {
+        id: 'user2',
+        username: 'ConcertGoer',
+        profileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40',
+        status: 'online',
+        lastSeen: new Date(),
+        activity: 'In chat room'
+      },
+      {
+        id: 'user3',
+        username: 'MetalQueen',
+        profileImage: 'https://images.unsplash.com/photo-1494790108755-2616b612b169?w=40&h=40',
+        status: 'away',
+        lastSeen: new Date(Date.now() - 300000),
+        activity: 'Away'
+      }
+    ];
+  }
 }
 
 export class DatabaseStorage implements IStorage {

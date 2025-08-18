@@ -1,7 +1,30 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertBandSchema, insertReviewSchema, insertPhotoSchema, insertTourSchema, insertMessageSchema, insertPitMessageSchema, insertPitReplySchema, insertCommentSchema, insertCommentReactionSchema } from "@shared/schema";
+import { 
+  insertBandSchema, 
+  insertReviewSchema, 
+  insertPhotoSchema, 
+  insertTourSchema, 
+  insertMessageSchema, 
+  insertPitMessageSchema, 
+  insertPitReplySchema, 
+  insertCommentSchema, 
+  insertCommentReactionSchema,
+  insertUserGroupSchema,
+  insertGroupMemberSchema,
+  insertGroupPostSchema,
+  insertMentorProfileSchema,
+  insertMentorshipSchema,
+  insertSocialConnectionSchema,
+  insertReactionTypeSchema,
+  insertContentReactionSchema,
+  insertChatRoomSchema,
+  insertChatMessageSchema,
+  insertChatParticipantSchema,
+  insertFriendRequestSchema,
+  insertUserConnectionSchema
+} from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./simpleAuth";
 import { performGoogleSearch } from "./googleSearch";
 import { tourDataService } from "./tourDataService";
@@ -762,6 +785,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         venue: 'Music Venue',
         date: '2025-09-15',
         time: '20:00',
+        platform: 'demo',
         location: {
           address: '123 Music St',
           city: 'Rock City',
@@ -780,6 +804,183 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error getting event insights:', error);
       res.status(500).json({ error: 'Failed to get event insights' });
+    }
+  });
+
+  // Enhanced Social Features API Routes
+
+  // User Groups & Communities
+  app.get('/api/groups', async (req, res) => {
+    try {
+      const groups = await storage.getUserGroups();
+      res.json(groups);
+    } catch (error) {
+      console.error('Error fetching groups:', error);
+      res.status(500).json({ error: 'Failed to fetch groups' });
+    }
+  });
+
+  app.post('/api/groups', async (req, res) => {
+    try {
+      const groupData = insertUserGroupSchema.parse(req.body);
+      const group = await storage.createUserGroup(groupData);
+      res.status(201).json(group);
+    } catch (error) {
+      console.error('Error creating group:', error);
+      res.status(500).json({ error: 'Failed to create group' });
+    }
+  });
+
+  app.post('/api/groups/:groupId/join', async (req, res) => {
+    try {
+      const { groupId } = req.params;
+      const userId = req.user?.claims?.sub || 'demo-user';
+      
+      const membership = await storage.joinGroup(groupId, userId);
+      res.status(201).json(membership);
+    } catch (error) {
+      console.error('Error joining group:', error);
+      res.status(500).json({ error: 'Failed to join group' });
+    }
+  });
+
+  // Mentorship System
+  app.get('/api/mentors', async (req, res) => {
+    try {
+      const mentors = await storage.getMentorProfiles();
+      res.json(mentors);
+    } catch (error) {
+      console.error('Error fetching mentors:', error);
+      res.status(500).json({ error: 'Failed to fetch mentors' });
+    }
+  });
+
+  app.post('/api/mentorship/request', async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub || 'demo-user';
+      
+      const mentorshipData = insertMentorshipSchema.parse({ 
+        ...req.body, 
+        menteeId: userId 
+      });
+      const mentorship = await storage.requestMentorship(mentorshipData);
+      res.status(201).json(mentorship);
+    } catch (error) {
+      console.error('Error requesting mentorship:', error);
+      res.status(500).json({ error: 'Failed to request mentorship' });
+    }
+  });
+
+  // Live Chat System
+  app.get('/api/chat/rooms', async (req, res) => {
+    try {
+      const rooms = await storage.getChatRooms();
+      res.json(rooms);
+    } catch (error) {
+      console.error('Error fetching chat rooms:', error);
+      res.status(500).json({ error: 'Failed to fetch chat rooms' });
+    }
+  });
+
+  app.get('/api/chat/rooms/:roomId/messages', async (req, res) => {
+    try {
+      const { roomId } = req.params;
+      const messages = await storage.getChatMessages(roomId);
+      res.json(messages);
+    } catch (error) {
+      console.error('Error fetching chat messages:', error);
+      res.status(500).json({ error: 'Failed to fetch chat messages' });
+    }
+  });
+
+  app.post('/api/chat/rooms/:roomId/join', async (req, res) => {
+    try {
+      const { roomId } = req.params;
+      const userId = req.user?.claims?.sub || 'demo-user';
+      
+      const participation = await storage.joinChatRoom(roomId, userId);
+      res.status(201).json(participation);
+    } catch (error) {
+      console.error('Error joining chat room:', error);
+      res.status(500).json({ error: 'Failed to join chat room' });
+    }
+  });
+
+  app.get('/api/chat/rooms/:roomId/users', async (req, res) => {
+    try {
+      const { roomId } = req.params;
+      const users = await storage.getChatRoomUsers(roomId);
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching chat room users:', error);
+      res.status(500).json({ error: 'Failed to fetch chat room users' });
+    }
+  });
+
+  // Friend System
+  app.get('/api/friend-requests/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const requests = await storage.getFriendRequests(userId);
+      res.json(requests);
+    } catch (error) {
+      console.error('Error fetching friend requests:', error);
+      res.status(500).json({ error: 'Failed to fetch friend requests' });
+    }
+  });
+
+  app.post('/api/friend-requests', async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub || 'demo-user';
+      
+      const requestData = insertFriendRequestSchema.parse({ 
+        ...req.body, 
+        senderId: userId 
+      });
+      const request = await storage.sendFriendRequest(requestData);
+      res.status(201).json(request);
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      res.status(500).json({ error: 'Failed to send friend request' });
+    }
+  });
+
+  // Social Media Connections
+  app.get('/api/social-connections/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const connections = await storage.getSocialConnections(userId);
+      res.json(connections);
+    } catch (error) {
+      console.error('Error fetching social connections:', error);
+      res.status(500).json({ error: 'Failed to fetch social connections' });
+    }
+  });
+
+  app.post('/api/social-connections', async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub || 'demo-user';
+      
+      const connectionData = insertSocialConnectionSchema.parse({ 
+        ...req.body, 
+        userId 
+      });
+      const connection = await storage.createSocialConnection(connectionData);
+      res.status(201).json(connection);
+    } catch (error) {
+      console.error('Error creating social connection:', error);
+      res.status(500).json({ error: 'Failed to create social connection' });
+    }
+  });
+
+  // Online Users
+  app.get('/api/users/online', async (req, res) => {
+    try {
+      const users = await storage.getOnlineUsers();
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching online users:', error);
+      res.status(500).json({ error: 'Failed to fetch online users' });
     }
   });
 
