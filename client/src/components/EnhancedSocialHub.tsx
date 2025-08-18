@@ -113,13 +113,13 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
       case 'events':
         return (
           <div className="space-y-6">
-            <h2 className="text-3xl font-bold text-white mb-6">Events Hub</h2>
+            <h2 className="text-3xl font-bold text-white mb-6">Tours & Events</h2>
             <div className="bg-black/40 border border-red-900/30 rounded-lg p-8 text-center">
               <Calendar className="h-16 w-16 text-red-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-semibold text-white mb-4">Event Discovery</h3>
+              <h3 className="text-2xl font-semibold text-white mb-4">AI-Powered Concert Discovery</h3>
               <p className="text-gray-400 mb-6 max-w-2xl mx-auto">
-                Discover concerts, festivals, and metal events near you with AI-powered recommendations. 
-                Get personalized suggestions based on your musical taste and location.
+                Discover concerts, festivals, and metal events with advanced AI recommendations and multi-platform search. 
+                Find both confirmed tour dates and real-time event discovery.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-8">
                 <div className="bg-red-600/10 border border-red-500/30 rounded-lg p-4">
@@ -129,20 +129,20 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
                 </div>
                 <div className="bg-yellow-600/10 border border-yellow-500/30 rounded-lg p-4">
                   <Calendar className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
-                  <div className="text-white font-semibold">Local Events</div>
-                  <div className="text-gray-400 text-sm">Concerts near you</div>
+                  <div className="text-white font-semibold">Confirmed Tours</div>
+                  <div className="text-gray-400 text-sm">Database + Live search</div>
                 </div>
                 <div className="bg-blue-600/10 border border-blue-500/30 rounded-lg p-4">
                   <Music className="h-8 w-8 text-blue-400 mx-auto mb-2" />
-                  <div className="text-white font-semibold">Genre Filter</div>
-                  <div className="text-gray-400 text-sm">Metal & rock focus</div>
+                  <div className="text-white font-semibold">Multi-Platform</div>
+                  <div className="text-gray-400 text-sm">SeatGeek, Ticketmaster</div>
                 </div>
               </div>
               <button 
-                onClick={() => window.location.hash = 'events'}
+                onClick={() => window.location.href = '/?section=tours'}
                 className="bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-4 rounded-lg font-semibold hover:from-red-700 hover:to-red-800 transition-all transform hover:scale-105 touch-manipulation"
               >
-                Explore Event Discovery
+                Explore Tours & Events
               </button>
             </div>
           </div>

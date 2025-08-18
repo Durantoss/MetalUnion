@@ -21,7 +21,7 @@ import { MessagingTestPage } from './components/MessagingTestPage';
 import { AdvancedMessagingInterface } from './components/AdvancedMessagingInterface';
 import { ActivityFeed } from './components/ActivityFeed';
 import { GameficationDashboard } from './components/GameficationDashboard';
-// Removed EventsHub - using EnhancedEventsPage instead
+// Events Discovery functionality has been migrated to Tours section
 import { InteractivePolls } from './components/InteractivePolls';
 import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/auth/AuthModal';

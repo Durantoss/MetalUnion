@@ -851,12 +851,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get personalized event recommendations using multi-platform search
-  app.post('/api/events/personalized', isAuthenticated, async (req: any, res) => {
+  app.post('/api/events/personalized', async (req, res) => {
     try {
-      const userId = req.user.claims.sub;
       const request = req.body;
       
-      // Add user preferences to request (you can expand this with actual user data from DB)
+      // Add user preferences to request
       const enhancedRequest = {
         ...request,
         favoriteArtists: request.favoriteArtists || ['Metallica', 'Iron Maiden', 'Black Sabbath'],
