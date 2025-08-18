@@ -151,6 +151,7 @@ const App = () => {
     console.log('Rendering section:', currentSection, 'with', bands.length, 'bands');
     console.log('About to enter switch statement with currentSection:', currentSection);
     console.log('Landing page should render for:', currentSection === 'landing' || !currentSection);
+    console.log('renderContent function is executing normally');
     
     // Force landing page display for mobile debugging
     if (currentSection === 'landing' || !currentSection || currentSection === '' || currentSection === undefined) {
