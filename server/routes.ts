@@ -29,7 +29,7 @@ import {
   insertMessageEncryptionKeySchema,
   insertMessageDeliveryReceiptSchema
 } from "@shared/schema";
-import { setupAuth, isAuthenticated } from "./simpleAuth";
+import { setupAuth, isAuthenticated } from "./auth";
 import { performGoogleSearch } from "./googleSearch";
 import { tourDataService } from "./tourDataService";
 import { aiService, type BandRecommendation, type ChatResponse } from "./aiService";
@@ -235,77 +235,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }, 5000); // Wait 5 seconds after startup
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      // Add session info for client-side session management
-      const sessionInfo = {
-        ...user,
-        sessionStart: (req.session as any)?.passport?.user?.sessionStart || new Date().toISOString(),
-        lastActivity: new Date().toISOString(),
-        expiresAt: req.user.expires_at ? new Date(req.user.expires_at * 1000).toISOString() : null,
-        rememberMe: !!(req.session?.cookie?.maxAge && req.session.cookie.maxAge > 30 * 24 * 60 * 60 * 1000)
-      };
-      
-      res.json(sessionInfo);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
 
-  // Session management routes
-  app.post('/api/auth/refresh-session', isAuthenticated, async (req: any, res) => {
-    try {
-      // This endpoint just validates the session and refreshes it
-      if (req.session) {
-        req.session.touch(); // Update session activity
-      }
-      
-      res.json({ 
-        message: "Session refreshed", 
-        expiresAt: req.user.expires_at ? new Date(req.user.expires_at * 1000).toISOString() : null,
-        lastActivity: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error("Error refreshing session:", error);
-      res.status(500).json({ message: "Failed to refresh session" });
-    }
-  });
 
-  app.post('/api/auth/extend-session', isAuthenticated, async (req: any, res) => {
-    try {
-      const { rememberMe } = req.body;
-      
-      if (req.session) {
-        if (rememberMe) {
-          // Extend session to 90 days for remember me
-          const extendedTtl = 90 * 24 * 60 * 60 * 1000;
-          req.session.cookie.maxAge = extendedTtl;
-        } else {
-          // Reset to default 30 days
-          const defaultTtl = 30 * 24 * 60 * 60 * 1000;
-          req.session.cookie.maxAge = defaultTtl;
-        }
-      }
-      
-      res.json({ 
-        message: rememberMe ? "Remember me enabled" : "Remember me disabled",
-        rememberMe: rememberMe
-      });
-    } catch (error) {
-      console.error("Error extending session:", error);
-      res.status(500).json({ message: "Failed to extend session" });
-    }
-  });
+
 
   // User profile and account management routes
   app.get('/api/user/stats', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.userId;
       
       // Get user's bands count
       const userBands = await storage.getBandsByOwner(userId);

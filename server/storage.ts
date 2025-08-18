@@ -4,7 +4,7 @@ import {
   type Photo, type InsertPhoto, 
   type Tour, type InsertTour, 
   type Message, type InsertMessage, 
-  type User, type UpsertUser,
+  type User, type UpsertUser, type CreateUser, type LoginRequest,
   type UserLocation, type InsertUserLocation,
   type ProximityMatch, type InsertProximityMatch,
   type PitMessage, type InsertPitMessage,
@@ -18,10 +18,13 @@ import {
   type DirectMessage, type InsertDirectMessage,
   type MessageEncryptionKey, type InsertMessageEncryptionKey,
   type MessageDeliveryReceipt, type InsertMessageDeliveryReceipt,
+  type Badge, type InsertBadge, type CreateBadge,
+  type UserBadge, type InsertUserBadge,
+  type ConcertAttendance, type InsertConcertAttendance,
   users, bands, reviews, photos, tours, messages, pitMessages, pitReplies, comments, commentReactions,
   posts, postComments, postLikes, postCommentLikes,
   conversations, directMessages, messageEncryptionKeys, messageDeliveryReceipts,
-  userLocations, proximityMatches
+  userLocations, proximityMatches, badges, userBadges, concertAttendance
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
@@ -31,9 +34,24 @@ export interface IStorage {
   // User operations (required for authentication)
   getUser(id: string): Promise<User | undefined>;
   getUserByStagename(stagename: string): Promise<User | undefined>;
+  createUser(user: CreateUser): Promise<User>;
+  authenticateUser(loginData: LoginRequest): Promise<User | null>;
+  updateUserLastLogin(id: string, rememberMe: boolean): Promise<void>;
   checkStagenameAvailable(stagename: string): Promise<boolean>;
   updateUserStagename(id: string, stagename: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  
+  // Badge system
+  getBadges(): Promise<Badge[]>;
+  createBadge(badge: CreateBadge): Promise<Badge>;
+  getUserBadges(userId: string): Promise<UserBadge[]>;
+  awardBadge(userId: string, badgeId: string): Promise<UserBadge>;
+  checkBadgeEligibility(userId: string): Promise<Badge[]>;
+  
+  // Concert attendance tracking
+  recordConcertAttendance(attendance: InsertConcertAttendance): Promise<ConcertAttendance>;
+  getUserConcertAttendances(userId: string): Promise<ConcertAttendance[]>;
+  updateUserActivityCounts(userId: string): Promise<void>;
   
   // Bands
   getBands(): Promise<Band[]>;
@@ -182,6 +200,533 @@ export interface IStorage {
   createEncryptionKey(key: any): Promise<any>;
 }
 
+export class DatabaseStorage implements IStorage {
+  // User operations (required for authentication)
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByStagename(stagename: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.stagename, stagename));
+    return user;
+  }
+
+  async createUser(userData: CreateUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        id: randomUUID(),
+        stagename: userData.stagename,
+        safeword: userData.safeword,
+        email: userData.email || null,
+        firstName: userData.firstName || null,
+        lastName: userData.lastName || null,
+        profileImageUrl: userData.profileImageUrl || null,
+        bio: userData.bio || null,
+        location: userData.location || null,
+        favoriteGenres: userData.favoriteGenres || null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return user;
+  }
+
+  async authenticateUser(loginData: LoginRequest): Promise<User | null> {
+    const user = await this.getUserByStagename(loginData.stagename);
+    if (!user || !user.safeword) {
+      return null;
+    }
+
+    const bcrypt = await import('bcrypt');
+    const isValid = await bcrypt.compare(loginData.safeword, user.safeword);
+    return isValid ? user : null;
+  }
+
+  async updateUserLastLogin(id: string, rememberMe: boolean): Promise<void> {
+    await db
+      .update(users)
+      .set({
+        lastLoginAt: new Date(),
+        rememberMe,
+        loginStreak: sql`${users.loginStreak} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id));
+  }
+
+  async checkStagenameAvailable(stagename: string): Promise<boolean> {
+    const user = await this.getUserByStagename(stagename);
+    return !user;
+  }
+
+  async updateUserStagename(id: string, stagename: string): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ stagename, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  // Badge system
+  async getBadges(): Promise<Badge[]> {
+    return await db.select().from(badges).where(eq(badges.isActive, true));
+  }
+
+  async createBadge(badgeData: CreateBadge): Promise<Badge> {
+    const [badge] = await db
+      .insert(badges)
+      .values({
+        id: randomUUID(),
+        ...badgeData,
+        createdAt: new Date(),
+      })
+      .returning();
+    return badge;
+  }
+
+  async getUserBadges(userId: string): Promise<UserBadge[]> {
+    return await db
+      .select()
+      .from(userBadges)
+      .innerJoin(badges, eq(userBadges.badgeId, badges.id))
+      .where(eq(userBadges.userId, userId));
+  }
+
+  async awardBadge(userId: string, badgeId: string): Promise<UserBadge> {
+    const [userBadge] = await db
+      .insert(userBadges)
+      .values({
+        id: randomUUID(),
+        userId,
+        badgeId,
+        awardedAt: new Date(),
+      })
+      .returning();
+    return userBadge;
+  }
+
+  async checkBadgeEligibility(userId: string): Promise<Badge[]> {
+    const user = await this.getUser(userId);
+    if (!user) return [];
+
+    const allBadges = await this.getBadges();
+    const userCurrentBadges = await this.getUserBadges(userId);
+    const userBadgeIds = userCurrentBadges.map(ub => ub.badgeId);
+    
+    const eligibleBadges: Badge[] = [];
+
+    for (const badge of allBadges) {
+      if (userBadgeIds.includes(badge.id)) continue;
+
+      const requirement = badge.requirement as any;
+      let isEligible = false;
+
+      switch (requirement.type) {
+        case 'count':
+          switch (requirement.action) {
+            case 'comment':
+              isEligible = user.commentCount >= requirement.threshold;
+              break;
+            case 'review':
+              isEligible = user.reviewCount >= requirement.threshold;
+              break;
+            case 'concert':
+              isEligible = user.concertAttendanceCount >= requirement.threshold;
+              break;
+            case 'login_streak':
+              isEligible = user.loginStreak >= requirement.threshold;
+              break;
+          }
+          break;
+      }
+
+      if (isEligible) {
+        await this.awardBadge(userId, badge.id);
+        eligibleBadges.push(badge);
+      }
+    }
+
+    return eligibleBadges;
+  }
+
+  // Concert attendance tracking
+  async recordConcertAttendance(attendanceData: InsertConcertAttendance): Promise<ConcertAttendance> {
+    const [attendance] = await db
+      .insert(concertAttendance)
+      .values({
+        id: randomUUID(),
+        ...attendanceData,
+        createdAt: new Date(),
+      })
+      .returning();
+
+    // Update user's concert attendance count
+    await db
+      .update(users)
+      .set({
+        concertAttendanceCount: sql`${users.concertAttendanceCount} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, attendanceData.userId));
+
+    return attendance;
+  }
+
+  async getUserConcertAttendances(userId: string): Promise<ConcertAttendance[]> {
+    return await db
+      .select()
+      .from(concertAttendance)
+      .where(eq(concertAttendance.userId, userId))
+      .orderBy(sql`${concertAttendance.attendanceDate} DESC`);
+  }
+
+  async updateUserActivityCounts(userId: string): Promise<void> {
+    // Update comment count
+    const commentCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(comments)
+      .where(eq(comments.authorId, userId));
+
+    // Update review count  
+    const reviewCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(reviews)
+      .where(eq(reviews.stagename, userId)); // Assuming reviews use stagename
+
+    await db
+      .update(users)
+      .set({
+        commentCount: commentCount[0]?.count || 0,
+        reviewCount: reviewCount[0]?.count || 0,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+  }
+
+  // Initialize default badges
+  async initializeDefaultBadges(): Promise<void> {
+    const defaultBadges = [
+      {
+        name: "First Steps",
+        description: "Welcome to MoshUnion! Your metalhead journey begins.",
+        icon: "👋",
+        category: "engagement",
+        requirement: { type: "count", action: "login_streak", threshold: 1 },
+        rarity: "common",
+        points: 10,
+      },
+      {
+        name: "Commentator",
+        description: "Share your thoughts with 10 comments",
+        icon: "💬",
+        category: "content",
+        requirement: { type: "count", action: "comment", threshold: 10 },
+        rarity: "common",
+        points: 25,
+      },
+      {
+        name: "Critic",
+        description: "Write your first band review",
+        icon: "⭐",
+        category: "content",
+        requirement: { type: "count", action: "review", threshold: 1 },
+        rarity: "common",
+        points: 50,
+      },
+      {
+        name: "Concert Goer",
+        description: "Attend your first metal concert",
+        icon: "🎸",
+        category: "achievement",
+        requirement: { type: "count", action: "concert", threshold: 1 },
+        rarity: "rare",
+        points: 100,
+      },
+      {
+        name: "Metal Veteran",
+        description: "Attend 10 metal concerts",
+        icon: "🤘",
+        category: "achievement",
+        requirement: { type: "count", action: "concert", threshold: 10 },
+        rarity: "epic",
+        points: 500,
+      },
+      {
+        name: "Dedicated Fan",
+        description: "Login for 7 consecutive days",
+        icon: "🔥",
+        category: "engagement",
+        requirement: { type: "count", action: "login_streak", threshold: 7 },
+        rarity: "rare",
+        points: 150,
+      },
+    ];
+
+    for (const badgeData of defaultBadges) {
+      try {
+        await this.createBadge(badgeData);
+      } catch (error) {
+        // Badge might already exist, continue
+        console.log(`Badge ${badgeData.name} might already exist`);
+      }
+    }
+  }
+
+  // Placeholder implementations for the remaining interface methods
+  async getBands(): Promise<Band[]> {
+    return await db.select().from(bands).orderBy(bands.name);
+  }
+
+  async getBand(id: string): Promise<Band | undefined> {
+    const [band] = await db.select().from(bands).where(eq(bands.id, id));
+    return band;
+  }
+
+  async createBand(insertBand: InsertBand): Promise<Band> {
+    const [band] = await db.insert(bands).values(insertBand).returning();
+    return band;
+  }
+
+  async getReviews(): Promise<Review[]> {
+    return [];
+  }
+
+  async getReview(id: string): Promise<Review | undefined> {
+    return undefined;
+  }
+
+  async createReview(insertReview: InsertReview): Promise<Review> {
+    const [review] = await db.insert(reviews).values(insertReview).returning();
+    return review;
+  }
+
+  async getPhotos(): Promise<Photo[]> {
+    return [];
+  }
+
+  async getPhoto(id: string): Promise<Photo | undefined> {
+    return undefined;
+  }
+
+  async createPhoto(insertPhoto: InsertPhoto): Promise<Photo> {
+    const [photo] = await db.insert(photos).values(insertPhoto).returning();
+    return photo;
+  }
+
+  async getTours(): Promise<Tour[]> {
+    return [];
+  }
+
+  async getTour(id: string): Promise<Tour | undefined> {
+    return undefined;
+  }
+
+  async createTour(insertTour: InsertTour): Promise<Tour> {
+    const [tour] = await db.insert(tours).values(insertTour).returning();
+    return tour;
+  }
+
+  async getMessages(): Promise<Message[]> {
+    return [];
+  }
+
+  async getMessage(id: string): Promise<Message | undefined> {
+    return undefined;
+  }
+
+  async createMessage(insertMessage: InsertMessage): Promise<Message> {
+    const [message] = await db.insert(messages).values(insertMessage).returning();
+    return message;
+  }
+
+  // Stub implementations for other required methods
+  async createBandSubmission(bandData: any): Promise<Band> {
+    return this.createBand(bandData);
+  }
+
+  async getBandsByOwner(ownerId: string): Promise<Band[]> {
+    return [];
+  }
+
+  async updateBand(id: string, bandUpdate: any): Promise<Band | undefined> {
+    return undefined;
+  }
+
+  async deleteBand(id: string): Promise<boolean> {
+    return false;
+  }
+
+  async searchBands(query: string): Promise<Band[]> {
+    return [];
+  }
+
+  async searchAll(query: string, filters: any = {}): Promise<any> {
+    return { bands: [], tours: [], reviews: [], photos: [] };
+  }
+
+  async getReviewsByBand(bandId: string): Promise<Review[]> {
+    return [];
+  }
+
+  async updateReview(id: string, reviewUpdate: any): Promise<Review | undefined> {
+    return undefined;
+  }
+
+  async deleteReview(id: string): Promise<boolean> {
+    return false;
+  }
+
+  async likeReview(id: string): Promise<Review | undefined> {
+    return undefined;
+  }
+
+  async getPhotosByBand(bandId: string): Promise<Photo[]> {
+    return [];
+  }
+
+  async getPhotosByCategory(category: string): Promise<Photo[]> {
+    return [];
+  }
+
+  async updatePhoto(id: string, photoUpdate: any): Promise<Photo | undefined> {
+    return undefined;
+  }
+
+  async deletePhoto(id: string): Promise<boolean> {
+    return false;
+  }
+
+  async getToursByBand(bandId: string): Promise<Tour[]> {
+    return [];
+  }
+
+  async getToursByLocation(location: string): Promise<Tour[]> {
+    return [];
+  }
+
+  async updateTour(id: string, tourUpdate: any): Promise<Tour | undefined> {
+    return undefined;
+  }
+
+  async deleteTour(id: string): Promise<boolean> {
+    return false;
+  }
+
+  async getUserLocations(): Promise<UserLocation[]> {
+    return [];
+  }
+
+  async createUserLocation(locationData: any): Promise<UserLocation> {
+    return { id: randomUUID(), ...locationData, createdAt: new Date() };
+  }
+
+  async updateUserLocation(id: string, locationUpdate: any): Promise<UserLocation | undefined> {
+    return undefined;
+  }
+
+  async deleteUserLocation(id: string): Promise<boolean> {
+    return false;
+  }
+
+  async findNearbyUsers(userId: string, radiusKm: number = 5): Promise<ProximityMatch[]> {
+    return [];
+  }
+
+  async createProximityMatch(matchData: any): Promise<ProximityMatch> {
+    return { id: randomUUID(), ...matchData, createdAt: new Date() };
+  }
+
+  async getProximityMatches(userId: string): Promise<ProximityMatch[]> {
+    return [];
+  }
+
+  async updateProximityMatch(id: string, matchUpdate: any): Promise<ProximityMatch | undefined> {
+    return undefined;
+  }
+
+  async deleteProximityMatch(id: string): Promise<boolean> {
+    return false;
+  }
+
+  // Stub implementations for all other interface methods
+  async getPitMessages(): Promise<any[]> { return []; }
+  async getPitMessage(id: string): Promise<any> { return undefined; }
+  async createPitMessage(messageData: any): Promise<any> { return { id: randomUUID(), ...messageData }; }
+  async incrementPitMessageLikes(id: string): Promise<void> {}
+  async incrementPitMessageReplies(id: string): Promise<void> {}
+  async getPitReplies(messageId: string): Promise<any[]> { return []; }
+  async createPitReply(replyData: any): Promise<any> { return { id: randomUUID(), ...replyData }; }
+  async getComments(): Promise<any[]> { return []; }
+  async getComment(id: string): Promise<any> { return undefined; }
+  async createComment(commentData: any): Promise<any> { return { id: randomUUID(), ...commentData }; }
+  async updateComment(id: string, commentUpdate: any): Promise<any> { return undefined; }
+  async deleteComment(id: string): Promise<boolean> { return false; }
+  async getCommentsByTarget(targetId: string, targetType: string): Promise<any[]> { return []; }
+  async getCommentReactions(commentId: string): Promise<any[]> { return []; }
+  async addCommentReaction(reactionData: any): Promise<any> { return { id: randomUUID(), ...reactionData }; }
+  async removeCommentReaction(id: string): Promise<boolean> { return false; }
+  async getPosts(): Promise<any[]> { return []; }
+  async getPost(id: string): Promise<any> { return undefined; }
+  async createPost(postData: any): Promise<any> { return { id: randomUUID(), ...postData }; }
+  async updatePost(id: string, postUpdate: any): Promise<any> { return undefined; }
+  async deletePost(id: string): Promise<boolean> { return false; }
+  async getPostComments(postId: string): Promise<any[]> { return []; }
+  async createPostComment(commentData: any): Promise<any> { return { id: randomUUID(), ...commentData }; }
+  async getPostLikes(postId: string): Promise<any[]> { return []; }
+  async addPostLike(likeData: any): Promise<any> { return { id: randomUUID(), ...likeData }; }
+  async removePostLike(id: string): Promise<boolean> { return false; }
+  async getPostCommentLikes(commentId: string): Promise<any[]> { return []; }
+  async addPostCommentLike(likeData: any): Promise<any> { return { id: randomUUID(), ...likeData }; }
+  async removePostCommentLike(id: string): Promise<boolean> { return false; }
+  async getUserGroups(): Promise<any[]> { return []; }
+  async createUserGroup(group: any): Promise<any> { return { id: randomUUID(), ...group }; }
+  async joinGroup(groupId: string, userId: string): Promise<any> { return { groupId, userId }; }
+  async getGroupPosts(groupId: string): Promise<any[]> { return []; }
+  async createGroupPost(post: any): Promise<any> { return { id: randomUUID(), ...post }; }
+  async getMentorProfiles(): Promise<any[]> { return []; }
+  async createMentorProfile(profile: any): Promise<any> { return { id: randomUUID(), ...profile }; }
+  async requestMentorship(mentorship: any): Promise<any> { return { id: randomUUID(), ...mentorship }; }
+  async getChatRooms(): Promise<any[]> { return []; }
+  async getChatRoom(roomId: string): Promise<any> { return undefined; }
+  async getChatMessages(roomId: string): Promise<any[]> { return []; }
+  async createChatMessage(message: any): Promise<any> { return { id: randomUUID(), ...message }; }
+  async joinChatRoom(roomId: string, userId: string): Promise<any> { return { roomId, userId }; }
+  async getChatRoomUsers(roomId: string): Promise<any[]> { return []; }
+  async getReactionTypes(): Promise<any[]> { return []; }
+  async addReaction(messageId: string, userId: string, emoji: string): Promise<any> { return { id: randomUUID(), messageId, userId, emoji }; }
+  async getFriendRequests(userId: string): Promise<any[]> { return []; }
+  async sendFriendRequest(request: any): Promise<any> { return { id: randomUUID(), ...request }; }
+  async updateFriendRequest(requestId: string, status: string): Promise<any> { return { id: requestId, status }; }
+  async getSocialConnections(userId: string): Promise<any[]> { return []; }
+  async createSocialConnection(connection: any): Promise<any> { return { id: randomUUID(), ...connection }; }
+  async getOnlineUsers(): Promise<any[]> { return []; }
+  async getConversations(userId: string): Promise<any[]> { return []; }
+  async getConversation(conversationId: string): Promise<any> { return undefined; }
+  async createConversation(conversation: any): Promise<any> { return { id: randomUUID(), ...conversation }; }
+  async getMessages(conversationId: string): Promise<any[]> { return []; }
+  async markMessageAsRead(messageId: string, userId: string): Promise<void> {}
+  async getEncryptionKeys(userId: string): Promise<any[]> { return []; }
+  async createEncryptionKey(key: any): Promise<any> { return { id: randomUUID(), ...key }; }
+}
+
 export class MemStorage implements IStorage {
   private users: Map<string, User> = new Map();
   private bands: Map<string, Band> = new Map();
@@ -196,6 +741,91 @@ export class MemStorage implements IStorage {
   // User operations (required for authentication)
   async getUser(id: string): Promise<User | undefined> {
     return this.users.get(id);
+  }
+
+  async getUserByStagename(stagename: string): Promise<User | undefined> {
+    for (const user of this.users.values()) {
+      if (user.stagename === stagename) {
+        return user;
+      }
+    }
+    return undefined;
+  }
+
+  async createUser(userData: CreateUser): Promise<User> {
+    const id = randomUUID();
+    const user: User = {
+      ...userData,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      reputationPoints: 0,
+      badges: null,
+      concertAttendanceCount: 0,
+      commentCount: 0,
+      reviewCount: 0,
+      isOnline: false,
+      lastActive: new Date(),
+      loginStreak: 0,
+      totalReviews: 0,
+      totalPhotos: 0,
+      totalLikes: 0,
+      rememberMe: false,
+      lastLoginAt: null,
+      notificationSettings: null,
+      theme: "dark",
+      proximityEnabled: false,
+      proximityRadius: 500,
+      shareLocationAtConcerts: false,
+      firstName: userData.firstName || null,
+      lastName: userData.lastName || null,
+      profileImageUrl: userData.profileImageUrl || null,
+      bio: userData.bio || null,
+      location: userData.location || null,
+      favoriteGenres: userData.favoriteGenres || null,
+      email: userData.email || null,
+    };
+    
+    this.users.set(id, user);
+    return user;
+  }
+
+  async authenticateUser(loginData: LoginRequest): Promise<User | null> {
+    const user = await this.getUserByStagename(loginData.stagename);
+    if (!user || !user.safeword) {
+      return null;
+    }
+
+    const bcrypt = await import('bcrypt');
+    const isValid = await bcrypt.compare(loginData.safeword, user.safeword);
+    return isValid ? user : null;
+  }
+
+  async updateUserLastLogin(id: string, rememberMe: boolean): Promise<void> {
+    const user = this.users.get(id);
+    if (user) {
+      user.lastLoginAt = new Date();
+      user.rememberMe = rememberMe;
+      user.loginStreak = (user.loginStreak || 0) + 1;
+      user.updatedAt = new Date();
+      this.users.set(id, user);
+    }
+  }
+
+  async checkStagenameAvailable(stagename: string): Promise<boolean> {
+    const user = await this.getUserByStagename(stagename);
+    return !user;
+  }
+
+  async updateUserStagename(id: string, stagename: string): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (user) {
+      user.stagename = stagename;
+      user.updatedAt = new Date();
+      this.users.set(id, user);
+      return user;
+    }
+    return undefined;
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
@@ -216,6 +846,54 @@ export class MemStorage implements IStorage {
     
     this.users.set(id, user);
     return user;
+  }
+
+  // Badge system (stub implementations for memory storage)
+  async getBadges(): Promise<Badge[]> {
+    return [];
+  }
+
+  async createBadge(badge: CreateBadge): Promise<Badge> {
+    return {
+      id: randomUUID(),
+      ...badge,
+      createdAt: new Date(),
+      isActive: true,
+    };
+  }
+
+  async getUserBadges(userId: string): Promise<UserBadge[]> {
+    return [];
+  }
+
+  async awardBadge(userId: string, badgeId: string): Promise<UserBadge> {
+    return {
+      id: randomUUID(),
+      userId,
+      badgeId,
+      awardedAt: new Date(),
+      progress: null,
+    };
+  }
+
+  async checkBadgeEligibility(userId: string): Promise<Badge[]> {
+    return [];
+  }
+
+  async recordConcertAttendance(attendance: InsertConcertAttendance): Promise<ConcertAttendance> {
+    return {
+      id: randomUUID(),
+      ...attendance,
+      createdAt: new Date(),
+    };
+  }
+
+  async getUserConcertAttendances(userId: string): Promise<ConcertAttendance[]> {
+    return [];
+  }
+
+  async updateUserActivityCounts(userId: string): Promise<void> {
+    // Stub implementation
   }
 
   private seedData() {
@@ -1292,837 +1970,6 @@ export class MemStorage implements IStorage {
   async requestMentorship(mentorship: any): Promise<any> {
     return { id: randomUUID(), ...mentorship, createdAt: new Date() };
   }
-}
-
-export class DatabaseStorage implements IStorage {
-  // User operations (required for authentication)
-  async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
-  }
-
-  async getUserByStagename(stagename: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.stagename, stagename));
-    return user;
-  }
-
-  async checkStagenameAvailable(stagename: string): Promise<boolean> {
-    const user = await this.getUserByStagename(stagename);
-    return !user;
-  }
-
-  async updateUserStagename(id: string, stagename: string): Promise<User | undefined> {
-    const [user] = await db.update(users)
-      .set({ stagename, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
-    return user;
-  }
-
-  async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return user;
-  }
-
-  // Bands
-  async getBands(): Promise<Band[]> {
-    return await db.select().from(bands).orderBy(bands.name);
-  }
-
-  async getBand(id: string): Promise<Band | undefined> {
-    const [band] = await db.select().from(bands).where(eq(bands.id, id));
-    return band;
-  }
-
-  async createBand(insertBand: InsertBand): Promise<Band> {
-    const [band] = await db.insert(bands).values(insertBand).returning();
-    return band;
-  }
-
-  async createBandSubmission(bandData: InsertBand & { ownerId: string }): Promise<Band> {
-    const [band] = await db.insert(bands).values({
-      ...bandData,
-      status: 'pending',
-      submittedAt: new Date(),
-    }).returning();
-    return band;
-  }
-
-  async getBandsByOwner(ownerId: string): Promise<Band[]> {
-    return await db.select().from(bands).where(eq(bands.ownerId, ownerId)).orderBy(bands.submittedAt);
-  }
-
-  async updateBand(id: string, bandUpdate: Partial<InsertBand>): Promise<Band | undefined> {
-    const [band] = await db.update(bands).set(bandUpdate).where(eq(bands.id, id)).returning();
-    return band;
-  }
-
-  async deleteBand(id: string): Promise<boolean> {
-    const result = await db.delete(bands).where(eq(bands.id, id));
-    return (result.rowCount || 0) > 0;
-  }
-
-  async searchBands(query: string): Promise<Band[]> {
-    const searchTerm = `%${query.toLowerCase()}%`;
-    return await db.select().from(bands)
-      .where(
-        sql`LOWER(${bands.name}) LIKE ${searchTerm} OR LOWER(${bands.genre}) LIKE ${searchTerm} OR LOWER(${bands.description}) LIKE ${searchTerm}`
-      )
-      .orderBy(bands.name);
-  }
-
-  async searchAll(query: string, filters: {
-    genre?: string;
-    photoCategory?: string;
-    reviewType?: string;
-    country?: string;
-    dateRange?: string;
-  } = {}): Promise<{
-    bands: Band[];
-    tours: Tour[];
-    reviews: Review[];
-    photos: Photo[];
-  }> {
-    const searchTerm = `%${query.toLowerCase()}%`;
-    const now = new Date();
-    
-    // Build bands query with all conditions
-    let bandsCondition = sql`LOWER(${bands.name}) LIKE ${searchTerm} OR LOWER(${bands.genre}) LIKE ${searchTerm} OR LOWER(${bands.description}) LIKE ${searchTerm}`;
-    if (filters.genre && filters.genre !== 'all') {
-      bandsCondition = sql`(${bandsCondition}) AND ${bands.genre} = ${filters.genre}`;
-    }
-    const bandsResult = await db.select().from(bands).where(bandsCondition).orderBy(bands.name);
-    
-    // Build tours query with all conditions
-    let toursCondition = sql`LOWER(${tours.tourName}) LIKE ${searchTerm} OR LOWER(${tours.venue}) LIKE ${searchTerm} OR LOWER(${tours.city}) LIKE ${searchTerm} OR LOWER(${tours.country}) LIKE ${searchTerm}`;
-    
-    if (filters.country && filters.country !== 'all') {
-      const countryTerm = `%${filters.country.toLowerCase()}%`;
-      toursCondition = sql`(${toursCondition}) AND LOWER(${tours.country}) LIKE ${countryTerm}`;
-    }
-    
-    if (filters.dateRange && filters.dateRange !== 'all') {
-      switch (filters.dateRange) {
-        case 'upcoming':
-          toursCondition = sql`(${toursCondition}) AND ${tours.date} > ${now}`;
-          break;
-        case 'thisWeek':
-          const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-          toursCondition = sql`(${toursCondition}) AND ${tours.date} >= ${now} AND ${tours.date} <= ${weekFromNow}`;
-          break;
-        case 'thisMonth':
-          const monthFromNow = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
-          toursCondition = sql`(${toursCondition}) AND ${tours.date} >= ${now} AND ${tours.date} <= ${monthFromNow}`;
-          break;
-        case 'thisYear':
-          const yearEnd = new Date(now.getFullYear(), 11, 31);
-          toursCondition = sql`(${toursCondition}) AND ${tours.date} >= ${now} AND ${tours.date} <= ${yearEnd}`;
-          break;
-      }
-    }
-    const toursResult = await db.select().from(tours).where(toursCondition).orderBy(tours.date);
-    
-    // Build reviews query with all conditions
-    let reviewsCondition = sql`LOWER(${reviews.title}) LIKE ${searchTerm} OR LOWER(${reviews.content}) LIKE ${searchTerm} OR LOWER(${reviews.targetName}) LIKE ${searchTerm} OR LOWER(${reviews.stagename}) LIKE ${searchTerm}`;
-    if (filters.reviewType && filters.reviewType !== 'all') {
-      reviewsCondition = sql`(${reviewsCondition}) AND ${reviews.reviewType} = ${filters.reviewType}`;
-    }
-    const reviewsResult = await db.select().from(reviews).where(reviewsCondition).orderBy(reviews.createdAt);
-    
-    // Build photos query with all conditions
-    let photosCondition = sql`LOWER(${photos.title}) LIKE ${searchTerm} OR LOWER(${photos.description}) LIKE ${searchTerm} OR LOWER(${photos.uploadedBy}) LIKE ${searchTerm}`;
-    if (filters.photoCategory && filters.photoCategory !== 'all') {
-      photosCondition = sql`(${photosCondition}) AND ${photos.category} = ${filters.photoCategory}`;
-    }
-    const photosResult = await db.select().from(photos).where(photosCondition).orderBy(photos.createdAt);
-    
-    return {
-      bands: bandsResult,
-      tours: toursResult,
-      reviews: reviewsResult,
-      photos: photosResult
-    };
-  }
-
-  // Reviews
-  async getReviews(): Promise<Review[]> {
-    return await db.select().from(reviews).orderBy(reviews.createdAt);
-  }
-
-  async getReview(id: string): Promise<Review | undefined> {
-    const [review] = await db.select().from(reviews).where(eq(reviews.id, id));
-    return review;
-  }
-
-  async getReviewsByBand(bandId: string): Promise<Review[]> {
-    return await db.select().from(reviews).where(eq(reviews.bandId, bandId)).orderBy(reviews.createdAt);
-  }
-
-  async createReview(insertReview: InsertReview): Promise<Review> {
-    const [review] = await db.insert(reviews).values(insertReview).returning();
-    return review;
-  }
-
-  async updateReview(id: string, reviewUpdate: Partial<InsertReview>): Promise<Review | undefined> {
-    const [review] = await db.update(reviews).set(reviewUpdate).where(eq(reviews.id, id)).returning();
-    return review;
-  }
-
-  async deleteReview(id: string): Promise<boolean> {
-    const result = await db.delete(reviews).where(eq(reviews.id, id));
-    return (result.rowCount || 0) > 0;
-  }
-
-  async likeReview(id: string): Promise<Review | undefined> {
-    const [review] = await db.update(reviews)
-      .set({ likes: sql`${reviews.likes} + 1` })
-      .where(eq(reviews.id, id))
-      .returning();
-    return review;
-  }
-
-  // Photos
-  async getPhotos(): Promise<Photo[]> {
-    return await db.select().from(photos).orderBy(photos.createdAt);
-  }
-
-  async getPhoto(id: string): Promise<Photo | undefined> {
-    const [photo] = await db.select().from(photos).where(eq(photos.id, id));
-    return photo;
-  }
-
-  async getPhotosByBand(bandId: string): Promise<Photo[]> {
-    return await db.select().from(photos).where(eq(photos.bandId, bandId)).orderBy(photos.createdAt);
-  }
-
-  async getPhotosByCategory(category: string): Promise<Photo[]> {
-    return await db.select().from(photos).where(eq(photos.category, category)).orderBy(photos.createdAt);
-  }
-
-  async createPhoto(insertPhoto: InsertPhoto): Promise<Photo> {
-    const [photo] = await db.insert(photos).values(insertPhoto).returning();
-    return photo;
-  }
-
-  async updatePhoto(id: string, photoUpdate: Partial<InsertPhoto>): Promise<Photo | undefined> {
-    const [photo] = await db.update(photos).set(photoUpdate).where(eq(photos.id, id)).returning();
-    return photo;
-  }
-
-  async deletePhoto(id: string): Promise<boolean> {
-    const result = await db.delete(photos).where(eq(photos.id, id));
-    return (result.rowCount || 0) > 0;
-  }
-
-  // Tours
-  async getTours(): Promise<Tour[]> {
-    return await db.select().from(tours).orderBy(tours.date);
-  }
-
-  async getTour(id: string): Promise<Tour | undefined> {
-    const [tour] = await db.select().from(tours).where(eq(tours.id, id));
-    return tour;
-  }
-
-  async getToursByBand(bandId: string): Promise<Tour[]> {
-    return await db.select().from(tours).where(eq(tours.bandId, bandId)).orderBy(tours.date);
-  }
-
-  async getUpcomingTours(): Promise<Tour[]> {
-    const now = new Date();
-    return await db.select().from(tours).where(sql`${tours.date} > ${now}`).orderBy(tours.date);
-  }
-
-  async createTour(insertTour: InsertTour): Promise<Tour> {
-    const [tour] = await db.insert(tours).values(insertTour).returning();
-    return tour;
-  }
-
-  async updateTour(id: string, tourUpdate: Partial<InsertTour>): Promise<Tour | undefined> {
-    const [tour] = await db.update(tours).set(tourUpdate).where(eq(tours.id, id)).returning();
-    return tour;
-  }
-
-  async deleteTour(id: string): Promise<boolean> {
-    const result = await db.delete(tours).where(eq(tours.id, id));
-    return (result.rowCount || 0) > 0;
-  }
-
-  // Messages
-  async getMessages(): Promise<Message[]> {
-    return await db.select().from(messages).orderBy(messages.createdAt);
-  }
-
-  async getMessage(id: string): Promise<Message | undefined> {
-    const [message] = await db.select().from(messages).where(eq(messages.id, id));
-    return message;
-  }
-
-  async getMessagesByCategory(category: string): Promise<Message[]> {
-    return await db.select().from(messages).where(eq(messages.category, category)).orderBy(messages.createdAt);
-  }
-
-  async createMessage(insertMessage: InsertMessage): Promise<Message> {
-    const [message] = await db.insert(messages).values(insertMessage).returning();
-    return message;
-  }
-
-  async updateMessage(id: string, messageUpdate: Partial<InsertMessage>): Promise<Message | undefined> {
-    const [message] = await db.update(messages).set(messageUpdate).where(eq(messages.id, id)).returning();
-    return message;
-  }
-
-  async deleteMessage(id: string): Promise<boolean> {
-    const result = await db.delete(messages).where(eq(messages.id, id));
-    return (result.rowCount || 0) > 0;
-  }
-
-  async likeMessage(id: string): Promise<Message | undefined> {
-    const [message] = await db.update(messages)
-      .set({ likes: sql`${messages.likes} + 1` })
-      .where(eq(messages.id, id))
-      .returning();
-    return message;
-  }
-
-  // Analytics for background AI
-  async getUserActivity(userId: string): Promise<any[]> {
-    try {
-      // Get user's recent activity patterns
-      const userBands = await this.getBandsByOwner(userId);
-      const allReviews = await this.getReviews();
-      const userReviews = allReviews.filter(review => 
-        userBands.some(band => band.name === review.stagename)
-      );
-      
-      // Create activity timeline
-      const activity = [
-        ...userBands.map(band => ({
-          type: 'band_submission',
-          timestamp: band.createdAt || new Date(),
-          genre: band.genre,
-          item: band.name
-        })),
-        ...userReviews.map(review => ({
-          type: 'review',
-          timestamp: review.createdAt || new Date(),
-          genre: review.reviewType,
-          item: review.stagename,
-          rating: review.rating
-        }))
-      ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      
-      return activity.slice(0, 50); // Last 50 activities
-    } catch (error) {
-      console.error('Error fetching user activity:', error);
-      return [];
-    }
-  }
-
-  // Pit message board operations
-  async getPitMessages(): Promise<PitMessage[]> {
-    try {
-      const result = await db.select().from(pitMessages).orderBy(sql`created_at DESC`);
-      return result || [];
-    } catch (error) {
-      console.error("Error fetching pit messages:", error);
-      return [];
-    }
-  }
-
-  async getPitMessage(id: string): Promise<PitMessage | undefined> {
-    try {
-      const [message] = await db.select().from(pitMessages).where(eq(pitMessages.id, id));
-      return message;
-    } catch (error) {
-      console.error("Error fetching pit message:", error);
-      return undefined;
-    }
-  }
-
-  async createPitMessage(messageData: InsertPitMessage): Promise<PitMessage> {
-    try {
-      const [message] = await db.insert(pitMessages).values({
-        ...messageData,
-        id: randomUUID()
-      }).returning();
-      return message;
-    } catch (error) {
-      console.error("Error creating pit message:", error);
-      throw error;
-    }
-  }
-
-  async incrementPitMessageLikes(id: string): Promise<void> {
-    try {
-      await db.update(pitMessages)
-        .set({ likes: sql`likes + 1` })
-        .where(eq(pitMessages.id, id));
-    } catch (error) {
-      console.error("Error incrementing pit message likes:", error);
-      throw error;
-    }
-  }
-
-  async incrementPitMessageReplies(id: string): Promise<void> {
-    try {
-      await db.update(pitMessages)
-        .set({ replies: sql`replies + 1` })
-        .where(eq(pitMessages.id, id));
-    } catch (error) {
-      console.error("Error incrementing pit message replies:", error);
-      throw error;
-    }
-  }
-
-  async getPitReplies(messageId: string): Promise<PitReply[]> {
-    try {
-      const result = await db.select().from(pitReplies)
-        .where(eq(pitReplies.messageId, messageId))
-        .orderBy(sql`created_at ASC`);
-      return result || [];
-    } catch (error) {
-      console.error("Error fetching pit replies:", error);
-      return [];
-    }
-  }
-
-  async createPitReply(replyData: InsertPitReply): Promise<PitReply> {
-    try {
-      const [reply] = await db.insert(pitReplies).values({
-        ...replyData,
-        id: randomUUID()
-      }).returning();
-      return reply;
-    } catch (error) {
-      console.error("Error creating pit reply:", error);
-      throw error;
-    }
-  }
-
-  async incrementPitReplyLikes(id: string): Promise<void> {
-    try {
-      await db.update(pitReplies)
-        .set({ likes: sql`likes + 1` })
-        .where(eq(pitReplies.id, id));
-    } catch (error) {
-      console.error("Error incrementing pit reply likes:", error);
-      throw error;
-    }
-  }
-
-  // Comments system implementation
-  async getComments(targetType: string, targetId: string): Promise<Comment[]> {
-    try {
-      const result = await db.select()
-        .from(comments)
-        .where(sql`${comments.targetType} = ${targetType} AND ${comments.targetId} = ${targetId} AND ${comments.isDeleted} = false`)
-        .orderBy(comments.createdAt);
-      return result;
-    } catch (error) {
-      console.error("Error fetching comments:", error);
-      return [];
-    }
-  }
-
-  async createComment(commentData: InsertComment): Promise<Comment> {
-    try {
-      const [comment] = await db.insert(comments).values({
-        ...commentData,
-        id: randomUUID()
-      }).returning();
-      return comment;
-    } catch (error) {
-      console.error("Error creating comment:", error);
-      throw error;
-    }
-  }
-
-  async updateComment(id: string, content: string): Promise<Comment> {
-    try {
-      const [comment] = await db.update(comments)
-        .set({ 
-          content, 
-          isEdited: true, 
-          updatedAt: new Date() 
-        })
-        .where(eq(comments.id, id))
-        .returning();
-      return comment;
-    } catch (error) {
-      console.error("Error updating comment:", error);
-      throw error;
-    }
-  }
-
-  async deleteComment(id: string, reason: string): Promise<void> {
-    try {
-      await db.update(comments)
-        .set({ 
-          isDeleted: true, 
-          deletedReason: reason,
-          updatedAt: new Date()
-        })
-        .where(eq(comments.id, id));
-    } catch (error) {
-      console.error("Error deleting comment:", error);
-      throw error;
-    }
-  }
-
-  async createCommentReaction(reactionData: InsertCommentReaction): Promise<CommentReaction> {
-    try {
-      // First, check if user already reacted to this comment
-      const existingReaction = await db.select()
-        .from(commentReactions)
-        .where(sql`${commentReactions.commentId} = ${reactionData.commentId} AND ${commentReactions.userId} = ${reactionData.userId}`);
-      
-      if (existingReaction.length > 0) {
-        // Update existing reaction
-        const [reaction] = await db.update(commentReactions)
-          .set({ reactionType: reactionData.reactionType })
-          .where(sql`${commentReactions.commentId} = ${reactionData.commentId} AND ${commentReactions.userId} = ${reactionData.userId}`)
-          .returning();
-        return reaction;
-      } else {
-        // Create new reaction
-        const [reaction] = await db.insert(commentReactions).values({
-          ...reactionData,
-          id: randomUUID()
-        }).returning();
-        
-        // Update comment reaction counts
-        if (reactionData.reactionType === 'like') {
-          await db.update(comments)
-            .set({ likes: sql`likes + 1` })
-            .where(eq(comments.id, reactionData.commentId));
-        } else if (reactionData.reactionType === 'dislike') {
-          await db.update(comments)
-            .set({ dislikes: sql`dislikes + 1` })
-            .where(eq(comments.id, reactionData.commentId));
-        }
-        
-        return reaction;
-      }
-    } catch (error) {
-      console.error("Error creating comment reaction:", error);
-      throw error;
-    }
-  }
-
-  // Real-time messaging system implementation
-  async createConversation(conversationData: InsertConversation): Promise<Conversation> {
-    try {
-      const [conversation] = await db.insert(conversations).values({
-        ...conversationData,
-        id: randomUUID()
-      }).returning();
-      return conversation;
-    } catch (error) {
-      console.error("Error creating conversation:", error);
-      throw error;
-    }
-  }
-
-  async getConversation(id: string): Promise<Conversation | undefined> {
-    try {
-      const [conversation] = await db.select().from(conversations).where(eq(conversations.id, id));
-      return conversation;
-    } catch (error) {
-      console.error("Error getting conversation:", error);
-      return undefined;
-    }
-  }
-
-  async getUserConversations(userId: string): Promise<Conversation[]> {
-    try {
-      return await db.select().from(conversations)
-        .where(sql`${conversations.participant1Id} = ${userId} OR ${conversations.participant2Id} = ${userId}`)
-        .orderBy(sql`${conversations.lastMessageAt} DESC`);
-    } catch (error) {
-      console.error("Error getting user conversations:", error);
-      return [];
-    }
-  }
-
-  async updateConversationLastMessage(conversationId: string): Promise<void> {
-    try {
-      await db.update(conversations)
-        .set({ lastMessageAt: new Date() })
-        .where(eq(conversations.id, conversationId));
-    } catch (error) {
-      console.error("Error updating conversation last message:", error);
-      throw error;
-    }
-  }
-
-  async createDirectMessage(messageData: InsertDirectMessage): Promise<DirectMessage> {
-    try {
-      const [message] = await db.insert(directMessages).values({
-        ...messageData,
-        id: randomUUID()
-      }).returning();
-      return message;
-    } catch (error) {
-      console.error("Error creating direct message:", error);
-      throw error;
-    }
-  }
-
-  async getDirectMessage(id: string): Promise<DirectMessage | undefined> {
-    try {
-      const [message] = await db.select().from(directMessages).where(eq(directMessages.id, id));
-      return message;
-    } catch (error) {
-      console.error("Error getting direct message:", error);
-      return undefined;
-    }
-  }
-
-  async getConversationMessages(conversationId: string, limit: number = 50, offset: number = 0): Promise<DirectMessage[]> {
-    try {
-      return await db.select().from(directMessages)
-        .where(eq(directMessages.conversationId, conversationId))
-        .orderBy(sql`${directMessages.createdAt} DESC`)
-        .limit(limit)
-        .offset(offset);
-    } catch (error) {
-      console.error("Error getting conversation messages:", error);
-      return [];
-    }
-  }
-
-  async markMessageAsRead(messageId: string, userId: string): Promise<void> {
-    try {
-      await db.update(directMessages)
-        .set({ 
-          isRead: true, 
-          readAt: new Date() 
-        })
-        .where(eq(directMessages.id, messageId));
-      
-      // Create read receipt
-      await this.createDeliveryReceipt({
-        messageId,
-        userId,
-        status: 'read'
-      });
-    } catch (error) {
-      console.error("Error marking message as read:", error);
-      throw error;
-    }
-  }
-
-  async markMessageAsDelivered(messageId: string, userId: string): Promise<void> {
-    try {
-      await db.update(directMessages)
-        .set({ 
-          isDelivered: true, 
-          deliveredAt: new Date() 
-        })
-        .where(eq(directMessages.id, messageId));
-      
-      // Create delivery receipt
-      await this.createDeliveryReceipt({
-        messageId,
-        userId,
-        status: 'delivered'
-      });
-    } catch (error) {
-      console.error("Error marking message as delivered:", error);
-      throw error;
-    }
-  }
-
-  async createUserEncryptionKeys(keysData: InsertMessageEncryptionKey): Promise<MessageEncryptionKey> {
-    try {
-      // Deactivate old keys
-      await db.update(messageEncryptionKeys)
-        .set({ isActive: false })
-        .where(eq(messageEncryptionKeys.userId, keysData.userId));
-      
-      // Insert new active keys
-      const [keys] = await db.insert(messageEncryptionKeys).values({
-        ...keysData,
-        id: randomUUID()
-      }).returning();
-      return keys;
-    } catch (error) {
-      console.error("Error creating user encryption keys:", error);
-      throw error;
-    }
-  }
-
-  async getUserEncryptionKeys(userId: string): Promise<MessageEncryptionKey | undefined> {
-    try {
-      const [keys] = await db.select().from(messageEncryptionKeys)
-        .where(sql`${messageEncryptionKeys.userId} = ${userId} AND ${messageEncryptionKeys.isActive} = true`)
-        .orderBy(sql`${messageEncryptionKeys.createdAt} DESC`)
-        .limit(1);
-      return keys;
-    } catch (error) {
-      console.error("Error getting user encryption keys:", error);
-      return undefined;
-    }
-  }
-
-  async updateUserEncryptionKeys(userId: string, keysData: Partial<InsertMessageEncryptionKey>): Promise<MessageEncryptionKey | undefined> {
-    try {
-      const [keys] = await db.update(messageEncryptionKeys)
-        .set(keysData)
-        .where(sql`${messageEncryptionKeys.userId} = ${userId} AND ${messageEncryptionKeys.isActive} = true`)
-        .returning();
-      return keys;
-    } catch (error) {
-      console.error("Error updating user encryption keys:", error);
-      return undefined;
-    }
-  }
-
-  async createDeliveryReceipt(receiptData: InsertMessageDeliveryReceipt): Promise<MessageDeliveryReceipt> {
-    try {
-      const [receipt] = await db.insert(messageDeliveryReceipts).values({
-        ...receiptData,
-        id: randomUUID()
-      }).returning();
-      return receipt;
-    } catch (error) {
-      console.error("Error creating delivery receipt:", error);
-      throw error;
-    }
-  }
-
-  async getMessageDeliveryReceipts(messageId: string): Promise<MessageDeliveryReceipt[]> {
-    try {
-      return await db.select().from(messageDeliveryReceipts)
-        .where(eq(messageDeliveryReceipts.messageId, messageId))
-        .orderBy(sql`${messageDeliveryReceipts.timestamp} DESC`);
-    } catch (error) {
-      console.error("Error getting message delivery receipts:", error);
-      return [];
-    }
-  }
-
-  // Proximity matching methods
-  async updateUserLocation(locationData: InsertUserLocation): Promise<UserLocation> {
-    try {
-      // Remove old location for this user
-      await db.delete(userLocations).where(eq(userLocations.userId, locationData.userId));
-      
-      // Insert new location
-      const [location] = await db.insert(userLocations).values({
-        ...locationData,
-        id: randomUUID()
-      }).returning();
-      return location;
-    } catch (error) {
-      console.error("Error updating user location:", error);
-      throw error;
-    }
-  }
-
-  async getUserLocation(userId: string): Promise<UserLocation | undefined> {
-    try {
-      const [location] = await db.select().from(userLocations)
-        .where(eq(userLocations.userId, userId))
-        .orderBy(sql`${userLocations.updatedAt} DESC`)
-        .limit(1);
-      return location;
-    } catch (error) {
-      console.error("Error getting user location:", error);
-      return undefined;
-    }
-  }
-
-  async findNearbyUsers(userId: string, radiusMeters: number = 500): Promise<ProximityMatch[]> {
-    try {
-      const userLocation = await this.getUserLocation(userId);
-      if (!userLocation) {
-        return [];
-      }
-
-      // Find other users within radius using Haversine formula approximation
-      const matches = await db
-        .select({
-          id: proximityMatches.id,
-          userId1: proximityMatches.userId1,
-          userId2: proximityMatches.userId2,
-          distance: proximityMatches.distance,
-          venueName: proximityMatches.venueName,
-          eventName: proximityMatches.eventName,
-          matchType: proximityMatches.matchType,
-          isActive: proximityMatches.isActive,
-          lastSeen: proximityMatches.lastSeen,
-          createdAt: proximityMatches.createdAt,
-        })
-        .from(userLocations)
-        .leftJoin(proximityMatches, sql`
-          (${proximityMatches.userId1} = ${userLocation.userId} AND ${proximityMatches.userId2} = ${userLocations.userId}) OR
-          (${proximityMatches.userId2} = ${userLocation.userId} AND ${proximityMatches.userId1} = ${userLocations.userId})
-        `)
-        .where(sql`
-          ${userLocations.userId} != ${userId} AND
-          ${userLocations.isVisible} = true AND
-          ${userLocations.expiresAt} > NOW() AND
-          (6371000 * acos(cos(radians(${userLocation.latitude})) * cos(radians(${userLocations.latitude})) * cos(radians(${userLocations.longitude}) - radians(${userLocation.longitude})) + sin(radians(${userLocation.latitude})) * sin(radians(${userLocations.latitude})))) <= ${radiusMeters}
-        `);
-
-      return matches.filter(match => match.id !== null) as ProximityMatch[];
-    } catch (error) {
-      console.error("Error finding nearby users:", error);
-      return [];
-    }
-  }
-
-  async createProximityMatch(matchData: InsertProximityMatch): Promise<ProximityMatch> {
-    try {
-      const [match] = await db.insert(proximityMatches).values({
-        ...matchData,
-        id: randomUUID()
-      }).returning();
-      return match;
-    } catch (error) {
-      console.error("Error creating proximity match:", error);
-      throw error;
-    }
-  }
-
-  async updateUserProximitySettings(userId: string, settings: {
-    proximityEnabled?: boolean;
-    proximityRadius?: number;
-    shareLocationAtConcerts?: boolean;
-  }): Promise<User | undefined> {
-    try {
-      const [user] = await db.update(users)
-        .set(settings)
-        .where(eq(users.id, userId))
-        .returning();
-      return user;
-    } catch (error) {
-      console.error("Error updating proximity settings:", error);
-      return undefined;
-    }
-  }
-
-  // Missing methods for MemStorage compatibility
-  async getUserGroups(): Promise<any[]> { return []; }
-  async createUserGroup(group: any): Promise<any> { return { id: randomUUID(), ...group }; }
-  async joinGroup(groupId: string, userId: string): Promise<any> { return { groupId, userId }; }
-  async getGroupPosts(groupId: string): Promise<any[]> { return []; }
-  async createGroupPost(post: any): Promise<any> { return { id: randomUUID(), ...post }; }
-  async getMentorProfiles(): Promise<any[]> { return []; }
-  async createMentorProfile(profile: any): Promise<any> { return { id: randomUUID(), ...profile }; }
-  async requestMentorship(mentorship: any): Promise<any> { return { id: randomUUID(), ...mentorship }; }
 }
 
 // Use DatabaseStorage instead of MemStorage

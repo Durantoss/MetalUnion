@@ -22,12 +22,16 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   stagename: varchar("stagename").unique(),
+  safeword: varchar("safeword"), // Password field (hashed)
   bio: text("bio"),
   location: varchar("location"),
   favoriteGenres: text("favorite_genres").array(),
   // Gamification fields
   reputationPoints: integer("reputation_points").default(0),
   badges: text("badges").array(),
+  concertAttendanceCount: integer("concert_attendance_count").default(0),
+  commentCount: integer("comment_count").default(0),
+  reviewCount: integer("review_count").default(0),
   // Social features
   isOnline: boolean("is_online").default(false),
   lastActive: timestamp("last_active").defaultNow(),
@@ -35,6 +39,9 @@ export const users = pgTable("users", {
   totalReviews: integer("total_reviews").default(0),
   totalPhotos: integer("total_photos").default(0),
   totalLikes: integer("total_likes").default(0),
+  // Session preferences
+  rememberMe: boolean("remember_me").default(false),
+  lastLoginAt: timestamp("last_login_at"),
   // Preferences
   notificationSettings: jsonb("notification_settings"),
   theme: varchar("theme").default("dark"),
@@ -44,6 +51,42 @@ export const users = pgTable("users", {
   shareLocationAtConcerts: boolean("share_location_at_concerts").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Badges system for gamification
+export const badges = pgTable("badges", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull().unique(),
+  description: text("description").notNull(),
+  icon: varchar("icon").notNull(), // Icon name or URL
+  category: varchar("category").notNull(), // 'engagement', 'content', 'social', 'achievement'
+  requirement: jsonb("requirement").notNull(), // { type: 'count', action: 'comment', threshold: 10 }
+  rarity: varchar("rarity").default("common"), // 'common', 'rare', 'epic', 'legendary'
+  points: integer("points").default(0), // Reputation points awarded
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User badge awards tracking
+export const userBadges = pgTable("user_badges", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  badgeId: varchar("badge_id").notNull().references(() => badges.id, { onDelete: "cascade" }),
+  awardedAt: timestamp("awarded_at").defaultNow(),
+  progress: jsonb("progress"), // Current progress towards badge requirements
+});
+
+// Concert attendance tracking for badges
+export const concertAttendance = pgTable("concert_attendance", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  tourId: varchar("tour_id").references(() => tours.id),
+  venueName: varchar("venue_name").notNull(),
+  bandName: varchar("band_name").notNull(),
+  attendanceDate: timestamp("attendance_date").notNull(),
+  verificationMethod: varchar("verification_method"), // 'manual', 'location', 'ticket'
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const bands = pgTable("bands", {
@@ -200,6 +243,9 @@ export const usersRelations = relations(users, ({ many }) => ({
   // Comments system
   comments: many(comments),
   commentReactions: many(commentReactions),
+  // Badges and achievements
+  userBadges: many(userBadges),
+  concertAttendances: many(concertAttendance),
   // Following system
   following: many(userFollows, { relationName: "follower" }),
   followers: many(userFollows, { relationName: "following" }),
@@ -222,6 +268,32 @@ export const usersRelations = relations(users, ({ many }) => ({
   sentMessages: many(directMessages),
   encryptionKeys: many(messageEncryptionKeys),
   deliveryReceipts: many(messageDeliveryReceipts),
+}));
+
+export const badgesRelations = relations(badges, ({ many }) => ({
+  userBadges: many(userBadges),
+}));
+
+export const userBadgesRelations = relations(userBadges, ({ one }) => ({
+  user: one(users, {
+    fields: [userBadges.userId],
+    references: [users.id],
+  }),
+  badge: one(badges, {
+    fields: [userBadges.badgeId],
+    references: [badges.id],
+  }),
+}));
+
+export const concertAttendanceRelations = relations(concertAttendance, ({ one }) => ({
+  user: one(users, {
+    fields: [concertAttendance.userId],
+    references: [users.id],
+  }),
+  tour: one(tours, {
+    fields: [concertAttendance.tourId],
+    references: [tours.id],
+  }),
 }));
 
 export const bandsRelations = relations(bands, ({ one, many }) => ({
@@ -364,6 +436,50 @@ export type UserLocation = typeof userLocations.$inferSelect;
 export type InsertUserLocation = typeof userLocations.$inferInsert;
 export type ProximityMatch = typeof proximityMatches.$inferSelect;
 export type InsertProximityMatch = typeof proximityMatches.$inferInsert;
+export type Badge = typeof badges.$inferSelect;
+export type InsertBadge = typeof badges.$inferInsert;
+export type UserBadge = typeof userBadges.$inferSelect;
+export type InsertUserBadge = typeof userBadges.$inferInsert;
+export type ConcertAttendance = typeof concertAttendance.$inferSelect;
+export type InsertConcertAttendance = typeof concertAttendance.$inferInsert;
+
+// Zod schemas for validation
+export const createUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  reputationPoints: true,
+  badges: true,
+  isOnline: true,
+  lastActive: true,
+  loginStreak: true,
+  totalReviews: true,
+  totalPhotos: true,
+  totalLikes: true,
+  concertAttendanceCount: true,
+  commentCount: true,
+  reviewCount: true,
+  lastLoginAt: true,
+}).extend({
+  stagename: z.string().min(3).max(20),
+  safeword: z.string().min(6).max(100),
+  email: z.string().email().optional(),
+});
+
+export const loginSchema = z.object({
+  stagename: z.string().min(1),
+  safeword: z.string().min(1),
+  rememberMe: z.boolean().optional().default(false),
+});
+
+export const createBadgeSchema = createInsertSchema(badges).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type CreateUser = z.infer<typeof createUserSchema>;
+export type LoginRequest = z.infer<typeof loginSchema>;
+export type CreateBadge = z.infer<typeof createBadgeSchema>;
 
 // Message Board (The Pit) Tables
 export const pitMessages = pgTable("pit_messages", {
