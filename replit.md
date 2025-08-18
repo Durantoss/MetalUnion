@@ -43,7 +43,7 @@ Preferred communication style: Simple, everyday language.
 - **Event Discovery**: Multi-platform event data integration from SeatGeek, Ticketmaster, and Bandsintown APIs with real-time search functionality.
 - **AI-Powered Recommendations**: OpenAI for intelligent event recommendations and personalized matching with venue compatibility scoring.
 - **Real-Time Tours System**: Dynamic tour database with Google-powered search integration, venue capacity tracking, and live ticket price comparisons.
-- **Mobile Authentication**: Universal demo mode with client-side authentication bypass for mobile devices and deployed environments.
+- **Testing Mode**: Complete authentication bypass enabled for user testing - no login or signup required for any features.
 - **Smart Demo Mode**: Provides authentic event data with real venue information and pricing when API keys are not configured.
 - **Background AI**: AI services operate continuously without user interaction for recommendations and analysis.
 - **Deployment**: Comprehensive error handling, health monitoring, and authentication solutions for reliable production deployment.

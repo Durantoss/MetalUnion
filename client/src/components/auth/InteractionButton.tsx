@@ -22,18 +22,11 @@ export function InteractionButton({
   onTouchStart
 }: InteractionButtonProps) {
   // Simple authentication check - always show auth required for now
-  const isAuthenticated = false; // TODO: Connect to real auth system
+  const isAuthenticated = true; // Testing mode - always authenticated for testers
   
   const handleClick = () => {
-    if (!isAuthenticated) {
-      // Trigger auth modal via global event
-      const event = new CustomEvent('auth-required', {
-        detail: { action }
-      });
-      window.dispatchEvent(event);
-    } else {
-      onClick();
-    }
+    // Always allow interactions for testing - no auth required
+    onClick();
   };
 
   return (

@@ -1,15 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
 
 export function useAuth() {
-  // Check if we're in deployed environment
+  // Check if we're in deployed environment  
   const isDeployedApp = window.location.hostname.includes('.replit.app');
+  const isTestingMode = true; // Enable testing mode for all testers
   
   const { data: user, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/auth/user'],
     queryFn: async () => {
-      if (isDeployedApp) {
-        // Demo mode - return null to show unauthenticated state
-        return null;
+      // For testing/deployed environments, create a demo user so all features work
+      if (isDeployedApp || isTestingMode) {
+        return {
+          id: 'demo-user-testing',
+          email: 'tester@moshunion.com',
+          stagename: 'Demo Tester',
+          isAdmin: false,
+          createdAt: new Date().toISOString()
+        };
       }
       
       // Original auth flow for development
@@ -33,7 +40,7 @@ export function useAuth() {
   return {
     user,
     isLoading,
-    isAuthenticated: !!user,
+    isAuthenticated: true, // Always authenticated for testing
     error,
     refetch
   };

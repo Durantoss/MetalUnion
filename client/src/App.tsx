@@ -623,8 +623,8 @@ const App = () => {
         }
       `}} />
       
-      {/* Authentication Modal */}
-      {showAuthModal && (
+      {/* Authentication Modal - Disabled for testing */}
+      {false && showAuthModal && (
         <AuthModal 
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}

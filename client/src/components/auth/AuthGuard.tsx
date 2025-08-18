@@ -17,6 +17,9 @@ export function AuthGuard({
 }: AuthGuardProps) {
   const { user, isLoading } = useAuth();
   const [showAuthModal, setShowAuthModal] = React.useState(false);
+  
+  // Testing mode - always allow access for testers
+  const isTestingMode = true;
 
   const handleAuthRequired = () => {
     if (onAuthRequired) {
@@ -26,7 +29,7 @@ export function AuthGuard({
     }
   };
 
-  if (isLoading) {
+  if (isLoading && !isTestingMode) {
     return (
       <div style={{
         display: 'flex',
@@ -38,6 +41,11 @@ export function AuthGuard({
         Loading...
       </div>
     );
+  }
+
+  // For testing - always render children without auth checks
+  if (isTestingMode) {
+    return <>{children}</>;
   }
 
   if (!user) {
