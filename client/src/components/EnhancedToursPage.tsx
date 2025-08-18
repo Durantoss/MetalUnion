@@ -1,1077 +1,728 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Calendar, MapPin, Clock, DollarSign, Users, Search, Filter, Star } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
+import { useState } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { 
+  Calendar, 
+  MapPin, 
+  ExternalLink, 
+  Clock, 
+  DollarSign, 
+  Search, 
+  Filter, 
+  Star, 
+  Music, 
+  Sparkles,
+  Bot,
+  Globe,
+  Ticket
+} from 'lucide-react';
+import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 
-interface TourStop {
-  city: string;
-  state?: string;
-  country?: string;
+interface Tour {
+  id: string;
+  bandId: string;
+  bandName: string;
+  bandImageUrl?: string;
+  bandGenres?: string[];
+  tourName: string;
   venue: string;
+  city: string;
+  country: string;
   date: string;
   ticketUrl?: string;
+  ticketmasterUrl?: string;
+  price?: string;
+  status: string;
 }
 
-interface TourInfo {
+interface DiscoveredEvent {
   id: string;
-  tourName: string;
-  bands: string[];
-  headliner: string;
-  currentStops: TourStop[];
-  posterUrl?: string;
-  description?: string;
-  genre?: string;
-  startDate?: string;
-  endDate?: string;
-  ticketPriceRange?: {
+  title: string;
+  artist: string;
+  venue: string;
+  date: string;
+  time: string;
+  location: {
+    address: string;
+    city: string;
+    state: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+  };
+  price: {
     min: number;
     max: number;
     currency: string;
   };
-  relevanceScore?: number;
-  aiRecommendationReason?: string;
+  ticketUrl: string;
+  description: string;
+  genre: string;
+  imageUrl?: string;
+  relevanceScore: number;
+  aiRecommendationReason: string;
+  platform?: 'seatgeek' | 'ticketmaster' | 'bandsintown' | 'google' | 'database';
 }
 
-interface TourSearchFilters {
-  query: string;
+interface SearchFilters {
   location: string;
-  preferredGenres: string[];
-  favoriteArtists: string[];
-  priceRange: {
-    min: number;
-    max: number;
-  };
+  genres: string[];
+  artists: string[];
+  priceMin: number;
+  priceMax: number;
+  dateStart: string;
+  dateEnd: string;
   radius: number;
-  dateRange?: {
-    start: string;
-    end: string;
-  };
+  query: string;
 }
 
 export function EnhancedToursPage() {
-  console.log('EnhancedToursPage component is rendering!');
-  
-  const [searchFilters, setSearchFilters] = useState<TourSearchFilters>({
-    query: '',
-    location: '',
-    preferredGenres: ['metal', 'rock'],
-    favoriteArtists: [],
-    priceRange: { min: 20, max: 300 },
-    radius: 100
-  });
-
+  const [activeTab, setActiveTab] = useState<'database' | 'discover'>('database');
   const [showFilters, setShowFilters] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [searchHistory, setSearchHistory] = useState<string[]>([]);
-
-  const { data: tours = [], isLoading, refetch } = useQuery({
-    queryKey: ['/api/tours/discover', searchFilters],
-    queryFn: async () => {
-      const response = await apiRequest('/api/tours/discover', {
-        method: 'POST',
-        body: searchFilters
-      });
-      return response as TourInfo[];
-    },
-    enabled: hasSearched
+  const [searchFilters, setSearchFilters] = useState<SearchFilters>({
+    location: '',
+    genres: ['metal', 'rock', 'hardcore'],
+    artists: [],
+    priceMin: 0,
+    priceMax: 500,
+    dateStart: '',
+    dateEnd: '',
+    radius: 50,
+    query: ''
   });
 
-  const handleSearch = () => {
-    setHasSearched(true);
-    
-    // Add to search history if query exists
-    if (searchFilters.query && !searchHistory.includes(searchFilters.query)) {
-      setSearchHistory(prev => [searchFilters.query, ...prev.slice(0, 4)]);
+  // Fetch existing tours from database
+  const { data: tours = [], isLoading: toursLoading, error: toursError } = useQuery({
+    queryKey: ['/api/tours'],
+    queryFn: async () => {
+      const response = await fetch('/api/tours', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch tours');
+      }
+      return response.json() as Tour[];
     }
-    
-    setShowSuggestions(false);
-    refetch();
-  };
+  });
 
-  // Popular tour searches and band suggestions
-  const popularSearches = [
-    'metallica tour', 'iron maiden tour', 'black sabbath tour', 'judas priest tour',
-    'megadeth tour', 'slayer tour', 'pantera tour', 'anthrax tour', 'testament tour',
-    'metal tour 2025', 'rock festival', 'death metal tour', 'thrash metal tour'
-  ];
+  // AI-powered tour discovery
+  const discoveryMutation = useMutation({
+    mutationFn: async (filters: SearchFilters): Promise<DiscoveredEvent[]> => {
+      const response = await fetch('/api/events/discover', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          userLocation: filters.location,
+          preferredGenres: filters.genres,
+          favoriteArtists: filters.artists,
+          priceRange: {
+            min: filters.priceMin,
+            max: filters.priceMax
+          },
+          dateRange: filters.dateStart && filters.dateEnd ? {
+            start: new Date(filters.dateStart),
+            end: new Date(filters.dateEnd)
+          } : undefined,
+          radius: filters.radius,
+          query: filters.query
+        })
+      });
 
-  const handleQueryChange = (value: string) => {
-    setSearchFilters(prev => ({ ...prev, query: value }));
-    
-    if (value.length > 2) {
-      const suggestions = popularSearches
-        .filter(search => search.toLowerCase().includes(value.toLowerCase()))
-        .slice(0, 5);
-      setSearchSuggestions([...new Set([...suggestions, ...searchHistory])]);
-      setShowSuggestions(suggestions.length > 0 || searchHistory.length > 0);
-    } else {
-      setShowSuggestions(false);
+      if (!response.ok) {
+        throw new Error('Failed to discover events');
+      }
+
+      return response.json();
     }
-  };
+  });
 
-  const selectSuggestion = (suggestion: string) => {
-    setSearchFilters(prev => ({ ...prev, query: suggestion }));
-    setShowSuggestions(false);
-    setHasSearched(true);
-    refetch();
-  };
+  // Enhanced tour discovery with Google + OpenAI
+  const tourDiscoveryMutation = useMutation({
+    mutationFn: async (filters: SearchFilters): Promise<DiscoveredEvent[]> => {
+      const response = await fetch('/api/tours/discover', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          userLocation: filters.location,
+          preferredGenres: filters.genres,
+          favoriteArtists: filters.artists,
+          priceRange: {
+            min: filters.priceMin,
+            max: filters.priceMax
+          },
+          dateRange: filters.dateStart && filters.dateEnd ? {
+            start: new Date(filters.dateStart),
+            end: new Date(filters.dateEnd)
+          } : undefined,
+          radius: filters.radius,
+          query: filters.query
+        })
+      });
 
-  const genreOptions = ['metal', 'rock', 'hardcore', 'punk', 'progressive', 'alternative', 'thrash', 'death metal', 'black metal'];
+      if (!response.ok) {
+        throw new Error('Failed to discover tours');
+      }
 
-  const formatPrice = (price: { min: number; max: number; currency: string }) => {
-    return `$${price.min} - $${price.max}`;
-  };
+      return response.json();
+    }
+  });
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   };
 
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatPrice = (price: { min: number; max: number; currency: string } | string) => {
+    if (typeof price === 'string') return price;
+    return `$${price.min} - $${price.max}`;
+  };
+
+  const handleSearch = () => {
+    discoveryMutation.mutate(searchFilters);
+  };
+
+  const handleSmartDiscovery = () => {
+    tourDiscoveryMutation.mutate(searchFilters);
+  };
+
+  const popularGenres = ['metal', 'rock', 'hardcore', 'black metal', 'death metal', 'thrash metal', 'progressive metal', 'doom metal'];
+  const popularArtists = ['Metallica', 'Iron Maiden', 'Black Sabbath', 'Slipknot', 'Tool', 'System of a Down', 'Rammstein', 'Ghost'];
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #000000 0%, #1a0000 50%, #330000 100%)',
-      position: 'relative',
-      overflow: 'auto'
-    }}>
-      {/* Animated Background Effects */}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        opacity: 0.3,
-        pointerEvents: 'none',
-        zIndex: 1
-      }}>
-        <div style={{
-          position: 'absolute',
-          width: '100%',
-          height: '100%',
-          backgroundImage: `
-            linear-gradient(90deg, rgba(220, 38, 38, 0.1) 1px, transparent 1px),
-            linear-gradient(rgba(234, 179, 8, 0.1) 1px, transparent 1px)
-          `,
-          backgroundSize: '50px 50px',
-          animation: 'gridSlide 20s linear infinite'
-        }} />
-        
-        {/* Floating Energy Orbs */}
-        {[...Array(5)].map((_, i) => (
-          <div key={i} style={{
-            position: 'absolute',
-            width: `${60 + i * 20}px`,
-            height: `${60 + i * 20}px`,
-            background: i % 2 === 0 
-              ? 'radial-gradient(circle, rgba(220, 38, 38, 0.6) 0%, rgba(220, 38, 38, 0.1) 70%, transparent 100%)'
-              : 'radial-gradient(circle, rgba(234, 179, 8, 0.6) 0%, rgba(234, 179, 8, 0.1) 70%, transparent 100%)',
-            borderRadius: '50%',
-            top: `${20 + i * 15}%`,
-            left: `${10 + i * 20}%`,
-            animation: `float ${8 + i * 2}s ease-in-out infinite`,
-            filter: 'blur(15px)'
-          }} />
-        ))}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-red-900/20 to-gray-900 p-4 pt-8">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-red-500 to-yellow-500 bg-clip-text text-transparent mb-4">
+          🚌 TOURS & EVENTS
+        </h1>
+        <p className="text-gray-400 text-lg">
+          Discover upcoming metal concerts with AI-powered search and real-time recommendations
+        </p>
       </div>
 
-      <div style={{ position: 'relative', zIndex: 2, padding: '2rem 1rem' }}>
-        {/* Hero Header */}
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <h1 style={{
-            fontSize: 'clamp(2.5rem, 8vw, 5rem)',
-            fontWeight: '900',
-            background: 'linear-gradient(135deg, #dc2626 0%, #eab308 50%, #ffffff 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            marginBottom: '1rem',
-            textShadow: '0 0 30px rgba(220, 38, 38, 0.5)',
-            fontFamily: 'system-ui, -apple-system, sans-serif'
-          }}>
-            TOUR RADAR
-          </h1>
-          <p style={{
-            fontSize: '1.2rem',
-            color: 'rgba(255, 255, 255, 0.8)',
-            maxWidth: '600px',
-            margin: '0 auto',
-            lineHeight: 1.6
-          }}>
-            Discover epic tours powered by Google search and AI recommendations
-          </p>
-        </div>
-
-        {/* Primary Search Bar */}
-        <div style={{
-          maxWidth: '800px',
-          margin: '0 auto 1rem auto',
-          position: 'relative'
-        }}>
-          <div style={{
-            position: 'relative',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            borderRadius: '16px',
-            padding: '1rem',
-            border: '2px solid rgba(220, 38, 38, 0.4)',
-            backdropFilter: 'blur(20px)',
-            boxShadow: '0 8px 32px rgba(220, 38, 38, 0.2)'
-          }}>
-            <div style={{ position: 'relative' }}>
-              <input
-                type="text"
-                placeholder="🔍 Search tours: metallica, iron maiden, metal tour 2025..."
-                value={searchFilters.query}
-                onChange={(e) => handleQueryChange(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                onFocus={() => {
-                  if (searchFilters.query.length > 2) {
-                    setShowSuggestions(true);
-                  }
-                }}
-                onBlur={() => {
-                  setTimeout(() => setShowSuggestions(false), 200);
-                }}
-                style={{
-                  width: '100%',
-                  padding: '16px 120px 16px 20px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(220, 38, 38, 0.3)',
-                  borderRadius: '12px',
-                  color: 'white',
-                  fontSize: '18px',
-                  outline: 'none',
-                  transition: 'all 0.3s ease'
-                }}
-                data-testid="input-tour-search"
-              />
-              <button
-                onClick={handleSearch}
-                style={{
-                  position: 'absolute',
-                  right: '8px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  padding: '12px 24px',
-                  backgroundColor: '#dc2626',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)'
-                }}
-                data-testid="button-search-tours"
-              >
-                SEARCH
-              </button>
-              
-              {/* Search Suggestions */}
-              {showSuggestions && (searchSuggestions.length > 0 || searchHistory.length > 0) && (
-                <div style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  backgroundColor: 'rgba(0, 0, 0, 0.95)',
-                  border: '1px solid rgba(220, 38, 38, 0.3)',
-                  borderRadius: '0 0 12px 12px',
-                  zIndex: 20,
-                  maxHeight: '300px',
-                  overflowY: 'auto',
-                  backdropFilter: 'blur(10px)',
-                  marginTop: '4px'
-                }}>
-                  {searchHistory.length > 0 && (
-                    <>
-                      <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(220, 38, 38, 0.2)' }}>
-                        <p style={{ color: '#eab308', fontSize: '14px', margin: 0, fontWeight: '600' }}>
-                          Recent Searches
-                        </p>
-                      </div>
-                      {searchHistory.slice(0, 3).map((item, index) => (
-                        <div
-                          key={`history-${index}`}
-                          onClick={() => selectSuggestion(item)}
-                          style={{
-                            padding: '12px 16px',
-                            cursor: 'pointer',
-                            color: 'rgba(255, 255, 255, 0.9)',
-                            fontSize: '16px',
-                            borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                            transition: 'background-color 0.2s',
-                            display: 'flex',
-                            alignItems: 'center'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.1)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                          }}
-                          data-testid={`search-history-${index}`}
-                        >
-                          <Clock size={16} style={{ marginRight: '12px', color: '#eab308' }} />
-                          {item}
-                        </div>
-                      ))}
-                    </>
-                  )}
-                  
-                  {searchSuggestions.filter(s => !searchHistory.includes(s)).slice(0, 6).map((suggestion, index) => (
-                    <div
-                      key={`suggestion-${index}`}
-                      onClick={() => selectSuggestion(suggestion)}
-                      style={{
-                        padding: '12px 16px',
-                        cursor: 'pointer',
-                        color: 'rgba(255, 255, 255, 0.9)',
-                        fontSize: '16px',
-                        borderBottom: index < 5 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none',
-                        transition: 'background-color 0.2s',
-                        display: 'flex',
-                        alignItems: 'center'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(234, 179, 8, 0.1)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                      }}
-                      data-testid={`search-suggestion-${index}`}
-                    >
-                      <Search size={16} style={{ marginRight: '12px', color: '#dc2626' }} />
-                      {suggestion}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            {/* Quick Action Buttons */}
-            <div style={{ 
-              display: 'flex', 
-              gap: '12px', 
-              justifyContent: 'center', 
-              marginTop: '16px',
-              flexWrap: 'wrap'
-            }}>
-              <button
-                onClick={() => selectSuggestion('metal tour 2025')}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: 'rgba(234, 179, 8, 0.2)',
-                  color: '#eab308',
-                  border: '1px solid rgba(234, 179, 8, 0.4)',
-                  borderRadius: '20px',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                data-testid="button-quick-metal"
-              >
-                🤘 Metal Tours
-              </button>
-              
-              <button
-                onClick={() => selectSuggestion('rock festival')}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: 'rgba(220, 38, 38, 0.2)',
-                  color: '#dc2626',
-                  border: '1px solid rgba(220, 38, 38, 0.4)',
-                  borderRadius: '20px',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                data-testid="button-quick-rock"
-              >
-                🎸 Rock Festivals
-              </button>
-              
-              <button
-                onClick={() => selectSuggestion('metallica tour')}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  color: 'white',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: '20px',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                data-testid="button-quick-metallica"
-              >
-                ⚡ Metallica
-              </button>
-            </div>
+      {/* Feature Highlights */}
+      <div className="max-w-6xl mx-auto mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-black/40 border border-red-500/30 rounded-lg p-4 text-center">
+            <Bot className="h-8 w-8 text-red-400 mx-auto mb-2" />
+            <h3 className="text-sm font-semibold text-white">AI Recommendations</h3>
+          </div>
+          <div className="bg-black/40 border border-yellow-500/30 rounded-lg p-4 text-center">
+            <Globe className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
+            <h3 className="text-sm font-semibold text-white">Multi-Platform Search</h3>
+          </div>
+          <div className="bg-black/40 border border-blue-500/30 rounded-lg p-4 text-center">
+            <MapPin className="h-8 w-8 text-blue-400 mx-auto mb-2" />
+            <h3 className="text-sm font-semibold text-white">Location-Based</h3>
+          </div>
+          <div className="bg-black/40 border border-green-500/30 rounded-lg p-4 text-center">
+            <Ticket className="h-8 w-8 text-green-400 mx-auto mb-2" />
+            <h3 className="text-sm font-semibold text-white">Real-Time Tickets</h3>
           </div>
         </div>
+      </div>
 
-        {/* Advanced Filters */}
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto 2rem auto',
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-          borderRadius: '20px',
-          padding: '2rem',
-          border: '1px solid rgba(220, 38, 38, 0.3)',
-          backdropFilter: 'blur(10px)'
-        }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
-            marginBottom: '1rem'
-          }}>
-            <h3 style={{ 
-              color: '#eab308', 
-              fontSize: '18px', 
-              margin: 0, 
-              fontWeight: '600' 
-            }}>
-              Advanced Filters
-            </h3>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: showFilters ? '#dc2626' : 'rgba(220, 38, 38, 0.2)',
-                color: showFilters ? 'white' : '#dc2626',
-                border: '1px solid rgba(220, 38, 38, 0.4)',
-                borderRadius: '8px',
-                fontSize: '14px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-              data-testid="button-toggle-filters"
-            >
-              <Filter size={16} />
-              {showFilters ? 'Hide Filters' : 'Show Filters'}
-            </button>
-          </div>
+      {/* Navigation Tabs */}
+      <div className="max-w-6xl mx-auto mb-6">
+        <div className="flex space-x-1 bg-gray-900/50 p-1 rounded-lg border border-gray-700">
+          <button
+            onClick={() => setActiveTab('database')}
+            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+              activeTab === 'database'
+                ? 'bg-red-600 text-white'
+                : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+            }`}
+            data-testid="tab-database-tours"
+          >
+            <Calendar className="h-4 w-4 inline mr-2" />
+            Confirmed Tours ({tours.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('discover')}
+            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+              activeTab === 'discover'
+                ? 'bg-red-600 text-white'
+                : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+            }`}
+            data-testid="tab-discover-events"
+          >
+            <Sparkles className="h-4 w-4 inline mr-2" />
+            Smart Discovery
+          </button>
+        </div>
+      </div>
 
-          {showFilters && (
-            <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
-              <div>
-              <label style={{ 
-                display: 'block', 
-                marginBottom: '0.5rem', 
-                color: '#eab308', 
-                fontWeight: '600' 
-              }}>
-                Location
-              </label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="text"
-                  placeholder="City, State or ZIP"
+      {/* Search and Filters */}
+      {activeTab === 'discover' && (
+        <div className="max-w-6xl mx-auto mb-6">
+          <Card className="bg-gray-900/50 border-gray-700">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-white flex items-center">
+                  <Search className="h-5 w-5 mr-2" />
+                  Intelligent Event Discovery
+                </CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="border-gray-600"
+                  data-testid="button-toggle-filters"
+                >
+                  <Filter className="h-4 w-4 mr-1" />
+                  {showFilters ? 'Hide' : 'Show'} Filters
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Quick Search */}
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Search for bands, venues, or events..."
+                  value={searchFilters.query}
+                  onChange={(e) => setSearchFilters(prev => ({ ...prev, query: e.target.value }))}
+                  className="bg-gray-800 border-gray-600 text-white"
+                  data-testid="input-event-search"
+                />
+                <Input
+                  placeholder="Location (e.g., New York, NY)"
                   value={searchFilters.location}
                   onChange={(e) => setSearchFilters(prev => ({ ...prev, location: e.target.value }))}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px 12px 40px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    border: '1px solid rgba(220, 38, 38, 0.3)',
-                    borderRadius: '8px',
-                    color: 'white',
-                    fontSize: '16px',
-                    outline: 'none'
-                  }}
+                  className="bg-gray-800 border-gray-600 text-white max-w-xs"
                   data-testid="input-location"
                 />
-                <MapPin style={{ 
-                  position: 'absolute', 
-                  left: '12px', 
-                  top: '50%', 
-                  transform: 'translateY(-50%)',
-                  color: '#dc2626',
-                  width: '20px',
-                  height: '20px'
-                }} />
               </div>
-            </div>
 
-            <div>
-              <label style={{ 
-                display: 'block', 
-                marginBottom: '0.5rem', 
-                color: '#eab308', 
-                fontWeight: '600' 
-              }}>
-                Price Range
-              </label>
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <input
-                  type="number"
-                  placeholder="Min"
-                  value={searchFilters.priceRange.min}
-                  onChange={(e) => setSearchFilters(prev => ({ 
-                    ...prev, 
-                    priceRange: { ...prev.priceRange, min: parseInt(e.target.value) || 0 } 
-                  }))}
-                  style={{
-                    width: '80px',
-                    padding: '12px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    border: '1px solid rgba(220, 38, 38, 0.3)',
-                    borderRadius: '8px',
-                    color: 'white',
-                    fontSize: '16px',
-                    outline: 'none'
-                  }}
-                  data-testid="input-price-min"
-                />
-                <span style={{ color: 'white' }}>-</span>
-                <input
-                  type="number"
-                  placeholder="Max"
-                  value={searchFilters.priceRange.max}
-                  onChange={(e) => setSearchFilters(prev => ({ 
-                    ...prev, 
-                    priceRange: { ...prev.priceRange, max: parseInt(e.target.value) || 500 } 
-                  }))}
-                  style={{
-                    width: '80px',
-                    padding: '12px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    border: '1px solid rgba(220, 38, 38, 0.3)',
-                    borderRadius: '8px',
-                    color: 'white',
-                    fontSize: '16px',
-                    outline: 'none'
-                  }}
-                  data-testid="input-price-max"
-                />
-              </div>
-            </div>
-            </div>
-          )}
+              {/* Advanced Filters */}
+              {showFilters && (
+                <div className="space-y-4 pt-4 border-t border-gray-700">
+                  {/* Genres */}
+                  <div>
+                    <Label className="text-white mb-2 block">Preferred Genres</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {popularGenres.map((genre) => (
+                        <Badge
+                          key={genre}
+                          variant={searchFilters.genres.includes(genre) ? 'default' : 'outline'}
+                          className={`cursor-pointer ${
+                            searchFilters.genres.includes(genre)
+                              ? 'bg-red-600 text-white'
+                              : 'border-gray-600 text-gray-300 hover:bg-red-600/20'
+                          }`}
+                          onClick={() => {
+                            setSearchFilters(prev => ({
+                              ...prev,
+                              genres: prev.genres.includes(genre)
+                                ? prev.genres.filter(g => g !== genre)
+                                : [...prev.genres, genre]
+                            }));
+                          }}
+                          data-testid={`badge-genre-${genre.replace(/\s+/g, '-')}`}
+                        >
+                          {genre}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
 
-          <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button
-              onClick={handleSearch}
-              disabled={isLoading}
-              style={{
-                padding: '12px 32px',
-                backgroundColor: '#dc2626',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                opacity: isLoading ? 0.7 : 1,
-                transition: 'all 0.2s',
-                boxShadow: '0 4px 15px rgba(220, 38, 38, 0.3)'
-              }}
-              data-testid="button-search-tours"
-            >
-              {isLoading ? 'Searching Tours...' : 'Search Tours'}
-            </button>
+                  {/* Price Range */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-white mb-2 block">Min Price ($)</Label>
+                      <Input
+                        type="number"
+                        value={searchFilters.priceMin}
+                        onChange={(e) => setSearchFilters(prev => ({ ...prev, priceMin: parseInt(e.target.value) || 0 }))}
+                        className="bg-gray-800 border-gray-600 text-white"
+                        min="0"
+                        max="500"
+                        data-testid="input-price-min"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-white mb-2 block">Max Price ($)</Label>
+                      <Input
+                        type="number"
+                        value={searchFilters.priceMax}
+                        onChange={(e) => setSearchFilters(prev => ({ ...prev, priceMax: parseInt(e.target.value) || 500 }))}
+                        className="bg-gray-800 border-gray-600 text-white"
+                        min="0"
+                        max="500"
+                        data-testid="input-price-max"
+                      />
+                    </div>
+                  </div>
 
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: 'rgba(234, 179, 8, 0.2)',
-                color: '#eab308',
-                border: '1px solid rgba(234, 179, 8, 0.3)',
-                borderRadius: '8px',
-                fontSize: '16px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-              data-testid="button-toggle-filters"
-            >
-              <Filter size={16} />
-              {showFilters ? 'Hide Filters' : 'Show Filters'}
-            </button>
-          </div>
-
-          {/* Advanced Filters */}
-          {showFilters && (
-            <div style={{
-              marginTop: '2rem',
-              padding: '1.5rem',
-              backgroundColor: 'rgba(0, 0, 0, 0.3)',
-              borderRadius: '12px',
-              border: '1px solid rgba(234, 179, 8, 0.2)'
-            }}>
-              <h3 style={{ color: '#eab308', marginBottom: '1rem' }}>Advanced Filters</h3>
-              
-              <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', color: '#eab308' }}>
-                    Preferred Genres
-                  </label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    {genreOptions.map(genre => (
-                      <button
-                        key={genre}
-                        onClick={() => {
-                          const isSelected = searchFilters.preferredGenres.includes(genre);
-                          setSearchFilters(prev => ({
-                            ...prev,
-                            preferredGenres: isSelected 
-                              ? prev.preferredGenres.filter(g => g !== genre)
-                              : [...prev.preferredGenres, genre]
-                          }));
-                        }}
-                        style={{
-                          padding: '6px 12px',
-                          backgroundColor: searchFilters.preferredGenres.includes(genre) 
-                            ? '#dc2626' 
-                            : 'rgba(0, 0, 0, 0.5)',
-                          color: 'white',
-                          border: searchFilters.preferredGenres.includes(genre)
-                            ? '1px solid #dc2626'
-                            : '1px solid rgba(220, 38, 38, 0.3)',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s'
-                        }}
-                        data-testid={`genre-${genre}`}
-                      >
-                        {genre}
-                      </button>
-                    ))}
+                  {/* Date Range */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-white mb-2 block">Start Date</Label>
+                      <Input
+                        type="date"
+                        value={searchFilters.dateStart}
+                        onChange={(e) => setSearchFilters(prev => ({ ...prev, dateStart: e.target.value }))}
+                        className="bg-gray-800 border-gray-600 text-white"
+                        data-testid="input-date-start"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-white mb-2 block">End Date</Label>
+                      <Input
+                        type="date"
+                        value={searchFilters.dateEnd}
+                        onChange={(e) => setSearchFilters(prev => ({ ...prev, dateEnd: e.target.value }))}
+                        className="bg-gray-800 border-gray-600 text-white"
+                        data-testid="input-date-end"
+                      />
+                    </div>
                   </div>
                 </div>
+              )}
+
+              {/* Search Buttons */}
+              <div className="flex gap-2 pt-2">
+                <Button 
+                  onClick={handleSearch}
+                  disabled={discoveryMutation.isPending}
+                  className="bg-gradient-to-r from-red-600 to-yellow-600 hover:from-red-700 hover:to-yellow-700"
+                  data-testid="button-multi-platform-search"
+                >
+                  {discoveryMutation.isPending ? (
+                    <>🔍 Searching...</>
+                  ) : (
+                    <>🌐 Multi-Platform Search</>
+                  )}
+                </Button>
+                <Button 
+                  onClick={handleSmartDiscovery}
+                  disabled={tourDiscoveryMutation.isPending}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  data-testid="button-ai-discovery"
+                >
+                  {tourDiscoveryMutation.isPending ? (
+                    <>🤖 AI Analyzing...</>
+                  ) : (
+                    <>🤖 AI Smart Discovery</>
+                  )}
+                </Button>
               </div>
-            </div>
-          )}
+            </CardContent>
+          </Card>
         </div>
+      )}
 
-        {/* Loading State */}
-        {isLoading && (
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: '4rem',
-            color: 'white'
-          }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{
-                width: '60px',
-                height: '60px',
-                border: '3px solid rgba(220, 38, 38, 0.3)',
-                borderTop: '3px solid #dc2626',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite',
-                margin: '0 auto 1rem auto'
-              }} />
-              <p style={{ fontSize: '1.2rem', color: '#eab308' }}>Searching for tours...</p>
-              <p style={{ fontSize: '0.9rem', opacity: 0.7 }}>Using Google Search and AI recommendations</p>
-            </div>
-          </div>
-        )}
+      {/* Results Section */}
+      <div className="max-w-6xl mx-auto">
+        {activeTab === 'database' && (
+          <>
+            {toursLoading && (
+              <div className="text-center py-12">
+                <p className="text-gray-400">Loading tours from database...</p>
+              </div>
+            )}
 
-        {/* Demo Tours Notice */}
-        {!isLoading && tours.length > 0 && tours[0].id?.startsWith('demo-') && (
-          <div style={{
-            backgroundColor: 'rgba(234, 179, 8, 0.1)',
-            border: '1px solid rgba(234, 179, 8, 0.3)',
-            borderRadius: '12px',
-            padding: '1rem',
-            marginBottom: '2rem',
-            maxWidth: '1200px',
-            margin: '0 auto 2rem auto',
-            color: '#eab308',
-            textAlign: 'center'
-          }}>
-            <p>
-              <strong>Demo Tours:</strong> Showing sample tour data while Google API processes your search. 
-              Add more API keys (SeatGeek, Ticketmaster, Bandsintown) for complete real tour information.
-            </p>
-          </div>
-        )}
+            {toursError && (
+              <div className="text-center py-12">
+                <p className="text-red-400">Error loading tours. Please try again later.</p>
+              </div>
+            )}
 
-        {/* Tours Grid */}
-        {tours.length > 0 && !isLoading && (
-          <div style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            display: 'grid',
-            gap: '2rem',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))'
-          }}>
-            {tours.map((tour, index) => (
-              <div
-                key={tour.id}
-                style={{
-                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                  borderRadius: '16px',
-                  overflow: 'hidden',
-                  border: '1px solid rgba(220, 38, 38, 0.3)',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.3s',
-                  position: 'relative'
-                }}
-                data-testid={`tour-card-${index}`}
-              >
-                {/* Tour Poster */}
-                {tour.posterUrl && (
-                  <div style={{
-                    position: 'relative',
-                    height: '200px',
-                    backgroundImage: `url(${tour.posterUrl})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center'
-                  }}>
-                    <div style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%)'
-                    }} />
-                    
-                    {/* AI Score Badge */}
-                    {tour.relevanceScore && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '12px',
-                        right: '12px',
-                        backgroundColor: 'rgba(234, 179, 8, 0.9)',
-                        color: 'black',
-                        padding: '4px 8px',
-                        borderRadius: '12px',
-                        fontSize: '12px',
-                        fontWeight: '600',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}>
-                        <Star size={12} fill="currentColor" />
-                        {Math.round(tour.relevanceScore * 100)}%
+            {!toursLoading && !toursError && tours.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-400 mb-4">No upcoming tours found in database</p>
+                <p className="text-sm text-gray-500">Try the Smart Discovery tab for more events</p>
+              </div>
+            )}
+
+            {!toursLoading && !toursError && tours.length > 0 && (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {tours.map((tour) => (
+                  <Card key={tour.id} className="bg-gray-900/50 border-gray-700 hover:border-red-500/50 transition-colors" data-testid={`card-tour-${tour.id}`}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg font-bold text-white mb-1" data-testid={`text-band-name-${tour.id}`}>
+                            {tour.bandName}
+                          </CardTitle>
+                          <p className="text-red-400 font-semibold text-sm" data-testid={`text-tour-name-${tour.id}`}>
+                            {tour.tourName}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="bg-green-900/30 text-green-300 border-green-600">
+                          Database
+                        </Badge>
                       </div>
-                    )}
-
-                    {/* Genre Tag */}
-                    {tour.genre && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '12px',
-                        left: '12px',
-                        backgroundColor: 'rgba(220, 38, 38, 0.9)',
-                        color: 'white',
-                        padding: '4px 8px',
-                        borderRadius: '12px',
-                        fontSize: '12px',
-                        fontWeight: '600'
-                      }}>
-                        {tour.genre}
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center text-gray-300">
+                          <MapPin className="h-4 w-4 mr-2" />
+                          <span className="text-sm">{tour.venue}</span>
+                        </div>
+                        <div className="flex items-center text-gray-300">
+                          <Calendar className="h-4 w-4 mr-2" />
+                          <span className="text-sm">{formatDate(tour.date)}</span>
+                        </div>
+                        <div className="flex items-center text-gray-300">
+                          <Clock className="h-4 w-4 mr-2" />
+                          <span className="text-sm">{formatTime(tour.date)}</span>
+                        </div>
+                        {tour.price && (
+                          <div className="flex items-center text-gray-300">
+                            <DollarSign className="h-4 w-4 mr-2" />
+                            <span className="text-sm">{tour.price}</span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                )}
-
-                <div style={{ padding: '1.5rem' }}>
-                  {/* Tour Info */}
-                  <div style={{ marginBottom: '1rem' }}>
-                    <h3 style={{
-                      fontSize: '1.4rem',
-                      fontWeight: '700',
-                      color: 'white',
-                      marginBottom: '0.5rem',
-                      lineHeight: 1.2
-                    }}>
-                      {tour.tourName}
-                    </h3>
-                    
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      marginBottom: '0.5rem'
-                    }}>
-                      <Users size={16} style={{ color: '#dc2626' }} />
-                      <span style={{ color: '#eab308', fontWeight: '600' }}>
-                        {tour.headliner}
-                      </span>
-                      {tour.bands.length > 1 && (
-                        <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>
-                          + {tour.bands.length - 1} more
-                        </span>
+                      
+                      {tour.ticketUrl && (
+                        <Button 
+                          className="w-full bg-red-600 hover:bg-red-700" 
+                          asChild
+                          data-testid={`button-tickets-${tour.id}`}
+                        >
+                          <a 
+                            href={tour.ticketUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center"
+                          >
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Get Tickets
+                          </a>
+                        </Button>
                       )}
-                    </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </>
+        )}
 
-                    {/* All Bands */}
-                    <div style={{ marginBottom: '1rem' }}>
-                      <p style={{ 
-                        color: 'rgba(255, 255, 255, 0.8)', 
-                        fontSize: '0.9rem',
-                        lineHeight: 1.4 
-                      }}>
-                        {tour.bands.join(', ')}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Tour Stops */}
-                  <div style={{ marginBottom: '1rem' }}>
-                    <h4 style={{ 
-                      color: '#eab308', 
-                      fontSize: '1rem', 
-                      marginBottom: '0.5rem',
-                      fontWeight: '600'
-                    }}>
-                      Upcoming Stops
-                    </h4>
-                    <div style={{ maxHeight: '120px', overflowY: 'auto' }}>
-                      {tour.currentStops.slice(0, 3).map((stop, stopIndex) => (
-                        <div key={stopIndex} style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: '8px 0',
-                          borderBottom: stopIndex < tour.currentStops.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
-                        }}>
-                          <div>
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              marginBottom: '2px'
-                            }}>
-                              <MapPin size={14} style={{ color: '#dc2626' }} />
-                              <span style={{ color: 'white', fontSize: '0.9rem', fontWeight: '500' }}>
-                                {stop.city}{stop.state && `, ${stop.state}`}
-                              </span>
-                            </div>
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px'
-                            }}>
-                              <Calendar size={12} style={{ color: '#eab308' }} />
-                              <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.8rem' }}>
-                                {formatDate(stop.date)}
-                              </span>
-                            </div>
-                            <p style={{ 
-                              color: 'rgba(255, 255, 255, 0.6)', 
-                              fontSize: '0.8rem',
-                              margin: '2px 0 0 20px' 
-                            }}>
-                              {stop.venue}
+        {activeTab === 'discover' && (
+          <>
+            {/* Discovery Results */}
+            {discoveryMutation.data && discoveryMutation.data.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
+                  <Globe className="h-6 w-6 mr-2 text-blue-400" />
+                  Multi-Platform Discovery ({discoveryMutation.data.length} events)
+                </h2>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {discoveryMutation.data.map((event) => (
+                    <Card key={event.id} className="bg-gray-900/50 border-gray-700 hover:border-blue-500/50 transition-colors" data-testid={`card-event-${event.id}`}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg font-bold text-white mb-1" data-testid={`text-artist-name-${event.id}`}>
+                              {event.artist}
+                            </CardTitle>
+                            <p className="text-blue-400 font-semibold text-sm" data-testid={`text-event-title-${event.id}`}>
+                              {event.title}
                             </p>
                           </div>
-                          
-                          {stop.ticketUrl && (
-                            <a
-                              href={stop.ticketUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
-                                padding: '4px 8px',
-                                backgroundColor: '#dc2626',
-                                color: 'white',
-                                textDecoration: 'none',
-                                borderRadius: '4px',
-                                fontSize: '0.8rem',
-                                fontWeight: '500',
-                                transition: 'background-color 0.2s'
-                              }}
-                              data-testid={`ticket-link-${stopIndex}`}
-                            >
-                              Tickets
-                            </a>
-                          )}
+                          <div className="flex flex-col items-end gap-1">
+                            <Badge variant="outline" className="bg-blue-900/30 text-blue-300 border-blue-600">
+                              {event.platform || 'Multi-Platform'}
+                            </Badge>
+                            {event.relevanceScore && (
+                              <div className="flex items-center text-xs text-yellow-400">
+                                <Star className="h-3 w-3 mr-1" />
+                                {(event.relevanceScore * 100).toFixed(0)}%
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      ))}
-                      
-                      {tour.currentStops.length > 3 && (
-                        <p style={{
-                          color: 'rgba(255, 255, 255, 0.6)',
-                          fontSize: '0.8rem',
-                          textAlign: 'center',
-                          padding: '8px 0',
-                          fontStyle: 'italic'
-                        }}>
-                          + {tour.currentStops.length - 3} more stops
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center text-gray-300">
+                            <MapPin className="h-4 w-4 mr-2" />
+                            <span className="text-sm">{event.venue}</span>
+                          </div>
+                          <div className="flex items-center text-gray-300">
+                            <Calendar className="h-4 w-4 mr-2" />
+                            <span className="text-sm">{formatDate(event.date)}</span>
+                          </div>
+                          <div className="flex items-center text-gray-300">
+                            <Clock className="h-4 w-4 mr-2" />
+                            <span className="text-sm">{event.time}</span>
+                          </div>
+                          <div className="flex items-center text-gray-300">
+                            <DollarSign className="h-4 w-4 mr-2" />
+                            <span className="text-sm">{formatPrice(event.price)}</span>
+                          </div>
+                        </div>
+                        
+                        {event.aiRecommendationReason && (
+                          <div className="bg-purple-900/20 border border-purple-700/50 rounded p-2">
+                            <p className="text-xs text-purple-300">
+                              <Bot className="h-3 w-3 inline mr-1" />
+                              {event.aiRecommendationReason}
+                            </p>
+                          </div>
+                        )}
 
-                  {/* Price and AI Recommendation */}
-                  <div style={{ marginTop: '1rem' }}>
-                    {tour.ticketPriceRange && (
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        marginBottom: '0.5rem'
-                      }}>
-                        <DollarSign size={16} style={{ color: '#eab308' }} />
-                        <span style={{ color: 'white', fontWeight: '600' }}>
-                          {formatPrice(tour.ticketPriceRange)}
-                        </span>
-                      </div>
-                    )}
-
-                    {tour.aiRecommendationReason && (
-                      <div style={{
-                        backgroundColor: 'rgba(234, 179, 8, 0.1)',
-                        border: '1px solid rgba(234, 179, 8, 0.3)',
-                        borderRadius: '8px',
-                        padding: '0.75rem',
-                        marginTop: '1rem'
-                      }}>
-                        <p style={{
-                          color: '#eab308',
-                          fontSize: '0.85rem',
-                          lineHeight: 1.4,
-                          margin: 0,
-                          fontStyle: 'italic'
-                        }}>
-                          <strong>AI Recommendation:</strong> {tour.aiRecommendationReason}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                        <Button 
+                          className="w-full bg-blue-600 hover:bg-blue-700" 
+                          asChild
+                          data-testid={`button-tickets-event-${event.id}`}
+                        >
+                          <a 
+                            href={event.ticketUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center"
+                          >
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Get Tickets
+                          </a>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            )}
 
-        {/* Empty State */}
-        {hasSearched && !isLoading && tours.length === 0 && (
-          <div style={{
-            textAlign: 'center',
-            padding: '4rem 2rem',
-            color: 'rgba(255, 255, 255, 0.7)'
-          }}>
-            <h3 style={{ color: '#eab308', marginBottom: '1rem', fontSize: '1.5rem' }}>
-              No tours found
-            </h3>
-            <p style={{ marginBottom: '2rem', maxWidth: '500px', margin: '0 auto' }}>
-              Try adjusting your search terms, location, or expanding your genre preferences to discover more tours.
-            </p>
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-              <button
-                onClick={() => {
-                  setSearchFilters({
-                    query: '',
-                    location: '',
-                    preferredGenres: ['metal', 'rock'],
-                    favoriteArtists: [],
-                    priceRange: { min: 20, max: 300 },
-                    radius: 100
-                  });
-                  setHasSearched(false);
-                  setSearchHistory([]);
-                }}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#dc2626',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s'
-                }}
-                data-testid="button-reset-search"
-              >
-                Reset Search
-              </button>
-              
-              {/* Quick Search Buttons */}
-              <button
-                onClick={() => selectSuggestion('metal tour 2025')}
-                style={{
-                  padding: '12px 20px',
-                  backgroundColor: 'rgba(234, 179, 8, 0.2)',
-                  color: '#eab308',
-                  border: '1px solid rgba(234, 179, 8, 0.3)',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                data-testid="button-quick-metal"
-              >
-                Metal Tours
-              </button>
-              
-              <button
-                onClick={() => selectSuggestion('rock festival')}
-                style={{
-                  padding: '12px 20px',
-                  backgroundColor: 'rgba(220, 38, 38, 0.2)',
-                  color: '#dc2626',
-                  border: '1px solid rgba(220, 38, 38, 0.3)',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                data-testid="button-quick-rock"
-              >
-                Rock Festivals
-              </button>
-            </div>
-          </div>
-        )}
+            {/* AI Tour Discovery Results */}
+            {tourDiscoveryMutation.data && tourDiscoveryMutation.data.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
+                  <Bot className="h-6 w-6 mr-2 text-purple-400" />
+                  AI Smart Discovery ({tourDiscoveryMutation.data.length} events)
+                </h2>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {tourDiscoveryMutation.data.map((event) => (
+                    <Card key={event.id} className="bg-gray-900/50 border-gray-700 hover:border-purple-500/50 transition-colors" data-testid={`card-ai-event-${event.id}`}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg font-bold text-white mb-1" data-testid={`text-ai-artist-name-${event.id}`}>
+                              {event.artist}
+                            </CardTitle>
+                            <p className="text-purple-400 font-semibold text-sm" data-testid={`text-ai-event-title-${event.id}`}>
+                              {event.title}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <Badge variant="outline" className="bg-purple-900/30 text-purple-300 border-purple-600">
+                              AI + Google
+                            </Badge>
+                            {event.relevanceScore && (
+                              <div className="flex items-center text-xs text-yellow-400">
+                                <Star className="h-3 w-3 mr-1" />
+                                {(event.relevanceScore * 100).toFixed(0)}%
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center text-gray-300">
+                            <MapPin className="h-4 w-4 mr-2" />
+                            <span className="text-sm">{event.venue}</span>
+                          </div>
+                          <div className="flex items-center text-gray-300">
+                            <Calendar className="h-4 w-4 mr-2" />
+                            <span className="text-sm">{formatDate(event.date)}</span>
+                          </div>
+                          <div className="flex items-center text-gray-300">
+                            <Clock className="h-4 w-4 mr-2" />
+                            <span className="text-sm">{event.time}</span>
+                          </div>
+                          <div className="flex items-center text-gray-300">
+                            <DollarSign className="h-4 w-4 mr-2" />
+                            <span className="text-sm">{formatPrice(event.price)}</span>
+                          </div>
+                        </div>
+                        
+                        {event.aiRecommendationReason && (
+                          <div className="bg-purple-900/20 border border-purple-700/50 rounded p-2">
+                            <p className="text-xs text-purple-300">
+                              <Sparkles className="h-3 w-3 inline mr-1" />
+                              {event.aiRecommendationReason}
+                            </p>
+                          </div>
+                        )}
 
-        {/* Initial State */}
-        {!hasSearched && !isLoading && (
-          <div style={{
-            textAlign: 'center',
-            padding: '4rem 2rem',
-            color: 'rgba(255, 255, 255, 0.7)'
-          }}>
-            <h3 style={{ color: '#eab308', marginBottom: '1rem', fontSize: '1.5rem' }}>
-              Ready to discover epic tours?
-            </h3>
-            <p style={{ maxWidth: '600px', margin: '0 auto', lineHeight: 1.6 }}>
-              Search for your favorite bands, explore tours by genre, or discover new music experiences. 
-              Our Google-powered search and AI recommendations will help you find the perfect shows.
-            </p>
-          </div>
+                        <Button 
+                          className="w-full bg-purple-600 hover:bg-purple-700" 
+                          asChild
+                          data-testid={`button-tickets-ai-event-${event.id}`}
+                        >
+                          <a 
+                            href={event.ticketUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center"
+                          >
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Get Tickets
+                          </a>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* No Results State */}
+            {!discoveryMutation.data && !tourDiscoveryMutation.data && !discoveryMutation.isPending && !tourDiscoveryMutation.isPending && (
+              <div className="text-center py-12">
+                <Music className="h-16 w-16 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">Ready to discover amazing metal concerts?</h3>
+                <p className="text-gray-400 mb-6">
+                  Use our AI-powered search to find events tailored to your taste, or search across multiple platforms for the best deals.
+                </p>
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-500">🤖 AI Smart Discovery: OpenAI + Google Custom Search</p>
+                  <p className="text-sm text-gray-500">🌐 Multi-Platform: SeatGeek, Ticketmaster, Bandsintown</p>
+                </div>
+              </div>
+            )}
+
+            {/* Error States */}
+            {discoveryMutation.error && (
+              <div className="text-center py-8">
+                <p className="text-red-400">Error during multi-platform search. Please try again.</p>
+              </div>
+            )}
+
+            {tourDiscoveryMutation.error && (
+              <div className="text-center py-8">
+                <p className="text-red-400">Error during AI discovery. Please try again.</p>
+              </div>
+            )}
+          </>
         )}
       </div>
-
-      <style>{`
-        @keyframes gridSlide {
-          0% { transform: translate(0, 0); }
-          100% { transform: translate(50px, 50px); }
-        }
-        
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          33% { transform: translateY(-10px) rotate(2deg); }
-          66% { transform: translateY(5px) rotate(-1deg); }
-        }
-        
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }

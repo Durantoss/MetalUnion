@@ -70,20 +70,12 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
     },
     {
       id: 'tours',
-      title: 'Tour Dates',
-      subtitle: 'Live Experience Tracker',
-      description: 'Track upcoming tours and live performances',
+      title: 'Tours & Events',
+      subtitle: 'AI-Powered Concert Discovery',
+      description: 'Track upcoming tours with smart recommendations and multi-platform search',
       gradient: 'linear-gradient(135deg, #dc2626, #ffffff)',
-      stats: `${stats.tours} tours`
-    },
-    {
-      id: 'events',
-      title: 'Event Discovery',
-      subtitle: 'Intelligent Concert Discovery',
-      description: 'Discover metal concerts tailored to your taste with smart recommendations',
-      gradient: 'linear-gradient(135deg, #ffffff, #dc2626)',
-      stats: `${stats.events} events`,
-      featured: false
+      stats: `${stats.tours} tours + AI discovery`,
+      featured: true
     },
     {
       id: 'photos',

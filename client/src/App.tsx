@@ -14,8 +14,7 @@ import { SimpleLandingFallback } from './components/SimpleLandingFallback';
 import { EmergencyLanding } from './components/EmergencyLanding';
 // import { MobileCompatibilityCheck } from './components/MobileCompatibilityCheck';
 import { EnhancedSocialHub } from './components/EnhancedSocialHub';
-import { EnhancedEventsPage } from './components/EnhancedEventsPage';
-import { SimpleToursPage } from './components/SimpleToursPage';
+import { EnhancedToursPage } from './components/EnhancedToursPage';
 import { UserProfile } from './components/UserProfile';
 import { NotificationCenter } from './components/NotificationCenter';
 import { MessagingTestPage } from './components/MessagingTestPage';
@@ -450,12 +449,10 @@ const App = () => {
         return <ActivityFeed />;
       case 'gamification':
         return <GameficationDashboard />;
-      case 'events':
-        return <EnhancedEventsPage />;
       case 'polls':
         return <InteractivePolls />;
       case 'tours':
-        return <SimpleToursPage />;
+        return <EnhancedToursPage />;
       case 'reviews':
         return (
           <div style={{ padding: '0 2rem' }}>
