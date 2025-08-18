@@ -34,6 +34,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
       setError('');
     },
     onError: (error: any) => {
+      console.error('Login mutation error:', error);
       setError(error.message || 'Login failed');
     }
   });
