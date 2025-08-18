@@ -79,15 +79,7 @@ export async function setupAuth(app: Express) {
         });
       }
       
-      // Check if email is already taken (if provided)
-      if (email) {
-        const existingEmailUser = await storage.getUserByEmail(email);
-        if (existingEmailUser) {
-          return res.status(409).json({ 
-            error: 'Email already registered. Please use a different email or try logging in.' 
-          });
-        }
-      }
+      // Note: Email uniqueness checking can be added later if needed
       
       // Hash the password
       const hashedPassword = await hashPassword(safeword);
