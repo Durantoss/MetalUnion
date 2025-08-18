@@ -271,33 +271,18 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
               fontSize: window.innerWidth < 768 ? '0.9rem' : '1rem'
             }}
           >
-            {/* Fire Background for The Pit */}
-            {section.id === 'social' && (
-              <div className="fire-background">
-                <div className="fire-flame"></div>
-                <div className="fire-flame"></div>
-                <div className="fire-flame"></div>
-                <div className="fire-flame"></div>
-                <div className="fire-flame"></div>
-                <div className="fire-flame"></div>
-                <div className="fire-flame"></div>
-              </div>
-            )}
-            
-            {/* Background Gradient for other panels */}
-            {section.id !== 'social' && (
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                right: 0,
-                width: window.innerWidth < 768 ? '80px' : '100px',
-                height: window.innerWidth < 768 ? '80px' : '100px',
-                background: section.gradient,
-                borderRadius: '50%',
-                opacity: 0.1,
-                filter: 'blur(20px)'
-              }} />
-            )}
+            {/* Background Gradient */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: window.innerWidth < 768 ? '80px' : '100px',
+              height: window.innerWidth < 768 ? '80px' : '100px',
+              background: section.gradient,
+              borderRadius: '50%',
+              opacity: 0.1,
+              filter: 'blur(20px)'
+            }} />
             
             <div style={{
               display: 'flex',
