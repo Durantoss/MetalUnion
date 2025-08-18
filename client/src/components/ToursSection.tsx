@@ -93,7 +93,7 @@ export function ToursSection() {
             color: '#facc15',
             fontSize: '0.9rem'
           }}>
-            💡 Pro Tip: Check out EVENT DISCOVERY for AI-powered concert recommendations!
+            💡 Pro Tip: Check out EVENT DISCOVERY for Smart concert recommendations!
           </div>
         </div>
       </div>

@@ -19,7 +19,7 @@ export function EventsHub({ featured = false }: EventsHubProps) {
       </h3>
       <p style={{ color: '#d1d5db' }}>
         The events functionality has been moved to the dedicated Event Discovery section.
-        Use the main navigation to access AI-powered event recommendations!
+        Use the main navigation to access Smart event recommendations!
       </p>
     </div>
   );

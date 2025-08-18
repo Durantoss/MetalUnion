@@ -89,7 +89,7 @@ export function SimpleLandingFallback({ onSectionChange, bands }: SimpleLandingF
         {[
           { id: 'bands', title: 'Bands', icon: '🎸', desc: 'Discover metal bands' },
           { id: 'tours', title: 'Tours', icon: '🚌', desc: 'Find concert dates' },
-          { id: 'events', title: 'Events', icon: '🎯', desc: 'AI-powered discovery' },
+          { id: 'events', title: 'Events', icon: '🎯', desc: 'Smart event discovery' },
           { id: 'social', title: 'Social', icon: '💬', desc: 'Connect with fans' }
         ].map((section) => (
           <button

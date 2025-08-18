@@ -4,7 +4,22 @@
 
 MoshUnion is a comprehensive full-stack music community platform designed for metal and rock enthusiasts. Beyond band discovery, it provides a complete social ecosystem where users can write reviews, upload concert photos, track tour dates, and connect with fellow metalheads. The platform combines modern React frontend architecture with a robust Node.js/Express backend, using PostgreSQL for reliable data persistence through Drizzle ORM.
 
-## Recent Changes (August 17, 2025)
+## Recent Changes (August 18, 2025)
+
+**AI Functionality Made Invisible**: Removed all AI mentions from the frontend to make intelligent features work seamlessly in the background:
+- Changed "AI-powered" to "Smart" or "Intelligent" across all components
+- Updated landing pages to use "Smart event discovery" instead of "AI-powered discovery"
+- Modified search placeholders to remove AI references
+- Maintained all backend AI functionality while making it transparent to users
+- Background AI services continue working invisibly for recommendations and analysis
+
+**Mobile Deployment Issues Resolved**: Fixed critical JavaScript initialization error preventing app loading on mobile:
+- Fixed "Cannot access 'container' before initialization" error in main.tsx
+- Restored proper React mounting and component rendering
+- App now loads successfully on mobile devices after deployment
+- Console logs confirm successful band loading and navigation functionality
+
+## Previous Changes (August 17, 2025)
 
 **Enhanced Tour Search System Complete**: Added comprehensive search functionality to the Tours section with advanced features:
 - **Smart Search Suggestions**: Auto-complete with popular tour searches and band suggestions

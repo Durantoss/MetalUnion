@@ -63,8 +63,8 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
     {
       id: 'events',
       title: 'Event Discovery',
-      subtitle: 'AI-Powered Concert Recommendations',
-      description: 'Discover metal concerts tailored to your taste using advanced AI',
+      subtitle: 'Intelligent Concert Discovery',
+      description: 'Discover metal concerts tailored to your taste with smart recommendations',
       icon: '🎯',
       gradient: 'linear-gradient(135deg, #dc2626, #facc15)',
       stats: `${stats.events} events`,
@@ -176,7 +176,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
           {[
             { label: 'Active Users', value: stats.activeUsers, icon: '👥' },
             { label: 'Bands', value: stats.bands, icon: '🎸' },
-            { label: 'AI Events', value: stats.events, icon: '🎯' }
+            { label: 'Events', value: stats.events, icon: '🎯' }
           ].map((stat, i) => (
             <div
               key={i}

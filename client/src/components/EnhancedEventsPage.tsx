@@ -320,7 +320,7 @@ export function EnhancedEventsPage() {
             fontSize: '1.25rem',
             color: '#d1d5db'
           }}>
-            AI-powered event discovery with intelligent ticket recommendations
+Smart event discovery with intelligent ticket recommendations
           </p>
         </div>
 

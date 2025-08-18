@@ -48,7 +48,7 @@ export function EnhancedSocialHub({ userId, initialTab = 'feed' }: SocialHubProp
                 📅 Community Events Coming Soon
               </h3>
               <p style={{ color: '#9ca3af', marginBottom: '1rem' }}>
-                Check out the dedicated Event Discovery section for AI-powered concert recommendations!
+                Check out the dedicated Event Discovery section for Smart concert recommendations!
               </p>
               <div style={{
                 display: 'inline-block',
