@@ -378,7 +378,7 @@ const App = () => {
           </div>
         );
       case 'advanced-messaging':
-        return <AdvancedMessagingInterface />;
+        return <AdvancedMessagingInterface onNavigate={setCurrentSection} />;
       default:
         return null;
     }

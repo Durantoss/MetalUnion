@@ -14,7 +14,9 @@ import {
   WifiOff,
   Key,
   Lock,
-  Unlock
+  Unlock,
+  ArrowLeft,
+  Home
 } from 'lucide-react';
 
 interface WebSocketMessage {
@@ -49,7 +51,11 @@ interface Conversation {
   isBlocked: boolean;
 }
 
-export function AdvancedMessagingInterface() {
+interface AdvancedMessagingInterfaceProps {
+  onNavigate?: (section: string) => void;
+}
+
+export function AdvancedMessagingInterface({ onNavigate }: AdvancedMessagingInterfaceProps = {}) {
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('disconnected');
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -167,10 +173,10 @@ export function AdvancedMessagingInterface() {
       case 'typing_indicator':
         const { userId, isTyping } = message.data;
         if (isTyping) {
-          setTypingUsers(prev => new Set([...prev, userId]));
+          setTypingUsers(prev => new Set(Array.from(prev).concat(userId)));
           setTimeout(() => {
             setTypingUsers(prev => {
-              const updated = new Set(prev);
+              const updated = new Set(Array.from(prev));
               updated.delete(userId);
               return updated;
             });
@@ -181,10 +187,10 @@ export function AdvancedMessagingInterface() {
       case 'user_status':
         const { userId: statusUserId, status } = message.data;
         if (status === 'online') {
-          setOnlineUsers(prev => new Set([...prev, statusUserId]));
+          setOnlineUsers(prev => new Set(Array.from(prev).concat(statusUserId)));
         } else {
           setOnlineUsers(prev => {
-            const updated = new Set(prev);
+            const updated = new Set(Array.from(prev));
             updated.delete(statusUserId);
             return updated;
           });
@@ -356,6 +362,30 @@ export function AdvancedMessagingInterface() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-red-950 to-black p-4" data-testid="advanced-messaging-interface">
       <div className="max-w-6xl mx-auto">
+        {/* Navigation Header */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={() => onNavigate?.('landing')}
+              variant="outline"
+              className="border-red-600/30 text-red-400 hover:bg-red-600/10"
+              data-testid="button-back-home"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to MoshUnion
+            </Button>
+            <Button
+              onClick={() => onNavigate?.('social')}
+              variant="outline"
+              className="border-yellow-600/30 text-yellow-400 hover:bg-yellow-600/10"
+              data-testid="button-social-hub"
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Social Hub
+            </Button>
+          </div>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-red-400 mb-2" data-testid="title-advanced-messaging">
