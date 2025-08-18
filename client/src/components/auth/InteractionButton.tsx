@@ -1,5 +1,4 @@
 import React from 'react';
-import { AuthGuard } from './AuthGuard';
 
 interface InteractionButtonProps {
   onClick: () => void;
@@ -9,6 +8,7 @@ interface InteractionButtonProps {
   className?: string;
   disabled?: boolean;
   'data-testid'?: string;
+  onTouchStart?: () => void;
 }
 
 export function InteractionButton({
@@ -18,58 +18,54 @@ export function InteractionButton({
   style,
   className,
   disabled,
-  'data-testid': testId
+  'data-testid': testId,
+  onTouchStart
 }: InteractionButtonProps) {
+  // Simple authentication check - always show auth required for now
+  const isAuthenticated = false; // TODO: Connect to real auth system
+  
+  const handleClick = () => {
+    if (!isAuthenticated) {
+      // Trigger auth modal via global event
+      const event = new CustomEvent('auth-required', {
+        detail: { action }
+      });
+      window.dispatchEvent(event);
+    } else {
+      onClick();
+    }
+  };
+
   return (
-    <AuthGuard
-      action={action}
-      fallback={
-        <div
-          style={{
-            ...style,
-            opacity: 0.6,
-            cursor: 'pointer',
-            position: 'relative'
-          }}
-          className={className}
-          data-testid={testId}
-          onClick={() => {
-            // Show auth modal when clicked
-            const event = new CustomEvent('auth-required', {
-              detail: { action }
-            });
-            window.dispatchEvent(event);
-          }}
-        >
-          {children}
-          <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            color: '#facc15',
-            padding: '0.25rem 0.5rem',
-            borderRadius: '4px',
-            fontSize: '0.7rem',
-            fontWeight: '600',
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none'
-          }}>
-            Sign up required
-          </div>
-        </div>
-      }
+    <button
+      onClick={handleClick}
+      onTouchStart={onTouchStart}
+      style={{
+        ...style,
+        position: 'relative'
+      }}
+      className={className}
+      disabled={disabled}
+      data-testid={testId}
     >
-      <button
-        onClick={onClick}
-        style={style}
-        className={className}
-        disabled={disabled}
-        data-testid={testId}
-      >
-        {children}
-      </button>
-    </AuthGuard>
+      {children}
+      {!isAuthenticated && (
+        <div style={{
+          position: 'absolute',
+          top: '-8px',
+          right: '-8px',
+          backgroundColor: '#facc15',
+          color: '#000000',
+          padding: '2px 6px',
+          borderRadius: '10px',
+          fontSize: '0.6rem',
+          fontWeight: '700',
+          pointerEvents: 'none',
+          zIndex: 10
+        }}>
+          🔒
+        </div>
+      )}
+    </button>
   );
 }

@@ -210,9 +210,10 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
               const isActive = activeTab === tab.id;
               
               return (
-                <button
+                <InteractionButton
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
+                  action={`access ${tab.name}`}
                   onTouchStart={() => {}} // Ensure touch events are registered
                   className={`flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-3 px-3 md:px-6 py-3 md:py-4 border-b-2 transition-all min-w-fit touch-manipulation active:scale-95 ${
                     isActive
@@ -233,7 +234,7 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
                     <div className="font-semibold text-xs md:text-sm">{tab.name}</div>
                     <div className="text-xs opacity-75 hidden lg:block">{tab.description}</div>
                   </div>
-                </button>
+                </InteractionButton>
               );
             })}
           </div>
