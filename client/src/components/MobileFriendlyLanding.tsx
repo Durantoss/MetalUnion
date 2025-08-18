@@ -32,6 +32,8 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
   console.log('Rendering MobileFriendlyLanding component');
   
   const featuredBands = bands?.slice(0, 3) || [];
+  const [moshColor, setMoshColor] = useState('#dc2626'); // red
+  const [unionColor, setUnionColor] = useState('#facc15'); // yellow
   const [stats, setStats] = useState<SectionStats>({
     bands: bands.length,
     reviews: 342,
@@ -140,18 +142,37 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
         marginBottom: '4rem',
         padding: '3rem 0'
       }}>
-        <h1 style={{
-          fontSize: 'clamp(3rem, 8vw, 5rem)',
-          fontWeight: '900',
-          background: 'linear-gradient(45deg, #dc2626, #facc15)',
-          backgroundClip: 'text',
-          WebkitBackgroundClip: 'text',
-          color: 'transparent',
-          marginBottom: '1rem',
-          textShadow: '0 4px 20px rgba(220, 38, 38, 0.3)',
-          letterSpacing: '-0.02em'
-        }}>
-          MOSHUNION
+        <h1 
+          onClick={() => {
+            // Swap colors when clicked
+            const newMoshColor = moshColor === '#dc2626' ? '#facc15' : '#dc2626';
+            const newUnionColor = unionColor === '#facc15' ? '#dc2626' : '#facc15';
+            setMoshColor(newMoshColor);
+            setUnionColor(newUnionColor);
+          }}
+          style={{
+            fontSize: 'clamp(3rem, 8vw, 5rem)',
+            fontWeight: '900',
+            marginBottom: '1rem',
+            letterSpacing: '-0.02em',
+            cursor: 'pointer',
+            userSelect: 'none'
+          }}
+        >
+          <span style={{
+            color: moshColor,
+            textShadow: `0 4px 20px ${moshColor === '#dc2626' ? 'rgba(220, 38, 38, 0.3)' : 'rgba(250, 204, 21, 0.3)'}`,
+            transition: 'all 0.3s ease'
+          }}>
+            MOSH
+          </span>
+          <span style={{
+            color: unionColor,
+            textShadow: `0 4px 20px ${unionColor === '#dc2626' ? 'rgba(220, 38, 38, 0.3)' : 'rgba(250, 204, 21, 0.3)'}`,
+            transition: 'all 0.3s ease'
+          }}>
+            UNION
+          </span>
         </h1>
         
         <p style={{

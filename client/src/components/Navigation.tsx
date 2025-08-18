@@ -66,13 +66,13 @@ export function Navigation({ currentSection, onSectionChange, onShowComparison, 
           }}
         >
           <span style={{
-            color: animatingWord === 'mosh' ? '#ffffff' : '#dc2626',
+            color: animatingWord === 'mosh' ? '#facc15' : '#dc2626',
             transition: 'color 0.15s ease'
           }}>
             MOSH
           </span>
           <span style={{
-            color: animatingWord === 'union' ? '#ffffff' : '#dc2626',
+            color: animatingWord === 'union' ? '#dc2626' : '#facc15',
             transition: 'color 0.15s ease'
           }}>
             UNION

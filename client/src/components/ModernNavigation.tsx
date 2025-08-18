@@ -1,4 +1,5 @@
 // Hook-free navigation component to resolve React hooks errors
+import { useState } from 'react';
 
 interface ModernNavigationProps {
   currentSection: string;
@@ -15,7 +16,17 @@ export function ModernNavigation({
   onShowLogin, 
   onReturnHome 
 }: ModernNavigationProps) {
+  const [moshColor, setMoshColor] = useState('#dc2626'); // red
+  const [unionColor, setUnionColor] = useState('#facc15'); // yellow
+
   const handleLogoClick = () => {
+    // Swap colors
+    const newMoshColor = moshColor === '#dc2626' ? '#facc15' : '#dc2626';
+    const newUnionColor = unionColor === '#facc15' ? '#dc2626' : '#facc15';
+    
+    setMoshColor(newMoshColor);
+    setUnionColor(newUnionColor);
+    
     if (onReturnHome && typeof onReturnHome === 'function') {
       onReturnHome();
     } else {
@@ -65,22 +76,24 @@ export function ModernNavigation({
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
+            gap: '0rem',
             fontSize: '1.5rem',
             fontWeight: '900',
             fontFamily: 'monospace'
           }}>
             <span style={{
-              color: '#dc2626',
-              textShadow: '0 0 20px rgba(220, 38, 38, 0.8)',
-              transition: 'all 0.3s ease'
+              color: moshColor,
+              textShadow: `0 0 20px ${moshColor === '#dc2626' ? 'rgba(220, 38, 38, 0.8)' : 'rgba(250, 204, 21, 0.8)'}`,
+              transition: 'all 0.3s ease',
+              cursor: 'pointer'
             }}>
               MOSH
             </span>
             <span style={{
-              color: '#dc2626',
-              textShadow: '0 0 20px rgba(220, 38, 38, 0.8)',
-              transition: 'all 0.3s ease'
+              color: unionColor,
+              textShadow: `0 0 20px ${unionColor === '#dc2626' ? 'rgba(220, 38, 38, 0.8)' : 'rgba(250, 204, 21, 0.8)'}`,
+              transition: 'all 0.3s ease',
+              cursor: 'pointer'
             }}>
               UNION
             </span>
