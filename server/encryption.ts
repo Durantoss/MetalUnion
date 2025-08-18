@@ -1,4 +1,4 @@
-import { randomBytes, createCipheriv, createDecipheriv, generateKeyPair, publicEncrypt, privateDecrypt } from 'crypto';
+import { randomBytes, createCipheriv, createDecipheriv, generateKeyPair, publicEncrypt, privateDecrypt, pbkdf2Sync } from 'crypto';
 
 export interface EncryptionKeys {
   publicKey: string;
@@ -133,7 +133,6 @@ export class MessageEncryption {
    * Derive encryption key from password using PBKDF2
    */
   private static deriveKey(password: string, salt: Buffer): Buffer {
-    const crypto = require('crypto');
-    return crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256');
+    return pbkdf2Sync(password, salt, 100000, 32, 'sha256');
   }
 }

@@ -118,12 +118,12 @@ export function AdvancedMessagingInterface({ onNavigate }: AdvancedMessagingInte
         setIsConnected(false);
         setConnectionStatus('disconnected');
         
-        // Attempt to reconnect after 3 seconds
+        // Reduced reconnection frequency to prevent connection storm
         setTimeout(() => {
-          if (connectionStatus !== 'connected') {
+          if (connectionStatus !== 'connected' && (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED)) {
             connectWebSocket();
           }
-        }, 3000);
+        }, 10000);
       };
 
       wsRef.current.onerror = (error) => {
