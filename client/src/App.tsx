@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BandComparison } from './components/BandComparison';
 import { ModernNavigation } from './components/ModernNavigation';
-import { ToursSection } from './components/ToursSection';
+
 import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
 import { ThePit } from './components/ThePit';
