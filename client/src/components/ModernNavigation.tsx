@@ -17,12 +17,12 @@ export function ModernNavigation({
   onReturnHome 
 }: ModernNavigationProps) {
   const [moshColor, setMoshColor] = useState('#dc2626'); // red
-  const [unionColor, setUnionColor] = useState('#facc15'); // yellow
+  const [unionColor, setUnionColor] = useState('#ffffff'); // white
 
   const handleLogoClick = () => {
     // Swap colors
-    const newMoshColor = moshColor === '#dc2626' ? '#facc15' : '#dc2626';
-    const newUnionColor = unionColor === '#facc15' ? '#dc2626' : '#facc15';
+    const newMoshColor = moshColor === '#dc2626' ? '#ffffff' : '#dc2626';
+    const newUnionColor = unionColor === '#ffffff' ? '#dc2626' : '#ffffff';
     
     setMoshColor(newMoshColor);
     setUnionColor(newUnionColor);
@@ -83,7 +83,7 @@ export function ModernNavigation({
           }}>
             <span style={{
               color: moshColor,
-              textShadow: `0 0 20px ${moshColor === '#dc2626' ? 'rgba(220, 38, 38, 0.8)' : 'rgba(250, 204, 21, 0.8)'}`,
+              textShadow: `0 0 20px ${moshColor === '#dc2626' ? 'rgba(220, 38, 38, 0.8)' : 'rgba(255, 255, 255, 0.8)'}`,
               transition: 'all 0.3s ease',
               cursor: 'pointer'
             }}>
@@ -91,7 +91,7 @@ export function ModernNavigation({
             </span>
             <span style={{
               color: unionColor,
-              textShadow: `0 0 20px ${unionColor === '#dc2626' ? 'rgba(220, 38, 38, 0.8)' : 'rgba(250, 204, 21, 0.8)'}`,
+              textShadow: `0 0 20px ${unionColor === '#dc2626' ? 'rgba(220, 38, 38, 0.8)' : 'rgba(255, 255, 255, 0.8)'}`,
               transition: 'all 0.3s ease',
               cursor: 'pointer'
             }}>

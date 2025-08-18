@@ -33,7 +33,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
   
   const featuredBands = bands?.slice(0, 3) || [];
   const [moshColor, setMoshColor] = useState('#dc2626'); // red
-  const [unionColor, setUnionColor] = useState('#facc15'); // yellow
+  const [unionColor, setUnionColor] = useState('#ffffff'); // white
   const [stats, setStats] = useState<SectionStats>({
     bands: bands.length,
     reviews: 342,
@@ -145,8 +145,8 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
         <h1 
           onClick={() => {
             // Swap colors when clicked
-            const newMoshColor = moshColor === '#dc2626' ? '#facc15' : '#dc2626';
-            const newUnionColor = unionColor === '#facc15' ? '#dc2626' : '#facc15';
+            const newMoshColor = moshColor === '#dc2626' ? '#ffffff' : '#dc2626';
+            const newUnionColor = unionColor === '#ffffff' ? '#dc2626' : '#ffffff';
             setMoshColor(newMoshColor);
             setUnionColor(newUnionColor);
           }}
@@ -161,14 +161,14 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
         >
           <span style={{
             color: moshColor,
-            textShadow: `0 4px 20px ${moshColor === '#dc2626' ? 'rgba(220, 38, 38, 0.3)' : 'rgba(250, 204, 21, 0.3)'}`,
+            textShadow: `0 4px 20px ${moshColor === '#dc2626' ? 'rgba(220, 38, 38, 0.3)' : 'rgba(255, 255, 255, 0.3)'}`,
             transition: 'all 0.3s ease'
           }}>
             MOSH
           </span>
           <span style={{
             color: unionColor,
-            textShadow: `0 4px 20px ${unionColor === '#dc2626' ? 'rgba(220, 38, 38, 0.3)' : 'rgba(250, 204, 21, 0.3)'}`,
+            textShadow: `0 4px 20px ${unionColor === '#dc2626' ? 'rgba(220, 38, 38, 0.3)' : 'rgba(255, 255, 255, 0.3)'}`,
             transition: 'all 0.3s ease'
           }}>
             UNION
