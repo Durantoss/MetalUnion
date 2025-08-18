@@ -1,6 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import fs from 'fs';
+import path from 'path';
 
 const app = express();
 app.use(express.json());
@@ -123,16 +125,43 @@ app.use((req, res, next) => {
       process.exit(1);
     }
 
+    // Add production static assets serving for external deployments
+    const productionAssetsPath = path.resolve(import.meta.dirname, "public");
+    if (fs.existsSync(productionAssetsPath)) {
+      log(`Serving production assets from: ${productionAssetsPath}`);
+      app.use(express.static(productionAssetsPath, {
+        maxAge: '1d',
+        etag: true,
+        lastModified: true
+      }));
+    }
+
     // Add emergency SPA fallback for external deployments
     app.get("*", (req, res) => {
       // Only serve index.html for non-API routes
       if (!req.path.startsWith('/api/')) {
         log(`SPA fallback serving index.html for: ${req.path}`);
-        const indexPath = path.resolve(import.meta.dirname, "..", "client", "index.html");
-        if (fs.existsSync(indexPath)) {
+        
+        // Try multiple possible locations for index.html
+        const possibleIndexPaths = [
+          path.resolve(import.meta.dirname, "..", "dist", "public", "index.html"),
+          path.resolve(import.meta.dirname, "..", "client", "index.html"),
+          path.resolve(import.meta.dirname, "public", "index.html")
+        ];
+        
+        let indexPath = null;
+        for (const possiblePath of possibleIndexPaths) {
+          if (fs.existsSync(possiblePath)) {
+            indexPath = possiblePath;
+            log(`Found index.html at: ${indexPath}`);
+            break;
+          }
+        }
+        
+        if (indexPath) {
           res.sendFile(indexPath);
         } else {
-          log("Index.html not found, serving emergency response");
+          log("Index.html not found in any location, serving emergency response");
           res.send(`
             <!DOCTYPE html>
             <html>
