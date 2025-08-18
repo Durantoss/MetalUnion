@@ -6,6 +6,8 @@ import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
 import { ThePit } from './components/ThePit';
 import { MobileFriendlyLanding } from './components/MobileFriendlyLanding';
+import { SimpleLandingFallback } from './components/SimpleLandingFallback';
+import { MobileCompatibilityCheck } from './components/MobileCompatibilityCheck';
 import { EnhancedSocialHub } from './components/EnhancedSocialHub';
 import { EnhancedEventsPage } from './components/EnhancedEventsPage';
 import { SimpleToursPage } from './components/SimpleToursPage';
@@ -154,12 +156,23 @@ const App = () => {
     if (currentSection === 'landing' || !currentSection || currentSection === '' || currentSection === undefined) {
       console.log('Rendering MobileFriendlyLanding component');
       
-      return (
-        <MobileFriendlyLanding 
-          onSectionChange={setCurrentSection}
-          bands={bands}
-        />
-      );
+      // Use fallback for mobile deployment compatibility
+      try {
+        return (
+          <MobileFriendlyLanding 
+            onSectionChange={setCurrentSection}
+            bands={bands}
+          />
+        );
+      } catch (error) {
+        console.error('MobileFriendlyLanding error:', error);
+        return (
+          <SimpleLandingFallback 
+            onSectionChange={setCurrentSection}
+            bands={bands}
+          />
+        );
+      }
     }
     
     switch (currentSection) {
@@ -504,6 +517,7 @@ const App = () => {
           color: white;
         }
       `}</style>
+      <MobileCompatibilityCheck />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 
 interface Band {
   id: string;
@@ -32,7 +32,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
   console.log('Rendering MobileFriendlyLanding component');
   
   const featuredBands = bands?.slice(0, 3) || [];
-  const [stats, setStats] = React.useState<SectionStats>({
+  const [stats, setStats] = useState<SectionStats>({
     bands: bands.length,
     reviews: 342,
     photos: 1250,
@@ -43,7 +43,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
   });
 
   // Update real-time stats
-  React.useEffect(() => {
+  useEffect(() => {
     const updateStats = () => {
       setStats(prev => ({
         ...prev,
