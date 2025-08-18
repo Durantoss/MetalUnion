@@ -19,7 +19,7 @@ export async function performGoogleSearch(
 ): Promise<GoogleSearchResponse | null> {
   try {
     const apiKey = process.env.GOOGLE_API_KEY;
-    const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID;
+    const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID || process.env.GOOGLE_CSE_ID;
     
     if (!apiKey || !searchEngineId) {
       console.log(`Google search API keys not configured for "${query}" in section "${section}"`);
@@ -59,8 +59,8 @@ export async function searchConcerts(
       return [];
     }
 
-    // Use a generic search engine ID or create a custom one for concert searches
-    const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID || '017576662512468239146:omuauf_lfve';
+    // Use the configured search engine ID
+    const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID || process.env.GOOGLE_CSE_ID;
     
     const searchQuery = `${query} ${location} site:ticketmaster.com OR site:livenation.com OR site:seatgeek.com OR site:stubhub.com`;
     

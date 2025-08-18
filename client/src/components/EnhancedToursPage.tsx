@@ -194,6 +194,26 @@ export function EnhancedToursPage() {
     }
   });
 
+  // Real-time live event search
+  const liveSearchMutation = useMutation({
+    mutationFn: async (searchQuery: string, location?: string): Promise<DiscoveredEvent[]> => {
+      const params = new URLSearchParams();
+      params.append('query', searchQuery);
+      if (location) params.append('location', location);
+      
+      const response = await fetch(`/api/events/search-live?${params}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to search live events');
+      }
+      
+      const data = await response.json();
+      return data.results || [];
+    }
+  });
+
   // Enhanced tour discovery with Google + OpenAI
   const tourDiscoveryMutation = useMutation({
     mutationFn: async (filters: SearchFilters): Promise<DiscoveredEvent[]> => {
@@ -262,6 +282,12 @@ export function EnhancedToursPage() {
 
   const handleSmartDiscovery = () => {
     tourDiscoveryMutation.mutate(searchFilters);
+  };
+
+  const handleLiveSearch = () => {
+    if (searchFilters.query?.trim()) {
+      liveSearchMutation.mutate(searchFilters.query, searchFilters.location || 'US');
+    }
   };
 
   const popularGenres = ['metal', 'rock', 'hardcore', 'black metal', 'death metal', 'thrash metal', 'progressive metal', 'doom metal'];
@@ -459,7 +485,7 @@ export function EnhancedToursPage() {
               )}
 
               {/* Search Buttons */}
-              <div className="flex gap-2 pt-2">
+              <div className="flex flex-wrap gap-2 pt-2">
                 <Button 
                   onClick={handleSearch}
                   disabled={discoveryMutation.isPending}
@@ -470,6 +496,18 @@ export function EnhancedToursPage() {
                     <>🔍 Searching...</>
                   ) : (
                     <>🌐 Multi-Platform Search</>
+                  )}
+                </Button>
+                <Button 
+                  onClick={handleLiveSearch}
+                  disabled={liveSearchMutation.isPending || !searchFilters.query?.trim()}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                  data-testid="button-live-web-search"
+                >
+                  {liveSearchMutation.isPending ? (
+                    <>🔍 Live Searching...</>
+                  ) : (
+                    <>⚡ Live Web Search</>
                   )}
                 </Button>
                 <Button 
@@ -590,6 +628,97 @@ export function EnhancedToursPage() {
 
         {activeTab === 'discover' && (
           <>
+            {/* Live Search Loading */}
+            {liveSearchMutation.isPending && (
+              <div className="text-center py-12">
+                <div className="animate-pulse">
+                  <p className="text-gray-400">⚡ Searching the web in real-time for live events...</p>
+                </div>
+              </div>
+            )}
+
+            {/* Live Search Results */}
+            {liveSearchMutation.data && liveSearchMutation.data.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
+                  <Globe className="h-6 w-6 mr-2 text-green-400" />
+                  Live Web Search Results ({liveSearchMutation.data.length} events)
+                  <Badge variant="secondary" className="ml-2 bg-green-900/30 text-green-300 border-green-600">
+                    Real-time
+                  </Badge>
+                </h2>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {liveSearchMutation.data.map((event) => (
+                    <Card key={event.id} className="bg-gray-900/50 border-green-600/30 hover:border-green-500/50 transition-colors" data-testid={`card-live-event-${event.id}`}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg font-bold text-white mb-1" data-testid={`text-live-artist-name-${event.id}`}>
+                              {event.artist}
+                            </CardTitle>
+                            <p className="text-green-400 font-semibold text-sm" data-testid={`text-live-event-title-${event.id}`}>
+                              {event.title}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <Badge variant="outline" className="bg-green-900/30 text-green-300 border-green-600">
+                              Live Search
+                            </Badge>
+                            {event.relevanceScore && (
+                              <div className="flex items-center text-xs text-yellow-400">
+                                <Star className="h-3 w-3 mr-1" />
+                                {event.relevanceScore}%
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center text-gray-300">
+                            <MapPin className="h-4 w-4 mr-2" />
+                            <span className="text-sm">{event.venue}</span>
+                          </div>
+                          <div className="flex items-center text-gray-300">
+                            <Calendar className="h-4 w-4 mr-2" />
+                            <span className="text-sm">{formatDate(event.date)}</span>
+                          </div>
+                          <div className="flex items-center text-gray-300">
+                            <Clock className="h-4 w-4 mr-2" />
+                            <span className="text-sm">{event.time}</span>
+                          </div>
+                          <div className="flex items-center text-gray-300">
+                            <DollarSign className="h-4 w-4 mr-2" />
+                            <span className="text-sm">{formatPrice(event.price)}</span>
+                          </div>
+                        </div>
+                        
+                        {event.aiRecommendationReason && (
+                          <div className="bg-green-900/20 border border-green-700/50 rounded p-2">
+                            <p className="text-xs text-green-300">
+                              <Sparkles className="h-3 w-3 inline mr-1" />
+                              {event.aiRecommendationReason}
+                            </p>
+                          </div>
+                        )}
+
+                        <a 
+                          href={event.ticketUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center py-2 px-4 rounded-md transition-colors duration-200"
+                          data-testid={`button-tickets-live-${event.id}`}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Get Tickets - {event.platform}
+                        </a>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Discovery Results */}
             {discoveryMutation.data && discoveryMutation.data.length > 0 && (
               <div className="mb-8">
