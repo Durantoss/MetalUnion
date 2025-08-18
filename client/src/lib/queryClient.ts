@@ -20,7 +20,9 @@ export async function apiRequest(url: string, options?: RequestInit) {
   });
 
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    const errorData = await response.text();
+    console.error(`API Error ${response.status}:`, errorData);
+    throw new Error(`${response.status}: ${errorData || response.statusText}`);
   }
 
   return response.json();
