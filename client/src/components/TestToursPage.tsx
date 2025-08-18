@@ -1,7 +1,4 @@
 export function TestToursPage() {
-  console.log('TEST TOURS PAGE IS WORKING!');
-  alert('TestToursPage component is rendering!');
-  
   return (
     <div style={{
       padding: '2rem',

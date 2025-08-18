@@ -8,7 +8,7 @@ import { ThePit } from './components/ThePit';
 import { MobileFriendlyLanding } from './components/MobileFriendlyLanding';
 import { EnhancedSocialHub } from './components/EnhancedSocialHub';
 import { EnhancedEventsPage } from './components/EnhancedEventsPage';
-import { TestToursPage } from './components/TestToursPage';
+import { EnhancedToursPage } from './components/EnhancedToursPage';
 import { UserProfile } from './components/UserProfile';
 import { NotificationCenter } from './components/NotificationCenter';
 import { ActivityFeed } from './components/ActivityFeed';
@@ -149,9 +149,6 @@ const App = () => {
 
   const renderContent = () => {
     console.log('Rendering section:', currentSection, 'with', bands.length, 'bands');
-    console.log('About to enter switch statement with currentSection:', currentSection);
-    console.log('Landing page should render for:', currentSection === 'landing' || !currentSection);
-    console.log('renderContent function is executing normally');
     
     // Force landing page display for mobile debugging
     if (currentSection === 'landing' || !currentSection || currentSection === '' || currentSection === undefined) {
@@ -165,7 +162,6 @@ const App = () => {
       );
     }
     
-    console.log('EXECUTING SWITCH STATEMENT with currentSection:', currentSection);
     switch (currentSection) {
       case 'bands':
         return (
@@ -341,8 +337,7 @@ const App = () => {
       case 'polls':
         return <InteractivePolls />;
       case 'tours':
-        console.log('SWITCH: About to render TestToursPage');
-        return <TestToursPage />;
+        return <EnhancedToursPage />;
       case 'reviews':
         return (
           <div style={{ padding: '0 2rem' }}>
