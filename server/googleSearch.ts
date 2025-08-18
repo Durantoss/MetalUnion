@@ -18,18 +18,31 @@ export async function performGoogleSearch(
   section: string
 ): Promise<GoogleSearchResponse | null> {
   try {
-    // Since we don't have Google Custom Search API keys configured,
-    // we'll return null to fall back to local search
+    const apiKey = process.env.GOOGLE_API_KEY;
+    const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID;
+    
+    if (!apiKey || !searchEngineId) {
+      console.log(`Google search API keys not configured for "${query}" in section "${section}"`);
+      return null; // Fallback to local search
+    }
+    
     console.log(`Google search requested for "${query}" in section "${section}"`);
     
-    // This would be the actual implementation with API keys:
-    // const response = await fetch(
-    //   `https://www.googleapis.com/customsearch/v1?key=${process.env.GOOGLE_API_KEY}&cx=${process.env.GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}`
-    // );
-    // const data = await response.json();
-    // return data;
+    const response = await fetch(
+      `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=${encodeURIComponent(query)}&num=10`
+    );
     
-    return null; // Fallback to local search
+    if (!response.ok) {
+      if (response.status === 429) {
+        console.log('Google API rate limit reached, falling back to local search');
+      } else {
+        console.error('Google Custom Search API error:', response.status, response.statusText);
+      }
+      return null;
+    }
+    
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error('Google search error:', error);
     return null;
@@ -151,7 +164,7 @@ export async function googleSearchTours(request: any): Promise<any[]> {
 
 function extractBandNames(title: string, snippet: string): string[] {
   const text = `${title} ${snippet}`.toLowerCase();
-  const bands = [];
+  const bands: string[] = [];
   
   const bandPatterns = [
     /with\s+([A-Z][a-zA-Z\s]+?)(?:\s+and|\s+,|\s+tour|\s+live|\s+concert|$)/gi,

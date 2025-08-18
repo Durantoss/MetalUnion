@@ -69,27 +69,36 @@ export class TourDataService {
    */
   private async fetchTourDataForBand(bandName: string, bandId: string): Promise<number> {
     try {
+      console.log(`Fetching tour data for band: ${bandName}`);
+      
       // Use Google Search to find tour information
       const googleTourResults = await performGoogleSearch(`${bandName} tour 2024 2025 concerts`, 'tours');
       
       // Parse Google results to extract tour information
-      const tourData = this.parseGoogleTourResults(googleTourResults || [], bandId);
+      const googleResults = googleTourResults?.items || [];
+      const tourData = this.parseGoogleTourResults(googleResults, bandId);
+      console.log(`Google search found ${tourData.length} potential tours for ${bandName}`);
       
       // Also check for additional sources
       const additionalTours = await this.fetchFromAdditionalSources(bandName, bandId);
+      console.log(`Additional sources found ${additionalTours.length} potential tours for ${bandName}`);
       
       const allTours = [...tourData, ...additionalTours];
       
       // Remove duplicates and filter for future dates
       const uniqueTours = this.removeDuplicateTours(allTours);
       const futureTours = uniqueTours.filter(tour => new Date(tour.date) > new Date());
+      console.log(`After filtering, ${futureTours.length} future tours found for ${bandName}`);
       
       // Insert tours into database
+      let addedCount = 0;
       for (const tour of futureTours) {
-        await this.createTourIfNotExists(tour);
+        const wasAdded = await this.createTourIfNotExists(tour);
+        if (wasAdded) addedCount++;
       }
       
-      return futureTours.length;
+      console.log(`Actually added ${addedCount} new tours for ${bandName}`);
+      return addedCount;
     } catch (error) {
       console.error(`Error fetching tours for ${bandName}:`, error);
       return 0;
@@ -228,7 +237,7 @@ export class TourDataService {
   /**
    * Create tour in database if it doesn't already exist
    */
-  private async createTourIfNotExists(tourData: InsertTour): Promise<void> {
+  private async createTourIfNotExists(tourData: InsertTour): Promise<boolean> {
     try {
       // Check if tour already exists
       const existingTours = await storage.getToursByBand(tourData.bandId);
@@ -241,9 +250,14 @@ export class TourDataService {
       if (!exists) {
         await storage.createTour(tourData);
         console.log(`Created tour: ${tourData.tourName} at ${tourData.venue}`);
+        return true;
+      } else {
+        console.log(`Tour already exists: ${tourData.tourName} at ${tourData.venue}`);
+        return false;
       }
     } catch (error) {
       console.error("Error creating tour:", error);
+      return false;
     }
   }
 
