@@ -96,7 +96,7 @@ export function EnhancedToursPage() {
   });
 
   // Fetch existing tours from database
-  const { data: tours = [], isLoading: toursLoading, error: toursError } = useQuery({
+  const { data: tours = [], isLoading: toursLoading, error: toursError } = useQuery<Tour[]>({
     queryKey: ['/api/tours'],
     queryFn: async () => {
       const response = await fetch('/api/tours', {
@@ -105,7 +105,7 @@ export function EnhancedToursPage() {
       if (!response.ok) {
         throw new Error('Failed to fetch tours');
       }
-      return response.json() as Tour[];
+      return response.json();
     }
   });
 
@@ -499,21 +499,16 @@ export function EnhancedToursPage() {
                       </div>
                       
                       {tour.ticketUrl && (
-                        <Button 
-                          className="w-full bg-red-600 hover:bg-red-700" 
-                          asChild
+                        <a 
+                          href={tour.ticketUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="w-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center py-2 px-4 rounded-md transition-colors duration-200"
                           data-testid={`button-tickets-${tour.id}`}
                         >
-                          <a 
-                            href={tour.ticketUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center"
-                          >
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Get Tickets
-                          </a>
-                        </Button>
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Get Tickets
+                        </a>
                       )}
                     </CardContent>
                   </Card>
@@ -587,21 +582,16 @@ export function EnhancedToursPage() {
                           </div>
                         )}
 
-                        <Button 
-                          className="w-full bg-blue-600 hover:bg-blue-700" 
-                          asChild
+                        <a 
+                          href={event.ticketUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center py-2 px-4 rounded-md transition-colors duration-200"
                           data-testid={`button-tickets-event-${event.id}`}
                         >
-                          <a 
-                            href={event.ticketUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center"
-                          >
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Get Tickets
-                          </a>
-                        </Button>
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Get Tickets
+                        </a>
                       </CardContent>
                     </Card>
                   ))}
@@ -671,21 +661,16 @@ export function EnhancedToursPage() {
                           </div>
                         )}
 
-                        <Button 
-                          className="w-full bg-purple-600 hover:bg-purple-700" 
-                          asChild
+                        <a 
+                          href={event.ticketUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="w-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center py-2 px-4 rounded-md transition-colors duration-200"
                           data-testid={`button-tickets-ai-event-${event.id}`}
                         >
-                          <a 
-                            href={event.ticketUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center"
-                          >
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Get Tickets
-                          </a>
-                        </Button>
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Get Tickets
+                        </a>
                       </CardContent>
                     </Card>
                   ))}

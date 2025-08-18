@@ -228,10 +228,10 @@ export class TourDiscoveryService {
 
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
-        max_tokens: 3000
+        max_tokens: 2000
       });
 
       const result = JSON.parse(response.choices[0].message.content || '{"events": []}');
