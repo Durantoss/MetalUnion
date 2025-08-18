@@ -1,3 +1,4 @@
+import React from 'react';
 import { ActivityFeed } from './ActivityFeed';
 import { BasicMessagingFallback } from './BasicMessagingFallback';
 import { ProximityMatcher } from './ProximityMatcher';
@@ -9,10 +10,13 @@ interface SocialHubProps {
 }
 
 export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }: SocialHubProps) {
-  // Using hash-based navigation instead of hooks to avoid compatibility issues
+  // Using state for reliable tab management
   const [currentActiveTab, setCurrentActiveTab] = React.useState(() => {
-    const currentHash = window.location.hash.replace('#', '') || 'social-feed';
-    return currentHash.split('-')[1] || 'feed';
+    if (typeof window !== 'undefined') {
+      const currentHash = window.location.hash.replace('#', '') || 'social-feed';
+      return currentHash.split('-')[1] || 'feed';
+    }
+    return 'feed';
   });
   
   const activeTab = currentActiveTab;
@@ -39,6 +43,8 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
 
   // Listen for hash changes (back/forward navigation)
   React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const handleHashChange = () => {
       const currentHash = window.location.hash.replace('#', '') || 'social-feed';
       const newTab = currentHash.split('-')[1] || 'feed';
