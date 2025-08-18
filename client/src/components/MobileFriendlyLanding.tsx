@@ -63,15 +63,6 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
 
   const quickAccessSections = [
     {
-      id: 'events',
-      title: 'Event Discovery',
-      subtitle: 'Intelligent Concert Discovery',
-      description: 'Discover metal concerts tailored to your taste with smart recommendations',
-      gradient: 'linear-gradient(135deg, #dc2626, #ffffff)',
-      stats: `${stats.events} events`,
-      featured: true
-    },
-    {
       id: 'social',
       title: 'The Pit',
       subtitle: 'Global Metal Community',
@@ -97,20 +88,29 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
       stats: `${stats.reviews} reviews`
     },
     {
+      id: 'tours',
+      title: 'Tour Dates',
+      subtitle: 'Live Experience Tracker',
+      description: 'Track upcoming tours and live performances',
+      gradient: 'linear-gradient(135deg, #dc2626, #ffffff)',
+      stats: `${stats.tours} tours`
+    },
+    {
+      id: 'events',
+      title: 'Event Discovery',
+      subtitle: 'Intelligent Concert Discovery',
+      description: 'Discover metal concerts tailored to your taste with smart recommendations',
+      gradient: 'linear-gradient(135deg, #ffffff, #dc2626)',
+      stats: `${stats.events} events`,
+      featured: false
+    },
+    {
       id: 'photos',
       title: 'Metal Photography',
       subtitle: 'Visual Stories',
       description: 'Capture and share the raw energy of metal culture',
       gradient: 'linear-gradient(135deg, #dc2626, #ffffff)',
       stats: `${stats.photos} photos`
-    },
-    {
-      id: 'tours',
-      title: 'Tour Dates',
-      subtitle: 'Live Experience Tracker',
-      description: 'Track upcoming tours and live performances',
-      gradient: 'linear-gradient(135deg, #ffffff, #dc2626)',
-      stats: `${stats.tours} tours`
     }
   ];
 
