@@ -32,7 +32,33 @@ import {
 import { setupAuth, isAuthenticated } from "./auth";
 import { db } from "./db";
 
-import { eq } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
+import { 
+  users, 
+  bands, 
+  reviews, 
+  photos, 
+  tours, 
+  userLocations, 
+  proximityMatches,
+  badges,
+  userBadges,
+  followSystem,
+  mentorPairs,
+  discussionPosts,
+  discussionComments,
+  groups,
+  groupMembers,
+  socialConnections,
+  reactionTypes,
+  contentReactions,
+  friendRequests,
+  userConnections,
+  messages,
+  chatMessages,
+  chatRooms,
+  chatParticipants
+} from "@shared/schema";
 import { performGoogleSearch } from "./googleSearch";
 import { tourDataService } from "./tourDataService";
 import { aiService, type BandRecommendation, type ChatResponse } from "./aiService";
@@ -44,6 +70,14 @@ import { MessagingWebSocketServer } from "./websocket";
 import { MessageEncryption } from "./encryption";
 import multer from "multer";
 import path from "path";
+
+// Authentication middleware
+const requireAuthentication = (req: any, res: any, next: any) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  next();
+};
 
 // Configure multer for file uploads
 const upload = multer({
@@ -71,6 +105,9 @@ async function seedDatabase() {
     const existingBandNames = new Set(existingBands.map(b => b.name.toLowerCase()));
     
     console.log(`Found ${existingBands.length} existing bands in database`);
+    
+    // Seed chat rooms if they don't exist
+    await seedChatRooms();
     
     // Only seed if we have fewer than 5 unique bands
     if (existingBands.length < 5) {
@@ -201,6 +238,64 @@ async function seedDatabase() {
     }
   } catch (error) {
     console.error("Failed to seed database:", error);
+  }
+}
+
+async function seedChatRooms() {
+  try {
+    // Check if chat rooms already exist
+    const existingRooms = await db.select().from(chatRooms);
+    
+    if (existingRooms.length === 0) {
+      console.log("Seeding chat rooms...");
+      
+      const defaultRooms = [
+        {
+          id: 'general',
+          name: 'General Discussion',
+          topic: 'General chat for all metalheads',
+          description: 'Welcome to the main discussion room where everyone can chat about music, life, and everything metal',
+          isActive: true,
+          maxUsers: 100,
+          currentUsers: 0
+        },
+        {
+          id: 'new-releases',
+          name: 'New Releases',
+          topic: 'Latest album drops and music news',
+          description: 'Discuss the hottest new metal releases and upcoming albums',
+          isActive: true,
+          maxUsers: 50,
+          currentUsers: 0
+        },
+        {
+          id: 'concert-talk',
+          name: 'Concert Talk',
+          topic: 'Live shows, festivals, and concert experiences',
+          description: 'Share your concert experiences and find show buddies',
+          isActive: true,
+          maxUsers: 75,
+          currentUsers: 0
+        },
+        {
+          id: 'gear-discussion',
+          name: 'Gear Discussion',
+          topic: 'Instruments, equipment, and gear talk',
+          description: 'Talk about guitars, amps, pedals, and all things gear-related',
+          isActive: true,
+          maxUsers: 30,
+          currentUsers: 0
+        }
+      ];
+
+      for (const room of defaultRooms) {
+        await db.insert(chatRooms).values(room);
+      }
+      
+      console.log(`Seeded ${defaultRooms.length} chat rooms`);
+    }
+  } catch (error) {
+    console.error('Error seeding chat rooms:', error);
   }
 }
 
@@ -1385,12 +1480,158 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Chat API Routes
+  
+  // Get chat messages for a room
+  app.get('/api/chat/messages/:roomId', async (req, res) => {
+    try {
+      const { roomId } = req.params;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const messages = await db
+        .select({
+          id: chatMessages.id,
+          content: chatMessages.content,
+          messageType: chatMessages.messageType,
+          createdAt: chatMessages.createdAt,
+          isEdited: chatMessages.isEdited,
+          user: {
+            id: users.id,
+            stagename: users.stagename,
+            profileImageUrl: users.profileImageUrl,
+            isOnline: users.isOnline
+          }
+        })
+        .from(chatMessages)
+        .innerJoin(users, eq(chatMessages.userId, users.id))
+        .where(eq(chatMessages.roomId, roomId))
+        .orderBy(desc(chatMessages.createdAt))
+        .limit(limit)
+        .offset(offset);
+      
+      res.json(messages.reverse()); // Most recent at bottom
+    } catch (error) {
+      console.error('Error fetching chat messages:', error);
+      res.status(500).json({ error: 'Failed to fetch messages' });
+    }
+  });
+
+  // Send a new chat message
+  app.post('/api/chat/messages', requireAuthentication, async (req, res) => {
+    try {
+      const { content, roomId, messageType = 'text' } = req.body;
+      const userId = req.session.userId;
+      
+      if (!content || !roomId) {
+        return res.status(400).json({ error: 'Content and roomId are required' });
+      }
+      
+      // Insert new message
+      const [newMessage] = await db
+        .insert(chatMessages)
+        .values({
+          content,
+          userId,
+          roomId,
+          messageType
+        })
+        .returning();
+      
+      // Get the complete message with user data
+      const messageWithUser = await db
+        .select({
+          id: chatMessages.id,
+          content: chatMessages.content,
+          messageType: chatMessages.messageType,
+          createdAt: chatMessages.createdAt,
+          isEdited: chatMessages.isEdited,
+          user: {
+            id: users.id,
+            stagename: users.stagename,
+            profileImageUrl: users.profileImageUrl,
+            isOnline: users.isOnline
+          }
+        })
+        .from(chatMessages)
+        .innerJoin(users, eq(chatMessages.userId, users.id))
+        .where(eq(chatMessages.id, newMessage.id))
+        .limit(1);
+      
+      const fullMessage = messageWithUser[0];
+      
+      // Broadcast to WebSocket clients
+      if (global.chatWebSocketServer) {
+        global.chatWebSocketServer.broadcast(roomId, {
+          type: 'new_message',
+          message: fullMessage
+        });
+      }
+      
+      res.status(201).json(fullMessage);
+    } catch (error) {
+      console.error('Error sending chat message:', error);
+      res.status(500).json({ error: 'Failed to send message' });
+    }
+  });
+
+  // Get available chat rooms
+  app.get('/api/chat/rooms', async (req, res) => {
+    try {
+      const rooms = await db
+        .select()
+        .from(chatRooms)
+        .where(eq(chatRooms.isActive, true))
+        .orderBy(chatRooms.name);
+      
+      res.json(rooms);
+    } catch (error) {
+      console.error('Error fetching chat rooms:', error);
+      res.status(500).json({ error: 'Failed to fetch chat rooms' });
+    }
+  });
+
+  // Get online users in a chat room
+  app.get('/api/chat/rooms/:roomId/users', async (req, res) => {
+    try {
+      const { roomId } = req.params;
+      
+      const onlineUsers = await db
+        .select({
+          id: users.id,
+          stagename: users.stagename,
+          profileImageUrl: users.profileImageUrl,
+          isOnline: users.isOnline,
+          lastSeen: chatParticipants.lastSeen
+        })
+        .from(chatParticipants)
+        .innerJoin(users, eq(chatParticipants.userId, users.id))
+        .where(
+          and(
+            eq(chatParticipants.roomId, roomId),
+            eq(chatParticipants.isOnline, true)
+          )
+        )
+        .orderBy(desc(chatParticipants.lastSeen));
+      
+      res.json(onlineUsers);
+    } catch (error) {
+      console.error('Error fetching online users:', error);
+      res.status(500).json({ error: 'Failed to fetch online users' });
+    }
+  });
+
   // Create HTTP server and setup WebSocket
   const httpServer = createServer(app);
   
-  // Initialize WebSocket server for real-time messaging
+  // Initialize WebSocket server for real-time messaging  
   const wsServer = new MessagingWebSocketServer(httpServer);
   console.log('WebSocket server initialized for real-time messaging');
+  
+  // Initialize Chat WebSocket Server for live chat
+  const { ChatWebSocketServer } = await import('./chatWebSocket');
+  (global as any).chatWebSocketServer = new ChatWebSocketServer(httpServer);
+  console.log('Chat WebSocket server initialized for live chat');
   
   return httpServer;
 }

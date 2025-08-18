@@ -436,6 +436,8 @@ export type PostCommentLike = typeof postCommentLikes.$inferSelect;
 export const upsertUserSchema = createInsertSchema(users);
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+// Chat tables already exist below - removing duplicates
 export type CreateUser = typeof users.$inferInsert;
 export type LoginRequest = {
   stagename: string;

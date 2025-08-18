@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Users, MessageCircle, Heart, UserPlus, Crown, Star, Coffee, Music, Camera, Flame, ThumbsUp, Zap } from 'lucide-react';
+import { LiveChat } from './LiveChat';
 
 interface User {
   id: string;
@@ -562,6 +563,11 @@ export function SocialFeatures({ userId }: { userId?: string }) {
 
         {/* Live Chat Tab */}
         {activeTab === 'chat' && (
+          <LiveChat currentUser={currentUser} />
+        )}
+
+        {/* Original Chat Rooms (keeping as backup) */}
+        {false && activeTab === 'chat' && (
           <div>
             <h3 style={{ color: '#facc15', fontSize: '1.2rem', fontWeight: '600', marginBottom: '1.5rem' }}>
               💬 Live Chat Rooms
