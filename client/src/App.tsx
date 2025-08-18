@@ -9,7 +9,7 @@ import { MobileFriendlyLanding } from './components/MobileFriendlyLanding';
 import { QuickFix } from './components/QuickFix';
 import { SimpleLandingFallback } from './components/SimpleLandingFallback';
 import { EmergencyLanding } from './components/EmergencyLanding';
-import { MobileCompatibilityCheck } from './components/MobileCompatibilityCheck';
+// import { MobileCompatibilityCheck } from './components/MobileCompatibilityCheck';
 import { EnhancedSocialHub } from './components/EnhancedSocialHub';
 import { EnhancedEventsPage } from './components/EnhancedEventsPage';
 import { SimpleToursPage } from './components/SimpleToursPage';
@@ -448,7 +448,7 @@ const App = () => {
       )}
 
       {/* Global CSS animations for smooth transitions */}
-      <style jsx global>{`
+      <style>{`
         @keyframes fadeInUp {
           from {
             opacity: 0;
@@ -502,7 +502,7 @@ const App = () => {
           color: white;
         }
       `}</style>
-      <MobileCompatibilityCheck />
+      {/* <MobileCompatibilityCheck /> */}
     </div>
   );
 };

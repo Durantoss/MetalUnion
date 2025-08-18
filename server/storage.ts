@@ -1739,4 +1739,4 @@ export class DatabaseStorage implements IStorage {
 }
 
 // Use DatabaseStorage instead of MemStorage
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();
