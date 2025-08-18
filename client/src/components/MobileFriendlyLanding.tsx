@@ -1,5 +1,3 @@
-import { useState, useEffect } from 'react';
-
 interface Band {
   id: string;
   name: string;
@@ -18,23 +16,13 @@ interface MobileFriendlyLandingProps {
   bands: Band[];
 }
 
-interface SectionStats {
-  bands: number;
-  reviews: number;
-  photos: number;
-  tours: number;
-  activeUsers: number;
-  events: number;
-  posts: number;
-}
-
 export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendlyLandingProps) {
   console.log('Rendering MobileFriendlyLanding component');
   
   const featuredBands = bands?.slice(0, 3) || [];
-  const [moshColor, setMoshColor] = useState('#dc2626'); // red
-  const [unionColor, setUnionColor] = useState('#ffffff'); // white
-  const [stats, setStats] = useState<SectionStats>({
+  
+  // Static stats - no hooks needed
+  const stats = {
     bands: bands.length,
     reviews: 342,
     photos: 1250,
@@ -42,24 +30,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
     activeUsers: 52,
     events: 8,
     posts: 89
-  });
-
-  // Update real-time stats
-  useEffect(() => {
-    const updateStats = () => {
-      setStats(prev => ({
-        ...prev,
-        bands: bands.length,
-        reviews: prev.reviews + Math.floor(Math.random() * 3),
-        photos: prev.photos + Math.floor(Math.random() * 2),
-        activeUsers: 45 + Math.floor(Math.random() * 20),
-        posts: prev.posts + Math.floor(Math.random() * 4)
-      }));
-    };
-
-    const interval = setInterval(updateStats, 5000);
-    return () => clearInterval(interval);
-  }, [bands.length]);
+  };
 
   const quickAccessSections = [
     {
@@ -128,13 +99,6 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
         padding: '3rem 0'
       }}>
         <h1 
-          onClick={() => {
-            // Swap colors when clicked
-            const newMoshColor = moshColor === '#dc2626' ? '#ffffff' : '#dc2626';
-            const newUnionColor = unionColor === '#ffffff' ? '#dc2626' : '#ffffff';
-            setMoshColor(newMoshColor);
-            setUnionColor(newUnionColor);
-          }}
           style={{
             fontSize: 'clamp(3rem, 8vw, 5rem)',
             fontWeight: '900',
@@ -145,15 +109,15 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
           }}
         >
           <span style={{
-            color: moshColor,
-            textShadow: `0 4px 20px ${moshColor === '#dc2626' ? 'rgba(220, 38, 38, 0.3)' : 'rgba(255, 255, 255, 0.3)'}`,
+            color: '#dc2626',
+            textShadow: '0 4px 20px rgba(220, 38, 38, 0.3)',
             transition: 'all 0.3s ease'
           }}>
             MOSH
           </span>
           <span style={{
-            color: unionColor,
-            textShadow: `0 4px 20px ${unionColor === '#dc2626' ? 'rgba(220, 38, 38, 0.3)' : 'rgba(255, 255, 255, 0.3)'}`,
+            color: '#ffffff',
+            textShadow: '0 4px 20px rgba(255, 255, 255, 0.3)',
             transition: 'all 0.3s ease'
           }}>
             UNION
