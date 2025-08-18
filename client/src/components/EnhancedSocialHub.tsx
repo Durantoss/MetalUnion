@@ -42,7 +42,7 @@ export function EnhancedSocialHub({ userId, initialTab = 'feed' }: SocialHubProp
       case 'gamification':
         return <GameficationDashboard />;
       case 'polls':
-        return <InteractivePolls userId={userId} />;
+        return <InteractivePolls />;
       case 'events':
         return (
           <div style={{ padding: '2rem', textAlign: 'center' }}>

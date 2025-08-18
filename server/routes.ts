@@ -23,7 +23,11 @@ import {
   insertChatMessageSchema,
   insertChatParticipantSchema,
   insertFriendRequestSchema,
-  insertUserConnectionSchema
+  insertUserConnectionSchema,
+  insertConversationSchema,
+  insertDirectMessageSchema,
+  insertMessageEncryptionKeySchema,
+  insertMessageDeliveryReceiptSchema
 } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./simpleAuth";
 import { performGoogleSearch } from "./googleSearch";
