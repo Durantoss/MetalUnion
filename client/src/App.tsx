@@ -167,9 +167,9 @@ const App = () => {
     if (currentSection === 'landing' || !currentSection || currentSection === '' || currentSection === undefined) {
       console.log('Rendering MobileFriendlyLanding component');
       
-      // Use QuickFix for guaranteed loading
+      // Use MobileFriendlyLanding for the redesigned landing page
       return (
-        <QuickFix 
+        <MobileFriendlyLanding 
           onSectionChange={setCurrentSection}
           bands={bands}
         />
