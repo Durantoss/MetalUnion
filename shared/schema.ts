@@ -449,13 +449,16 @@ export const reviewRatings = pgTable("review_ratings", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Direct messaging system
+// Secure Direct Messaging System with End-to-End Encryption
 export const conversations = pgTable("conversations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   participant1Id: varchar("participant1_id").notNull().references(() => users.id),
   participant2Id: varchar("participant2_id").notNull().references(() => users.id),
   lastMessageAt: timestamp("last_message_at").defaultNow(),
   isArchived: boolean("is_archived").default(false),
+  isEncrypted: boolean("is_encrypted").default(true),
+  participant1PublicKey: text("participant1_public_key"), // For end-to-end encryption
+  participant2PublicKey: text("participant2_public_key"), // For end-to-end encryption
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -463,10 +466,45 @@ export const directMessages = pgTable("direct_messages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   conversationId: varchar("conversation_id").notNull().references(() => conversations.id),
   senderId: varchar("sender_id").notNull().references(() => users.id),
-  content: text("content").notNull(),
-  isRead: boolean("is_read").default(false),
-  messageType: varchar("message_type").default("text"), // 'text', 'image', 'link'
+  messageType: varchar("message_type", { enum: ['text', 'image', 'video', 'file'] }).notNull(),
+  
+  // Encrypted content fields
+  encryptedContent: text("encrypted_content"), // Encrypted message text
+  encryptedMediaUrl: text("encrypted_media_url"), // Encrypted media URL for images/videos
+  mediaMetadata: jsonb("media_metadata"), // File size, type, duration, etc.
+  thumbnailUrl: text("thumbnail_url"), // For video previews
+  
+  // Encryption metadata
+  encryptionKeyId: varchar("encryption_key_id"), // For key rotation
+  initializationVector: varchar("initialization_vector"), // For AES encryption
+  
+  // Message status and security
+  deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
+  isDeleted: boolean("is_deleted").default(false),
+  deletedAt: timestamp("deleted_at"),
+  expiresAt: timestamp("expires_at"), // For disappearing messages
+  
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const messageEncryptionKeys = pgTable("message_encryption_keys", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  publicKey: text("public_key").notNull(),
+  privateKeyEncrypted: text("private_key_encrypted").notNull(), // User's encrypted private key
+  keyType: varchar("key_type", { enum: ['rsa', 'ecc'] }).default('rsa'),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+});
+
+export const messageDeliveryReceipts = pgTable("message_delivery_receipts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  messageId: varchar("message_id").notNull().references(() => directMessages.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  status: varchar("status", { enum: ['sent', 'delivered', 'read'] }).notNull(),
+  timestamp: timestamp("timestamp").defaultNow(),
 });
 
 // User Groups & Communities
@@ -979,7 +1017,9 @@ export const insertEventSchema = createInsertSchema(events).omit({ id: true, cre
 export const insertEventAttendeeSchema = createInsertSchema(eventAttendees).omit({ id: true, joinedAt: true });
 export const insertReviewRatingSchema = createInsertSchema(reviewRatings).omit({ id: true, createdAt: true });
 export const insertConversationSchema = createInsertSchema(conversations).omit({ id: true, createdAt: true, lastMessageAt: true });
-export const insertDirectMessageSchema = createInsertSchema(directMessages).omit({ id: true, createdAt: true, isRead: true });
+export const insertDirectMessageSchema = createInsertSchema(directMessages).omit({ id: true, createdAt: true, deliveredAt: true, readAt: true, isDeleted: true, deletedAt: true });
+export const insertMessageEncryptionKeySchema = createInsertSchema(messageEncryptionKeys).omit({ id: true, createdAt: true });
+export const insertMessageDeliveryReceiptSchema = createInsertSchema(messageDeliveryReceipts).omit({ id: true });
 export const insertSavedContentSchema = createInsertSchema(savedContent).omit({ id: true, savedAt: true });
 export const insertPhotoAlbumSchema = createInsertSchema(photoAlbums).omit({ id: true, createdAt: true, photoCount: true });
 export const insertAlbumPhotoSchema = createInsertSchema(albumPhotos).omit({ id: true, addedAt: true });
@@ -1054,6 +1094,10 @@ export type Conversation = typeof conversations.$inferSelect;
 export type InsertConversation = z.infer<typeof insertConversationSchema>;
 export type DirectMessage = typeof directMessages.$inferSelect;
 export type InsertDirectMessage = z.infer<typeof insertDirectMessageSchema>;
+export type MessageEncryptionKey = typeof messageEncryptionKeys.$inferSelect;
+export type InsertMessageEncryptionKey = z.infer<typeof insertMessageEncryptionKeySchema>;
+export type MessageDeliveryReceipt = typeof messageDeliveryReceipts.$inferSelect;
+export type InsertMessageDeliveryReceipt = z.infer<typeof insertMessageDeliveryReceiptSchema>;
 export type SavedContent = typeof savedContent.$inferSelect;
 export type InsertSavedContent = z.infer<typeof insertSavedContentSchema>;
 export type PhotoAlbum = typeof photoAlbums.$inferSelect;

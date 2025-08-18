@@ -984,6 +984,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Secure Direct Messaging Routes
+  
+  // Get user's conversations
+  app.get('/api/direct-messages/conversations', async (req, res) => {
+    try {
+      const userId = req.query.userId as string || req.user?.claims?.sub || 'demo-user';
+      const conversations = await storage.getConversations(userId);
+      res.json(conversations);
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+      res.status(500).json({ error: 'Failed to fetch conversations' });
+    }
+  });
+
+  // Create new conversation
+  app.post('/api/direct-messages/conversations', async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub || 'demo-user';
+      const conversationData = insertConversationSchema.parse({
+        ...req.body,
+        participant1Id: userId
+      });
+      const conversation = await storage.createConversation(conversationData);
+      res.status(201).json(conversation);
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      res.status(500).json({ error: 'Failed to create conversation' });
+    }
+  });
+
+  // Get messages for a conversation
+  app.get('/api/direct-messages/:conversationId/messages', async (req, res) => {
+    try {
+      const { conversationId } = req.params;
+      const messages = await storage.getMessages(conversationId);
+      res.json(messages);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      res.status(500).json({ error: 'Failed to fetch messages' });
+    }
+  });
+
+  // Send new message
+  app.post('/api/direct-messages', async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub || 'demo-user';
+      const messageData = insertDirectMessageSchema.parse({
+        ...req.body,
+        senderId: userId
+      });
+      const message = await storage.createMessage(messageData);
+      res.status(201).json(message);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      res.status(500).json({ error: 'Failed to send message' });
+    }
+  });
+
+  // Mark message as read
+  app.patch('/api/direct-messages/:messageId/read', async (req, res) => {
+    try {
+      const { messageId } = req.params;
+      const userId = req.user?.claims?.sub || 'demo-user';
+      await storage.markMessageAsRead(messageId, userId);
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error marking message as read:', error);
+      res.status(500).json({ error: 'Failed to mark message as read' });
+    }
+  });
+
+  // Get user's encryption keys
+  app.get('/api/direct-messages/encryption-keys', async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub || 'demo-user';
+      const keys = await storage.getEncryptionKeys(userId);
+      res.json(keys);
+    } catch (error) {
+      console.error('Error fetching encryption keys:', error);
+      res.status(500).json({ error: 'Failed to fetch encryption keys' });
+    }
+  });
+
+  // Create new encryption key
+  app.post('/api/direct-messages/encryption-keys', async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub || 'demo-user';
+      const keyData = insertMessageEncryptionKeySchema.parse({
+        ...req.body,
+        userId
+      });
+      const key = await storage.createEncryptionKey(keyData);
+      res.status(201).json(key);
+    } catch (error) {
+      console.error('Error creating encryption key:', error);
+      res.status(500).json({ error: 'Failed to create encryption key' });
+    }
+  });
+
+  // Get upload URL for media messages
+  app.get('/api/direct-messages/upload-url', async (req, res) => {
+    try {
+      // In a real implementation, this would generate a secure upload URL
+      // For now, return a placeholder that works with the existing object storage
+      res.json({ 
+        method: 'PUT',
+        url: '/api/objects/upload' // This would be a real presigned URL
+      });
+    } catch (error) {
+      console.error('Error generating upload URL:', error);
+      res.status(500).json({ error: 'Failed to generate upload URL' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

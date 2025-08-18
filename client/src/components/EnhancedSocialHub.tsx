@@ -5,6 +5,7 @@ import { GameficationDashboard } from './GameficationDashboard';
 import { PhotosSection } from './PhotosSection';
 import { SocialFeatures } from './SocialFeatures';
 import { LiveChat } from './LiveChat';
+import { SecureDirectMessaging } from './SecureDirectMessaging';
 import { Button } from './ui/button';
 
 interface SocialHubProps {
@@ -14,11 +15,16 @@ interface SocialHubProps {
 
 export function EnhancedSocialHub({ userId, initialTab = 'feed' }: SocialHubProps) {
   let activeTab = initialTab;
+  let selectedConversationId = '';
   
   const handleTabChange = (tab: string) => {
     activeTab = tab;
     // Force re-render by updating the location or using a different approach
     // For now, this is a simplified version without state management
+  };
+
+  const handleConversationSelect = (conversationId: string) => {
+    selectedConversationId = conversationId;
   };
 
   const stats = {
@@ -168,6 +174,14 @@ export function EnhancedSocialHub({ userId, initialTab = 'feed' }: SocialHubProp
         return <SocialFeatures userId={userId} />;
       case 'chat':
         return <LiveChat roomId="general" currentUser={{ id: userId, stagename: 'MetalFan' }} />;
+      case 'messages':
+        return (
+          <SecureDirectMessaging
+            currentUserId={userId || 'demo-user'}
+            selectedConversationId={selectedConversationId}
+            onConversationSelect={handleConversationSelect}
+          />
+        );
       default:
         return <ActivityFeed userId={userId} />;
     }
@@ -268,6 +282,7 @@ export function EnhancedSocialHub({ userId, initialTab = 'feed' }: SocialHubProp
             { id: 'feed', label: 'Activity Feed', icon: '🔥' },
             { id: 'social', label: 'Social Features', icon: '👥' },
             { id: 'chat', label: 'Live Chat', icon: '💬' },
+            { id: 'messages', label: 'Secure Messages', icon: '🔒' },
             { id: 'gamification', label: 'Achievements', icon: '🏆' },
             { id: 'polls', label: 'Polls', icon: '📊' },
             { id: 'events', label: 'Events', icon: '📅' },

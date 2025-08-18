@@ -139,6 +139,16 @@ export interface IStorage {
 
   // Online Users
   getOnlineUsers(): Promise<any[]>;
+
+  // Secure Direct Messaging
+  getConversations(userId: string): Promise<any[]>;
+  getConversation(conversationId: string): Promise<any>;
+  createConversation(conversation: any): Promise<any>;
+  getMessages(conversationId: string): Promise<any[]>;
+  createMessage(message: any): Promise<any>;
+  markMessageAsRead(messageId: string, userId: string): Promise<void>;
+  getEncryptionKeys(userId: string): Promise<any[]>;
+  createEncryptionKey(key: any): Promise<any>;
 }
 
 export class MemStorage implements IStorage {
@@ -1038,6 +1048,166 @@ export class MemStorage implements IStorage {
         activity: 'Away'
       }
     ];
+  }
+
+  // Secure Direct Messaging Implementation
+  async getConversations(userId: string): Promise<any[]> {
+    return [
+      {
+        id: 'conv1',
+        participant1Id: userId,
+        participant2Id: 'user2',
+        participant1Name: 'You',
+        participant2Name: 'ConcertGoer',
+        lastMessageAt: new Date('2024-08-18T14:30:00'),
+        isEncrypted: true,
+        unreadCount: 2
+      },
+      {
+        id: 'conv2',
+        participant1Id: userId,
+        participant2Id: 'user3',
+        participant1Name: 'You',
+        participant2Name: 'MetalQueen',
+        lastMessageAt: new Date('2024-08-18T12:15:00'),
+        isEncrypted: true,
+        unreadCount: 0
+      },
+      {
+        id: 'conv3',
+        participant1Id: userId,
+        participant2Id: 'user4',
+        participant1Name: 'You',
+        participant2Name: 'RockVeteran',
+        lastMessageAt: new Date('2024-08-17T18:45:00'),
+        isEncrypted: true,
+        unreadCount: 1
+      }
+    ];
+  }
+
+  async getConversation(conversationId: string): Promise<any> {
+    const conversations = await this.getConversations('demo-user');
+    return conversations.find(conv => conv.id === conversationId);
+  }
+
+  async createConversation(conversation: any): Promise<any> {
+    return {
+      id: randomUUID(),
+      ...conversation,
+      isEncrypted: true,
+      lastMessageAt: new Date(),
+      createdAt: new Date()
+    };
+  }
+
+  async getMessages(conversationId: string): Promise<any[]> {
+    // Mock encrypted messages - in reality these would be properly encrypted
+    const mockMessages = {
+      'conv1': [
+        {
+          id: '1',
+          conversationId,
+          senderId: 'user2',
+          senderName: 'ConcertGoer',
+          messageType: 'text',
+          encryptedContent: '{"encryptedContent":[72,101,108,108,111],"encryptedKey":[...],"iv":[...]}', // Mock encrypted "Hello!"
+          deliveredAt: new Date('2024-08-18T14:25:00'),
+          readAt: new Date('2024-08-18T14:26:00'),
+          createdAt: new Date('2024-08-18T14:25:00')
+        },
+        {
+          id: '2',
+          conversationId,
+          senderId: 'demo-user',
+          senderName: 'You',
+          messageType: 'text',
+          encryptedContent: '{"encryptedContent":[72,101,121],"encryptedKey":[...],"iv":[...]}', // Mock encrypted "Hey!"
+          deliveredAt: new Date('2024-08-18T14:27:00'),
+          readAt: new Date('2024-08-18T14:27:00'),
+          createdAt: new Date('2024-08-18T14:27:00')
+        },
+        {
+          id: '3',
+          conversationId,
+          senderId: 'user2',
+          senderName: 'ConcertGoer',
+          messageType: 'image',
+          encryptedMediaUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300',
+          mediaMetadata: { fileName: 'concert.jpg', fileSize: 245760 },
+          deliveredAt: new Date('2024-08-18T14:30:00'),
+          createdAt: new Date('2024-08-18T14:30:00')
+        }
+      ],
+      'conv2': [
+        {
+          id: '4',
+          conversationId,
+          senderId: 'user3',
+          senderName: 'MetalQueen',
+          messageType: 'text',
+          encryptedContent: '{"encryptedContent":[65,109,97,122,105,110,103],"encryptedKey":[...],"iv":[...]}', // Mock encrypted "Amazing show!"
+          deliveredAt: new Date('2024-08-18T12:10:00'),
+          readAt: new Date('2024-08-18T12:11:00'),
+          createdAt: new Date('2024-08-18T12:10:00')
+        },
+        {
+          id: '5',
+          conversationId,
+          senderId: 'demo-user',
+          senderName: 'You',
+          messageType: 'video',
+          encryptedMediaUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
+          mediaMetadata: { 
+            fileName: 'mosh_pit.mp4', 
+            fileSize: 1048576, 
+            duration: 30,
+            thumbnailUrl: 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=200&h=150'
+          },
+          deliveredAt: new Date('2024-08-18T12:15:00'),
+          readAt: new Date('2024-08-18T12:16:00'),
+          createdAt: new Date('2024-08-18T12:15:00')
+        }
+      ]
+    };
+
+    return mockMessages[conversationId as keyof typeof mockMessages] || [];
+  }
+
+  async createMessage(message: any): Promise<any> {
+    return {
+      id: randomUUID(),
+      ...message,
+      deliveredAt: new Date(),
+      createdAt: new Date()
+    };
+  }
+
+  async markMessageAsRead(messageId: string, userId: string): Promise<void> {
+    // Mark message as read
+    console.log(`Message ${messageId} marked as read by user ${userId}`);
+  }
+
+  async getEncryptionKeys(userId: string): Promise<any[]> {
+    return [
+      {
+        id: randomUUID(),
+        userId,
+        publicKey: 'mock-public-key-data',
+        keyType: 'rsa',
+        isActive: true,
+        createdAt: new Date()
+      }
+    ];
+  }
+
+  async createEncryptionKey(key: any): Promise<any> {
+    return {
+      id: randomUUID(),
+      ...key,
+      isActive: true,
+      createdAt: new Date()
+    };
   }
 }
 
