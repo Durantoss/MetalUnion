@@ -30,38 +30,31 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showComparison, setShowComparison] = useState(false);
-  const [currentSection, setCurrentSection] = useState(() => {
-    console.log('Initializing currentSection state');
-    return 'landing';
-  });
+  const [currentSection, setCurrentSection] = useState('landing');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   
-  // Check URL parameters for section navigation
+  // Check URL parameters for section navigation - ONLY on mount, not on every section change
   useEffect(() => {
-    console.log('App useEffect - currentSection:', currentSection);
+    console.log('App mount - checking URL params');
     
-    // Check URL parameters for section navigation
+    // Only check URL parameters on initial mount
     const urlParams = new URLSearchParams(window.location.search);
     const sectionParam = urlParams.get('section');
     
-    if (sectionParam && sectionParam !== currentSection) {
-      console.log('Setting currentSection from URL param:', sectionParam);
+    if (sectionParam) {
+      console.log('Setting initial section from URL param:', sectionParam);
       setCurrentSection(sectionParam);
-    } else if (!currentSection || currentSection === '') {
-      console.log('Setting currentSection to landing');
-      setCurrentSection('landing');
     }
-  }, [currentSection]);
+  }, []); // Empty dependency array - only run on mount
 
   const handleReturnHome = () => {
     console.log('handleReturnHome called - forcing navigation to landing');
+    // Clear URL params first to prevent trap
+    window.history.replaceState({}, '', window.location.pathname);
     setCurrentSection('landing');
     setShowComparison(false);
-    // Force page refresh to ensure clean state
-    window.location.hash = '';
-    window.history.replaceState({}, '', window.location.pathname);
   };
 
   useEffect(() => {
@@ -386,6 +379,8 @@ const App = () => {
       case 'advanced-messaging':
         return <AdvancedMessagingInterface onNavigate={(section) => {
           console.log('Navigation requested from messaging interface to:', section);
+          // Clear URL params to prevent the trap
+          window.history.replaceState({}, '', window.location.pathname);
           setCurrentSection(section);
         }} />;
       default:

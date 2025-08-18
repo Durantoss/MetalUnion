@@ -58,10 +58,13 @@ interface AdvancedMessagingInterfaceProps {
 export function AdvancedMessagingInterface({ onNavigate }: AdvancedMessagingInterfaceProps = {}) {
   console.log('AdvancedMessagingInterface mounted', { onNavigate });
   
-  // Safe navigation handler
+  // Safe navigation handler with URL cleanup
   const handleNavigation = (destination: string) => {
     console.log('Attempting navigation to:', destination);
     try {
+      // First clear any URL parameters that might cause loops
+      window.history.replaceState({}, '', window.location.pathname);
+      
       if (onNavigate && typeof onNavigate === 'function') {
         onNavigate(destination);
       } else {
@@ -332,9 +335,12 @@ export function AdvancedMessagingInterface({ onNavigate }: AdvancedMessagingInte
         <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:justify-between">
           <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
             <Button
-              onClick={() => handleNavigation('landing')}
+              onClick={() => {
+                console.log('Back button pressed - mobile optimized handler');
+                handleNavigation('landing');
+              }}
               variant="outline"
-              className="border-red-600/30 text-red-400 hover:bg-red-600/10 min-h-[44px] px-4 py-2 touch-manipulation flex-1 sm:flex-none"
+              className="border-red-600/30 text-red-400 hover:bg-red-600/10 active:bg-red-600/20 min-h-[44px] px-4 py-2 touch-manipulation flex-1 sm:flex-none transition-colors"
               data-testid="button-back-home"
             >
               <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
@@ -342,9 +348,12 @@ export function AdvancedMessagingInterface({ onNavigate }: AdvancedMessagingInte
               <span className="sm:hidden">Back</span>
             </Button>
             <Button
-              onClick={() => handleNavigation('social')}
+              onClick={() => {
+                console.log('Social Hub button pressed - mobile optimized handler');
+                handleNavigation('social');
+              }}
               variant="outline"
-              className="border-yellow-600/30 text-yellow-400 hover:bg-yellow-600/10 min-h-[44px] px-4 py-2 touch-manipulation flex-1 sm:flex-none"
+              className="border-yellow-600/30 text-yellow-400 hover:bg-yellow-600/10 active:bg-yellow-600/20 min-h-[44px] px-4 py-2 touch-manipulation flex-1 sm:flex-none transition-colors"
               data-testid="button-social-hub"
             >
               <Users className="w-4 h-4 mr-1 sm:mr-2" />
