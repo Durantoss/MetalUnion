@@ -6,6 +6,7 @@ import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
 import { ThePit } from './components/ThePit';
 import { MobileFriendlyLanding } from './components/MobileFriendlyLanding';
+import { QuickFix } from './components/QuickFix';
 import { SimpleLandingFallback } from './components/SimpleLandingFallback';
 import { EmergencyLanding } from './components/EmergencyLanding';
 import { MobileCompatibilityCheck } from './components/MobileCompatibilityCheck';
@@ -157,9 +158,9 @@ const App = () => {
     if (currentSection === 'landing' || !currentSection || currentSection === '' || currentSection === undefined) {
       console.log('Rendering MobileFriendlyLanding component');
       
-      // Use emergency landing for guaranteed loading
+      // Use QuickFix for guaranteed loading
       return (
-        <EmergencyLanding 
+        <QuickFix 
           onSectionChange={setCurrentSection}
           bands={bands}
         />
