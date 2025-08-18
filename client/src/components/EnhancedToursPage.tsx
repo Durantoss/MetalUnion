@@ -21,6 +21,7 @@ import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { VenueCapacityIndicator, useVenueStatuses } from './VenueCapacityIndicator';
+import { TicketPriceComparison, useTicketComparisons } from './TicketPriceComparison';
 
 interface Tour {
   id: string;
@@ -178,9 +179,10 @@ export function EnhancedToursPage() {
     }
   });
 
-  // Get venue statuses for all tours
+  // Get venue statuses and ticket comparisons for all tours
   const tourIds = tours.map(tour => tour.id);
   const { venueStatuses } = useVenueStatuses(tourIds);
+  const { comparisons: ticketComparisons } = useTicketComparisons(tourIds);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -505,6 +507,13 @@ export function EnhancedToursPage() {
 
                       {/* Real-time Venue Capacity & Crowd Energy Indicator */}
                       <VenueCapacityIndicator 
+                        tourId={tour.id} 
+                        compact={true}
+                        className="my-3"
+                      />
+
+                      {/* Dynamic Ticket Price Comparison */}
+                      <TicketPriceComparison 
                         tourId={tour.id} 
                         compact={true}
                         className="my-3"

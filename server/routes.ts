@@ -913,6 +913,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Ticket Price Comparison endpoints
+  app.get('/api/tours/:tourId/ticket-comparison', async (req, res) => {
+    try {
+      const { tourId } = req.params;
+      
+      // Get tour details from database
+      const tour = await storage.getTour(tourId);
+      if (!tour) {
+        return res.status(404).json({ error: 'Tour not found' });
+      }
+
+      // Get band information
+      const band = await storage.getBand(tour.bandId);
+      const bandName = band?.name || 'Unknown Band';
+      
+      // Import the ticket price comparison service
+      const { ticketPriceComparisonService } = await import('./ticketPriceComparisonService');
+      
+      // Get ticket price comparison
+      const comparison = await ticketPriceComparisonService.getTicketComparison(
+        tourId,
+        bandName,
+        tour.venue,
+        tour.date.toISOString(),
+        20000 // Default venue capacity, could be enhanced with venue database
+      );
+
+      res.json(comparison);
+    } catch (error) {
+      console.error('Error fetching ticket comparison:', error);
+      res.status(500).json({ error: 'Failed to fetch ticket comparison' });
+    }
+  });
+
+  // Batch ticket price comparison for multiple tours
+  app.post('/api/tours/ticket-comparisons', async (req, res) => {
+    try {
+      const { tourIds } = req.body;
+      
+      if (!Array.isArray(tourIds)) {
+        return res.status(400).json({ error: 'tourIds must be an array' });
+      }
+
+      const tourDetails = [];
+      
+      for (const tourId of tourIds) {
+        const tour = await storage.getTour(tourId);
+        if (tour) {
+          const band = await storage.getBand(tour.bandId);
+          tourDetails.push({
+            id: tourId,
+            bandName: band?.name || 'Unknown Band',
+            venue: tour.venue,
+            date: tour.date.toISOString(),
+            capacity: 20000
+          });
+        }
+      }
+
+      if (tourDetails.length === 0) {
+        return res.json([]);
+      }
+
+      const { ticketPriceComparisonService } = await import('./ticketPriceComparisonService');
+      const comparisons = await ticketPriceComparisonService.getBatchTicketComparisons(tourDetails);
+
+      res.json(comparisons);
+    } catch (error) {
+      console.error('Error fetching batch ticket comparisons:', error);
+      res.status(500).json({ error: 'Failed to fetch ticket comparisons' });
+    }
+  });
+
+  // Real-time ticket search with Google integration
+  app.post('/api/tours/search-tickets', async (req, res) => {
+    try {
+      const { bandName, venue } = req.body;
+      
+      if (!bandName || !venue) {
+        return res.status(400).json({ error: 'bandName and venue are required' });
+      }
+
+      const { ticketPriceComparisonService } = await import('./ticketPriceComparisonService');
+      const prices = await ticketPriceComparisonService.searchTicketPrices(bandName, venue);
+
+      res.json(prices);
+    } catch (error) {
+      console.error('Error searching tickets:', error);
+      res.status(500).json({ error: 'Failed to search tickets' });
+    }
+  });
+
   // Tour discovery endpoint with Google + OpenAI integration
   app.post('/api/tours/discover', async (req, res) => {
     try {
