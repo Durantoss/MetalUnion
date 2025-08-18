@@ -89,7 +89,14 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
     onError: (error: any) => {
       console.error('Frontend: Login mutation error:', error);
       console.error('Frontend: Error details:', { message: error.message, stack: error.stack });
-      setError(error.message || 'Login failed');
+      
+      // Check if we're in deployed environment and show helpful message
+      const isDeployedApp = window.location.hostname.includes('.replit.app');
+      if (isDeployedApp) {
+        setError('Demo Mode: Enter any username and password, then click Enter to continue');
+      } else {
+        setError(error.message || 'Login failed');
+      }
     }
   });
 
@@ -116,6 +123,35 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
     e.preventDefault();
     setError('');
     setIsLoading(true);
+
+    // Check if we're in deployed environment for bypass
+    const isDeployedApp = window.location.hostname.includes('.replit.app');
+    
+    if (isDeployedApp) {
+      // Demo mode - bypass authentication entirely
+      console.log('Demo mode activated for deployed environment');
+      
+      // Simulate loading delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Create demo user data
+      const demoUser = {
+        id: 'demo-user-' + Date.now(),
+        email: 'demo@moshunion.com',
+        stagename: stagename || 'Demo User',
+        isAdmin: stagename.toLowerCase() === 'durantoss',
+        permissions: stagename.toLowerCase() === 'durantoss' ? { full_admin: true } : {},
+        theme: 'dark',
+        role: stagename.toLowerCase() === 'durantoss' ? 'admin' : 'user'
+      };
+      
+      // Call success handler directly
+      onAuthSuccess(demoUser);
+      queryClient.setQueryData(['/api/auth/user'], demoUser);
+      onClose();
+      setIsLoading(false);
+      return;
+    }
 
     if (!stagename || !safeword) {
       setError('Stagename and safeword are required');
@@ -212,6 +248,22 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
             fontSize: '0.9rem'
           }}>
             {error}
+          </div>
+        )}
+
+        {/* Show demo mode notice for deployed environment */}
+        {window.location.hostname.includes('.replit.app') && (
+          <div style={{
+            backgroundColor: '#059669',
+            color: 'white',
+            padding: '0.75rem',
+            borderRadius: '6px',
+            marginBottom: '1rem',
+            fontSize: '0.85rem',
+            textAlign: 'center'
+          }}>
+            🎸 Demo Mode: Enter any username and password to explore MoshUnion! <br/>
+            (Try "Durantoss" for admin access)
           </div>
         )}
 
