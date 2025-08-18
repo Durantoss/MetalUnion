@@ -1,5 +1,5 @@
 import { ActivityFeed } from './ActivityFeed';
-import { HookFreeSecureMessagingComponent } from './HookFreeSecureMessaging';
+import { SimpleMobileMessaging } from './SimpleMobileMessaging';
 import { MessageCircle, Users, TrendingUp, Heart, Calendar, Camera, Bell, Settings, Star, Music, Zap } from 'lucide-react';
 
 interface SocialHubProps {
@@ -92,7 +92,7 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
                 <span className="text-green-400 font-semibold">End-to-End Encrypted</span>
               </div>
             </div>
-            <HookFreeSecureMessagingComponent userId={userId} />
+            <SimpleMobileMessaging userId={userId} />
           </div>
         );
       case 'community':

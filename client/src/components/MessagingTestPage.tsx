@@ -1,5 +1,5 @@
 // Dedicated test page for secure messaging functionality - hook-free
-import { HookFreeSecureMessagingComponent } from './HookFreeSecureMessaging';
+import { SimpleMobileMessaging } from './SimpleMobileMessaging';
 import { Shield, MessageCircle, TestTube, Users, Key, Lock, CheckCircle } from 'lucide-react';
 
 export function MessagingTestPage() {
@@ -192,7 +192,7 @@ export function MessagingTestPage() {
           
           {/* Messaging Component */}
           <div className="h-[600px]">
-            <HookFreeSecureMessagingComponent userId={testUserId} />
+            <SimpleMobileMessaging userId={testUserId} />
           </div>
         </div>
 
