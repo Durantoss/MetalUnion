@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Search, MapPin, Calendar, DollarSign } from 'lucide-react';
 
 export function SimpleToursPage() {
   console.log('SimpleToursPage component is rendering!');
