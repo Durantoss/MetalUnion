@@ -94,7 +94,7 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
                 </div>
                 <button
                   onClick={() => {
-                    const currentSection = new URLSearchParams(window.location.search).get('section') || 'landing';
+                    console.log('Advanced Messaging button clicked');
                     window.location.href = `/?section=advanced-messaging`;
                   }}
                   className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"

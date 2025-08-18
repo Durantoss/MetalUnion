@@ -35,10 +35,18 @@ const App = () => {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   
-  // Force landing page on mobile for debugging
+  // Check URL parameters for section navigation
   useEffect(() => {
     console.log('App useEffect - currentSection:', currentSection);
-    if (!currentSection || currentSection === '') {
+    
+    // Check URL parameters for section navigation
+    const urlParams = new URLSearchParams(window.location.search);
+    const sectionParam = urlParams.get('section');
+    
+    if (sectionParam && sectionParam !== currentSection) {
+      console.log('Setting currentSection from URL param:', sectionParam);
+      setCurrentSection(sectionParam);
+    } else if (!currentSection || currentSection === '') {
       console.log('Setting currentSection to landing');
       setCurrentSection('landing');
     }
