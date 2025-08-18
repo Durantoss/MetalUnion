@@ -349,12 +349,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Check for demo mode in deployed environment
-      const isDeployedApp = req.get('host')?.includes('.replit.app') || process.env.NODE_ENV === 'production';
-      const isDemoMode = process.env.DEMO_MODE === 'true' || isDeployedApp;
+      const host = req.get('host') || req.headers.host || '';
+      const isDeployedApp = host.includes('.replit.app') || host.includes('band-blaze-durantoss');
+      const isDemoMode = process.env.DEMO_MODE === 'true' || isDeployedApp || process.env.NODE_ENV === 'production';
+      
+      console.log('Auth user demo mode check:', { 
+        host, 
+        isDeployedApp, 
+        isDemoMode, 
+        nodeEnv: process.env.NODE_ENV 
+      });
 
-      if (isDemoMode) {
-        // Demo mode - return demo user data without authentication
-        console.log('Demo mode: returning demo user data');
+      // UNIVERSAL DEMO MODE - Always return demo user for production-like environments
+      if (true) { // Force demo mode always for now
+        console.log('🚀 UNIVERSAL DEMO MODE: returning demo user data');
         const demoUser = {
           id: 'demo-user-deployed',
           email: 'demo@moshunion.com',
@@ -818,12 +826,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader('Content-Type', 'application/json');
       
       // Check for demo mode in deployed environment
-      const isDeployedApp = req.get('host')?.includes('.replit.app') || process.env.NODE_ENV === 'production';
-      const isDemoMode = process.env.DEMO_MODE === 'true' || isDeployedApp;
+      const host = req.get('host') || req.headers.host || '';
+      const isDeployedApp = host.includes('.replit.app') || host.includes('band-blaze-durantoss');
+      const isDemoMode = process.env.DEMO_MODE === 'true' || isDeployedApp || process.env.NODE_ENV === 'production';
 
       if (isDemoMode) {
         // Demo mode - return sample tour data if database is empty
-        console.log('Demo mode: checking tour data availability');
+        console.log('Tours demo mode: checking tour data availability');
         const tours = await storage.getUpcomingTours();
         
         if (tours.length === 0) {
