@@ -173,6 +173,23 @@ async function seedDatabase() {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint for deployment monitoring - must come first
+  app.get('/health', (_req, res) => {
+    // Simple health check - if the server can respond, it's healthy
+    // Database connectivity is implicitly tested by the main app functionality
+    res.status(200).json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      server: 'running',
+      memory: {
+        used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+        total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024)
+      }
+    });
+  });
+
   // Auth middleware
   await setupAuth(app);
 

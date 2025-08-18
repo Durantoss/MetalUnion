@@ -47,13 +47,37 @@ app.use((req, res, next) => {
     const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
     
     if (missingEnvVars.length > 0) {
-      log(`Warning: Missing environment variables: ${missingEnvVars.join(', ')}`);
+      log(`❌ Missing required environment variables: ${missingEnvVars.join(', ')}`);
+      console.error(`Critical: Missing environment variables: ${missingEnvVars.join(', ')}`);
+      process.exit(1);
     }
+
+    // Log environment validation success
+    log(`✅ All required environment variables present`);
+    
+    // Additional deployment environment validation
+    log(`Port configuration: ${process.env.PORT || '5000'}`);
+    log(`Database URL configured: ${process.env.DATABASE_URL ? 'Yes' : 'No'}`);
+    log(`Working directory: ${process.cwd()}`);
+    log(`Platform: ${process.platform} ${process.arch}`);
 
     // Log environment
     log(`Environment: ${app.get("env") || "development"}`);
     log(`Node environment: ${process.env.NODE_ENV || "not set"}`);
     
+    // Test database connection before starting server
+    try {
+      log("Testing database connection...");
+      // Import and test database connectivity
+      const { storage } = await import("./storage");
+      await storage.getBands(); // Simple test to verify database connectivity
+      log("✅ Database connection successful");
+    } catch (error) {
+      log(`❌ Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Database error:", error);
+      process.exit(1);
+    }
+
     // Register routes with error handling
     let server;
     try {
@@ -65,6 +89,8 @@ app.use((req, res, next) => {
       console.error("Route registration error:", error);
       process.exit(1);
     }
+
+
 
     // Error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -109,11 +135,7 @@ app.use((req, res, next) => {
 
     // Wrap server.listen in Promise for better error handling
     const startServer = new Promise<void>((resolve, reject) => {
-      const serverInstance = server.listen({
-        port,
-        host: "0.0.0.0",
-        reusePort: true,
-      }, (error?: Error) => {
+      const serverInstance = server.listen(port, "0.0.0.0", (error?: Error) => {
         if (error) {
           reject(error);
         } else {
@@ -134,10 +156,27 @@ app.use((req, res, next) => {
     });
 
     try {
-      await startServer;
+      // Add timeout to server startup
+      const startupTimeout = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Server startup timeout after 30 seconds')), 30000);
+      });
+      
+      await Promise.race([startServer, startupTimeout]);
       log(`✅ MoshUnion server successfully started on port ${port}`);
       log(`🔗 Server accessible at http://0.0.0.0:${port}`);
+      log(`🔗 Health check available at http://0.0.0.0:${port}/health`);
       log("🎸 Ready to serve metal community requests!");
+      
+      // Log successful startup to console for deployment monitoring
+      console.log(`SERVER_STARTED: Port ${port}, PID ${process.pid}, Environment ${app.get("env")}`);
+      
+      // Start heartbeat logging for deployment monitoring (only in production)
+      if (process.env.NODE_ENV === 'production') {
+        setInterval(() => {
+          log(`🔄 Server heartbeat - uptime: ${Math.floor(process.uptime())}s, memory: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
+        }, 300000); // Log every 5 minutes in production
+      }
+      
     } catch (error) {
       log(`❌ Failed to start server: ${error instanceof Error ? error.message : 'Unknown error'}`);
       console.error("Server startup error:", error);
