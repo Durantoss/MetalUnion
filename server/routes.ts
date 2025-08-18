@@ -337,6 +337,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // Authentication check endpoint for persistent sessions
+  app.get('/api/auth/user', async (req: any, res) => {
+    try {
+      // Check if user is authenticated via session
+      if (!req.session || !req.session.userId) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const userId = req.session.userId;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(401).json({ message: 'User not found' });
+      }
+
+      res.json(user);
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   // User profile and account management routes
   app.get('/api/user/stats', isAuthenticated, async (req: any, res) => {
     try {

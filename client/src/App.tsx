@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { BandComparison } from './components/BandComparison';
 import { ModernNavigation } from './components/ModernNavigation';
 import { GlobalAuthHandler } from './components/auth/GlobalAuthHandler';
+import { useAuth } from './hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
@@ -36,8 +38,11 @@ const App = () => {
   const [currentSection, setCurrentSection] = useState('landing');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  
+  // Use useAuth hook for persistent authentication
+  const { user: currentUser, isLoading: authLoading, refetch: refetchAuth } = useAuth();
+  const queryClient = useQueryClient();
   
   // Check URL parameters for section navigation - ONLY on mount, not on every section change
   useEffect(() => {
@@ -87,7 +92,7 @@ const App = () => {
       });
   }, []);
 
-  if (loading) {
+  if (loading || authLoading) {
     const loadingMessages = [
       "Initializing the pit...",
       "Tuning distorted guitars...",
@@ -230,7 +235,9 @@ const App = () => {
   };
 
   const handleAuthSuccess = (user) => {
-    setCurrentUser(user);
+    // Update React Query cache with user data for immediate persistence
+    queryClient.setQueryData(['/api/auth/user'], user);
+    queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     setShowAuthModal(false);
     console.log('User authenticated:', user);
   };
@@ -241,7 +248,9 @@ const App = () => {
         method: 'POST',
         credentials: 'include'
       });
-      setCurrentUser(null);
+      // Clear auth cache and refetch to update state
+      queryClient.setQueryData(['/api/auth/user'], null);
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       console.log('User logged out');
     } catch (error) {
       console.error('Logout error:', error);

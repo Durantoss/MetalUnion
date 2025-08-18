@@ -1,9 +1,11 @@
 import React from 'react';
 import { AuthModal } from './AuthModal';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function GlobalAuthHandler() {
   const [showAuthModal, setShowAuthModal] = React.useState(false);
   const [authAction, setAuthAction] = React.useState('');
+  const queryClient = useQueryClient();
 
   React.useEffect(() => {
     const handleAuthRequired = (event: CustomEvent) => {
@@ -18,10 +20,19 @@ export function GlobalAuthHandler() {
     };
   }, []);
 
+  const handleAuthSuccess = (user: any) => {
+    // Update the query cache with the authenticated user
+    queryClient.setQueryData(['/api/auth/user'], user);
+    queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    setShowAuthModal(false);
+    console.log('Global auth success:', user);
+  };
+
   return (
     <AuthModal
       isOpen={showAuthModal}
       onClose={() => setShowAuthModal(false)}
+      onAuthSuccess={handleAuthSuccess}
       initialMode="register"
     />
   );
