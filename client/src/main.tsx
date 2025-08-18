@@ -20,9 +20,7 @@ if (!container) {
 
 const root = createRoot(container);
 root.render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <SimpleApp />
-    </QueryClientProvider>
-  </StrictMode>
+  <QueryClientProvider client={queryClient}>
+    <SimpleApp />
+  </QueryClientProvider>
 );
