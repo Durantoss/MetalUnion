@@ -32,6 +32,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
     onSuccess: (response) => {
       console.log('Frontend: Login mutation onSuccess triggered with:', response);
       onAuthSuccess(response.user);
+      queryClient.setQueryData(['/api/auth/user'], response.user);
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       onClose();
       setError('');
