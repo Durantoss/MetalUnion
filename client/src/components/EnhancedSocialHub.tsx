@@ -85,11 +85,24 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
       case 'messaging':
         return (
           <div className="space-y-6">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
               <h2 className="text-3xl font-bold text-white">Secure Messages</h2>
-              <div className="flex items-center space-x-2 bg-black/40 px-4 py-2 rounded-lg border border-green-500/30">
-                <MessageCircle className="h-4 w-4 text-green-400" />
-                <span className="text-green-400 font-semibold">End-to-End Encrypted</span>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                <div className="flex items-center space-x-2 bg-black/40 px-4 py-2 rounded-lg border border-green-500/30">
+                  <MessageCircle className="h-4 w-4 text-green-400" />
+                  <span className="text-green-400 font-semibold">End-to-End Encrypted</span>
+                </div>
+                <button
+                  onClick={() => {
+                    const currentSection = new URLSearchParams(window.location.search).get('section') || 'landing';
+                    window.location.href = `/?section=advanced-messaging`;
+                  }}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+                  data-testid="button-advanced-messaging"
+                >
+                  <Zap className="w-4 h-4" />
+                  Advanced Messaging
+                </button>
               </div>
             </div>
             <BasicMessagingFallback />

@@ -9,7 +9,12 @@ import {
   type PitReply, type InsertPitReply,
   type Comment, type InsertComment,
   type CommentReaction, type InsertCommentReaction,
-  users, bands, reviews, photos, tours, messages, pitMessages, pitReplies, comments, commentReactions 
+  type Conversation, type InsertConversation,
+  type DirectMessage, type InsertDirectMessage,
+  type MessageEncryptionKey, type InsertMessageEncryptionKey,
+  type MessageDeliveryReceipt, type InsertMessageDeliveryReceipt,
+  users, bands, reviews, photos, tours, messages, pitMessages, pitReplies, comments, commentReactions,
+  conversations, directMessages, messageEncryptionKeys, messageDeliveryReceipts
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
@@ -101,6 +106,25 @@ export interface IStorage {
   updateComment(id: string, content: string): Promise<Comment>;
   deleteComment(id: string, reason: string): Promise<void>;
   createCommentReaction(reaction: InsertCommentReaction): Promise<CommentReaction>;
+
+  // Real-time messaging system
+  createConversation(conversation: InsertConversation): Promise<Conversation>;
+  getConversation(id: string): Promise<Conversation | undefined>;
+  getUserConversations(userId: string): Promise<Conversation[]>;
+  updateConversationLastMessage(conversationId: string): Promise<void>;
+  
+  createDirectMessage(message: InsertDirectMessage): Promise<DirectMessage>;
+  getDirectMessage(id: string): Promise<DirectMessage | undefined>;
+  getConversationMessages(conversationId: string, limit?: number, offset?: number): Promise<DirectMessage[]>;
+  markMessageAsRead(messageId: string, userId: string): Promise<void>;
+  markMessageAsDelivered(messageId: string, userId: string): Promise<void>;
+  
+  createUserEncryptionKeys(keys: InsertMessageEncryptionKey): Promise<MessageEncryptionKey>;
+  getUserEncryptionKeys(userId: string): Promise<MessageEncryptionKey | undefined>;
+  updateUserEncryptionKeys(userId: string, keys: Partial<InsertMessageEncryptionKey>): Promise<MessageEncryptionKey | undefined>;
+  
+  createDeliveryReceipt(receipt: InsertMessageDeliveryReceipt): Promise<MessageDeliveryReceipt>;
+  getMessageDeliveryReceipts(messageId: string): Promise<MessageDeliveryReceipt[]>;
 
   // Enhanced Social Features Methods
   
@@ -1788,7 +1812,210 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+
+  // Real-time messaging system implementation
+  async createConversation(conversationData: InsertConversation): Promise<Conversation> {
+    try {
+      const [conversation] = await db.insert(conversations).values({
+        ...conversationData,
+        id: randomUUID()
+      }).returning();
+      return conversation;
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+      throw error;
+    }
+  }
+
+  async getConversation(id: string): Promise<Conversation | undefined> {
+    try {
+      const [conversation] = await db.select().from(conversations).where(eq(conversations.id, id));
+      return conversation;
+    } catch (error) {
+      console.error("Error getting conversation:", error);
+      return undefined;
+    }
+  }
+
+  async getUserConversations(userId: string): Promise<Conversation[]> {
+    try {
+      return await db.select().from(conversations)
+        .where(sql`${conversations.participant1Id} = ${userId} OR ${conversations.participant2Id} = ${userId}`)
+        .orderBy(sql`${conversations.lastMessageAt} DESC`);
+    } catch (error) {
+      console.error("Error getting user conversations:", error);
+      return [];
+    }
+  }
+
+  async updateConversationLastMessage(conversationId: string): Promise<void> {
+    try {
+      await db.update(conversations)
+        .set({ lastMessageAt: new Date() })
+        .where(eq(conversations.id, conversationId));
+    } catch (error) {
+      console.error("Error updating conversation last message:", error);
+      throw error;
+    }
+  }
+
+  async createDirectMessage(messageData: InsertDirectMessage): Promise<DirectMessage> {
+    try {
+      const [message] = await db.insert(directMessages).values({
+        ...messageData,
+        id: randomUUID()
+      }).returning();
+      return message;
+    } catch (error) {
+      console.error("Error creating direct message:", error);
+      throw error;
+    }
+  }
+
+  async getDirectMessage(id: string): Promise<DirectMessage | undefined> {
+    try {
+      const [message] = await db.select().from(directMessages).where(eq(directMessages.id, id));
+      return message;
+    } catch (error) {
+      console.error("Error getting direct message:", error);
+      return undefined;
+    }
+  }
+
+  async getConversationMessages(conversationId: string, limit: number = 50, offset: number = 0): Promise<DirectMessage[]> {
+    try {
+      return await db.select().from(directMessages)
+        .where(eq(directMessages.conversationId, conversationId))
+        .orderBy(sql`${directMessages.createdAt} DESC`)
+        .limit(limit)
+        .offset(offset);
+    } catch (error) {
+      console.error("Error getting conversation messages:", error);
+      return [];
+    }
+  }
+
+  async markMessageAsRead(messageId: string, userId: string): Promise<void> {
+    try {
+      await db.update(directMessages)
+        .set({ 
+          isRead: true, 
+          readAt: new Date() 
+        })
+        .where(eq(directMessages.id, messageId));
+      
+      // Create read receipt
+      await this.createDeliveryReceipt({
+        messageId,
+        userId,
+        status: 'read'
+      });
+    } catch (error) {
+      console.error("Error marking message as read:", error);
+      throw error;
+    }
+  }
+
+  async markMessageAsDelivered(messageId: string, userId: string): Promise<void> {
+    try {
+      await db.update(directMessages)
+        .set({ 
+          isDelivered: true, 
+          deliveredAt: new Date() 
+        })
+        .where(eq(directMessages.id, messageId));
+      
+      // Create delivery receipt
+      await this.createDeliveryReceipt({
+        messageId,
+        userId,
+        status: 'delivered'
+      });
+    } catch (error) {
+      console.error("Error marking message as delivered:", error);
+      throw error;
+    }
+  }
+
+  async createUserEncryptionKeys(keysData: InsertMessageEncryptionKey): Promise<MessageEncryptionKey> {
+    try {
+      // Deactivate old keys
+      await db.update(messageEncryptionKeys)
+        .set({ isActive: false })
+        .where(eq(messageEncryptionKeys.userId, keysData.userId));
+      
+      // Insert new active keys
+      const [keys] = await db.insert(messageEncryptionKeys).values({
+        ...keysData,
+        id: randomUUID()
+      }).returning();
+      return keys;
+    } catch (error) {
+      console.error("Error creating user encryption keys:", error);
+      throw error;
+    }
+  }
+
+  async getUserEncryptionKeys(userId: string): Promise<MessageEncryptionKey | undefined> {
+    try {
+      const [keys] = await db.select().from(messageEncryptionKeys)
+        .where(sql`${messageEncryptionKeys.userId} = ${userId} AND ${messageEncryptionKeys.isActive} = true`)
+        .orderBy(sql`${messageEncryptionKeys.createdAt} DESC`)
+        .limit(1);
+      return keys;
+    } catch (error) {
+      console.error("Error getting user encryption keys:", error);
+      return undefined;
+    }
+  }
+
+  async updateUserEncryptionKeys(userId: string, keysData: Partial<InsertMessageEncryptionKey>): Promise<MessageEncryptionKey | undefined> {
+    try {
+      const [keys] = await db.update(messageEncryptionKeys)
+        .set(keysData)
+        .where(sql`${messageEncryptionKeys.userId} = ${userId} AND ${messageEncryptionKeys.isActive} = true`)
+        .returning();
+      return keys;
+    } catch (error) {
+      console.error("Error updating user encryption keys:", error);
+      return undefined;
+    }
+  }
+
+  async createDeliveryReceipt(receiptData: InsertMessageDeliveryReceipt): Promise<MessageDeliveryReceipt> {
+    try {
+      const [receipt] = await db.insert(messageDeliveryReceipts).values({
+        ...receiptData,
+        id: randomUUID()
+      }).returning();
+      return receipt;
+    } catch (error) {
+      console.error("Error creating delivery receipt:", error);
+      throw error;
+    }
+  }
+
+  async getMessageDeliveryReceipts(messageId: string): Promise<MessageDeliveryReceipt[]> {
+    try {
+      return await db.select().from(messageDeliveryReceipts)
+        .where(eq(messageDeliveryReceipts.messageId, messageId))
+        .orderBy(sql`${messageDeliveryReceipts.timestamp} DESC`);
+    } catch (error) {
+      console.error("Error getting message delivery receipts:", error);
+      return [];
+    }
+  }
+
+  // Missing methods for MemStorage compatibility
+  async getUserGroups(): Promise<any[]> { return []; }
+  async createUserGroup(group: any): Promise<any> { return { id: randomUUID(), ...group }; }
+  async joinGroup(groupId: string, userId: string): Promise<any> { return { groupId, userId }; }
+  async getGroupPosts(groupId: string): Promise<any[]> { return []; }
+  async createGroupPost(post: any): Promise<any> { return { id: randomUUID(), ...post }; }
+  async getMentorProfiles(): Promise<any[]> { return []; }
+  async createMentorProfile(profile: any): Promise<any> { return { id: randomUUID(), ...profile }; }
+  async requestMentorship(mentorship: any): Promise<any> { return { id: randomUUID(), ...mentorship }; }
 }
 
 // Use DatabaseStorage instead of MemStorage
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

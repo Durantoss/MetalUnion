@@ -37,6 +37,8 @@ import { EventDiscoveryService } from "./eventDiscoveryService";
 import { MultiPlatformEventService } from "./multiPlatformEventService";
 import { concertRecommendationService, type ConcertRecommendation, type ConcertRecommendationRequest } from "./concertRecommendationService";
 import { ticketmasterService } from "./ticketmasterService";
+import { MessagingWebSocketServer } from "./websocket";
+import { MessageEncryption } from "./encryption";
 import multer from "multer";
 import path from "path";
 
@@ -1102,6 +1104,155 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Real-time messaging API endpoints
+  app.post('/api/messaging/conversations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const conversationData = insertConversationSchema.parse({
+        ...req.body,
+        participant1Id: userId
+      });
+      const conversation = await storage.createConversation(conversationData);
+      res.status(201).json(conversation);
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      res.status(500).json({ error: 'Failed to create conversation' });
+    }
+  });
+
+  app.get('/api/messaging/conversations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const conversations = await storage.getUserConversations(userId);
+      res.json(conversations);
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+      res.status(500).json({ error: 'Failed to fetch conversations' });
+    }
+  });
+
+  app.get('/api/messaging/conversations/:id/messages', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { limit = 50, offset = 0 } = req.query;
+      const messages = await storage.getConversationMessages(id, parseInt(limit), parseInt(offset));
+      res.json(messages);
+    } catch (error) {
+      console.error('Error fetching conversation messages:', error);
+      res.status(500).json({ error: 'Failed to fetch messages' });
+    }
+  });
+
+  app.post('/api/messaging/encryption-keys', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Generate new RSA key pair
+      const keyPair = await MessageEncryption.generateKeyPair();
+      
+      // Encrypt private key with user password (in production, this would be user's password)
+      const userPassword = req.body.password || 'default-password'; // Should be user's actual password
+      const encryptedPrivateKey = MessageEncryption.encryptPrivateKey(keyPair.privateKey, userPassword);
+      
+      const keyData = {
+        userId,
+        publicKey: keyPair.publicKey,
+        privateKeyEncrypted: encryptedPrivateKey,
+        keyType: 'rsa' as const
+      };
+      
+      const keys = await storage.createUserEncryptionKeys(keyData);
+      
+      // Return only public key and ID, never send private key
+      res.status(201).json({
+        id: keys.id,
+        userId: keys.userId,
+        publicKey: keys.publicKey,
+        keyType: keys.keyType,
+        isActive: keys.isActive,
+        createdAt: keys.createdAt
+      });
+    } catch (error) {
+      console.error('Error creating encryption keys:', error);
+      res.status(500).json({ error: 'Failed to create encryption keys' });
+    }
+  });
+
+  app.get('/api/messaging/encryption-keys', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const keys = await storage.getUserEncryptionKeys(userId);
+      
+      if (!keys) {
+        return res.status(404).json({ error: 'No encryption keys found' });
+      }
+      
+      // Return only public key and metadata, never private key
+      res.json({
+        id: keys.id,
+        userId: keys.userId,
+        publicKey: keys.publicKey,
+        keyType: keys.keyType,
+        isActive: keys.isActive,
+        createdAt: keys.createdAt
+      });
+    } catch (error) {
+      console.error('Error fetching encryption keys:', error);
+      res.status(500).json({ error: 'Failed to fetch encryption keys' });
+    }
+  });
+
+  app.get('/api/messaging/users/:userId/public-key', isAuthenticated, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const keys = await storage.getUserEncryptionKeys(userId);
+      
+      if (!keys) {
+        return res.status(404).json({ error: 'User encryption keys not found' });
+      }
+      
+      res.json({
+        userId,
+        publicKey: keys.publicKey,
+        keyType: keys.keyType
+      });
+    } catch (error) {
+      console.error('Error fetching user public key:', error);
+      res.status(500).json({ error: 'Failed to fetch public key' });
+    }
+  });
+
+  app.post('/api/messaging/test-encryption', isAuthenticated, async (req: any, res) => {
+    try {
+      const { message, recipientUserId } = req.body;
+      
+      // Get recipient's public key
+      const recipientKeys = await storage.getUserEncryptionKeys(recipientUserId);
+      if (!recipientKeys) {
+        return res.status(404).json({ error: 'Recipient encryption keys not found' });
+      }
+      
+      // Encrypt message
+      const encryptedMessage = MessageEncryption.encryptMessage(message, recipientKeys.publicKey);
+      
+      res.json({
+        originalMessage: message,
+        encryptedMessage,
+        recipientUserId,
+        status: 'encryption_successful'
+      });
+    } catch (error) {
+      console.error('Error testing encryption:', error);
+      res.status(500).json({ error: 'Encryption test failed' });
+    }
+  });
+
+  // Create HTTP server and setup WebSocket
   const httpServer = createServer(app);
+  
+  // Initialize WebSocket server for real-time messaging
+  const wsServer = new MessagingWebSocketServer(httpServer);
+  console.log('WebSocket server initialized for real-time messaging');
+  
   return httpServer;
 }

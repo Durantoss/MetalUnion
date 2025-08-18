@@ -169,6 +169,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   conversationsAsParticipant1: many(conversations, { relationName: "participant1" }),
   conversationsAsParticipant2: many(conversations, { relationName: "participant2" }),
   sentMessages: many(directMessages),
+  encryptionKeys: many(messageEncryptionKeys),
+  deliveryReceipts: many(messageDeliveryReceipts),
 }));
 
 export const bandsRelations = relations(bands, ({ one, many }) => ({
@@ -281,6 +283,8 @@ export const insertCommentReactionSchema = createInsertSchema(commentReactions).
   createdAt: true,
 });
 
+
+
 export type Band = typeof bands.$inferSelect;
 export type InsertBand = z.infer<typeof insertBandSchema>;
 export type Review = typeof reviews.$inferSelect;
@@ -295,6 +299,8 @@ export type Comment = typeof comments.$inferSelect;
 export type InsertComment = z.infer<typeof insertCommentSchema>;
 export type CommentReaction = typeof commentReactions.$inferSelect;
 export type InsertCommentReaction = z.infer<typeof insertCommentReactionSchema>;
+
+
 
 export const upsertUserSchema = createInsertSchema(users);
 export type UpsertUser = typeof users.$inferInsert;
@@ -410,6 +416,8 @@ export const pollVotes = pgTable("poll_votes", {
   optionIndex: integer("option_index").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+
 
 // Events and meetups
 export const events = pgTable("events", {
@@ -1016,10 +1024,31 @@ export const insertPollVoteSchema = createInsertSchema(pollVotes).omit({ id: tru
 export const insertEventSchema = createInsertSchema(events).omit({ id: true, createdAt: true, currentAttendees: true });
 export const insertEventAttendeeSchema = createInsertSchema(eventAttendees).omit({ id: true, joinedAt: true });
 export const insertReviewRatingSchema = createInsertSchema(reviewRatings).omit({ id: true, createdAt: true });
-export const insertConversationSchema = createInsertSchema(conversations).omit({ id: true, createdAt: true, lastMessageAt: true });
-export const insertDirectMessageSchema = createInsertSchema(directMessages).omit({ id: true, createdAt: true, deliveredAt: true, readAt: true, isDeleted: true, deletedAt: true });
-export const insertMessageEncryptionKeySchema = createInsertSchema(messageEncryptionKeys).omit({ id: true, createdAt: true });
-export const insertMessageDeliveryReceiptSchema = createInsertSchema(messageDeliveryReceipts).omit({ id: true });
+// Messaging schemas
+export const insertConversationSchema = createInsertSchema(conversations).omit({ 
+  id: true, 
+  createdAt: true, 
+  lastMessageAt: true 
+});
+
+export const insertDirectMessageSchema = createInsertSchema(directMessages).omit({ 
+  id: true, 
+  createdAt: true, 
+  deliveredAt: true, 
+  readAt: true, 
+  isDeleted: true, 
+  deletedAt: true 
+});
+
+export const insertMessageEncryptionKeySchema = createInsertSchema(messageEncryptionKeys).omit({ 
+  id: true, 
+  createdAt: true 
+});
+
+export const insertMessageDeliveryReceiptSchema = createInsertSchema(messageDeliveryReceipts).omit({ 
+  id: true, 
+  timestamp: true 
+});
 export const insertSavedContentSchema = createInsertSchema(savedContent).omit({ id: true, savedAt: true });
 export const insertPhotoAlbumSchema = createInsertSchema(photoAlbums).omit({ id: true, createdAt: true, photoCount: true });
 export const insertAlbumPhotoSchema = createInsertSchema(albumPhotos).omit({ id: true, addedAt: true });
