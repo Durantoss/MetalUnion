@@ -84,6 +84,21 @@ const App = () => {
   }, []);
 
   if (loading) {
+    const loadingMessages = [
+      "Initializing the pit...",
+      "Tuning distorted guitars...",
+      "Loading brutal riffs...",
+      "Summoning the metal gods...",
+      "Cranking the amplifiers to 11...",
+      "Warming up the circle pit...",
+      "Charging the mosh zone...",
+      "Preparing headbanging protocols...",
+      "Loading underground scenes...",
+      "Activating metal detector..."
+    ];
+    
+    const randomMessage = loadingMessages[Math.floor(Math.random() * loadingMessages.length)];
+    
     return (
       <div style={{
         minHeight: '100vh',
@@ -155,7 +170,7 @@ const App = () => {
               color: '#9ca3af',
               fontSize: '0.9rem'
             }}>
-              Initializing the pit...
+              {randomMessage}
             </p>
           </div>
         </div>
