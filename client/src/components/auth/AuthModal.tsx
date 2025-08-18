@@ -30,7 +30,11 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(data)
+          body: JSON.stringify({
+            stagename: data.stagename.trim(),
+            safeword: data.safeword.trim(),
+            rememberMe: data.rememberMe
+          })
         });
 
         console.log('Frontend: Raw response received:', {

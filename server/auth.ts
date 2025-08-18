@@ -63,7 +63,10 @@ export async function setupAuth(app: Express) {
   // Register endpoint
   app.post('/api/auth/register', async (req: Request, res: Response) => {
     try {
-      const { stagename, safeword, email } = req.body;
+      const { stagename: rawStagename, safeword: rawSafeword, email: rawEmail } = req.body;
+      const stagename = rawStagename?.trim();
+      const safeword = rawSafeword?.trim();
+      const email = rawEmail?.trim();
       
       // Validate required fields
       if (!stagename || !safeword) {
@@ -140,7 +143,9 @@ export async function setupAuth(app: Express) {
         userAgent: req.headers['user-agent'],
         cookies: req.headers.cookie
       });
-      const { stagename, safeword, rememberMe } = req.body;
+      const { stagename: rawStagename, safeword: rawSafeword, rememberMe } = req.body;
+      const stagename = rawStagename?.trim();
+      const safeword = rawSafeword?.trim();
       
       // Validate required fields
       if (!stagename || !safeword) {
