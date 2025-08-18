@@ -14,9 +14,12 @@ interface Band {
 interface MobileFriendlyLandingProps {
   onSectionChange: (section: string) => void;
   bands: Band[];
+  currentUser?: any;
+  onLogin?: () => void;
+  onLogout?: () => void;
 }
 
-export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendlyLandingProps) {
+export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onLogin, onLogout }: MobileFriendlyLandingProps) {
   console.log('Rendering MobileFriendlyLanding component');
   
   const featuredBands = bands?.slice(0, 3) || [];
@@ -92,6 +95,115 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
       padding: '2rem',
       position: 'relative'
     }}>
+      {/* Top Navigation Header */}
+      <div style={{
+        position: 'absolute',
+        top: '1rem',
+        right: '1rem',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '1rem',
+        zIndex: 50
+      }}>
+        {currentUser ? (
+          <>
+            {/* User Name Display */}
+            <div style={{
+              color: '#ffffff',
+              fontSize: '1rem',
+              fontWeight: '600',
+              textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)'
+            }}>
+              Welcome, {currentUser.stagename}
+            </div>
+            
+            {/* Admin Panel Button */}
+            {currentUser.isAdmin && (
+              <button
+                onClick={() => onSectionChange('admin')}
+                style={{
+                  backgroundColor: '#dc2626',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.5rem 1rem',
+                  fontSize: '0.9rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#b91c1c';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#dc2626';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                Admin Panel
+              </button>
+            )}
+            
+            {/* Logout Button */}
+            <button
+              onClick={onLogout}
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                color: '#ffffff',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '8px',
+                padding: '0.5rem 1rem',
+                fontSize: '0.9rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                backdropFilter: 'blur(10px)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            {/* Login Button */}
+            <button
+              onClick={onLogin}
+              style={{
+                backgroundColor: '#dc2626',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '0.5rem 1rem',
+                fontSize: '0.9rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#b91c1c';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#dc2626';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              Enter The Pit
+            </button>
+          </>
+        )}
+      </div>
       {/* Unified Hero Section */}
       <div style={{
         textAlign: 'center',

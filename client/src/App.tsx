@@ -231,7 +231,21 @@ const App = () => {
 
   const handleAuthSuccess = (user) => {
     setCurrentUser(user);
+    setShowAuthModal(false);
     console.log('User authenticated:', user);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      setCurrentUser(null);
+      console.log('User logged out');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const renderContent = () => {
@@ -246,6 +260,9 @@ const App = () => {
         <MobileFriendlyLanding 
           onSectionChange={setCurrentSection}
           bands={bands}
+          currentUser={currentUser}
+          onLogin={handleLogin}
+          onLogout={handleLogout}
         />
       );
     }
