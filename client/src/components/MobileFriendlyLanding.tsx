@@ -230,20 +230,20 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
             onTouchStart={(e) => {
               e.currentTarget.style.transform = 'translateY(-8px) scale(0.98)';
               e.currentTarget.style.borderColor = 'rgba(220, 38, 38, 0.8)';
-              e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+              e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 1)';
               e.currentTarget.style.boxShadow = '0 20px 40px rgba(220, 38, 38, 0.3)';
             }}
             onTouchEnd={(e) => {
               e.currentTarget.style.transform = 'translateY(0) scale(1)';
               e.currentTarget.style.borderColor = 'rgba(153, 27, 27, 0.5)';
-              e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+              e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
               e.currentTarget.style.boxShadow = 'none';
             }}
             onMouseEnter={(e) => {
               if (!('ontouchstart' in window)) {
                 e.currentTarget.style.transform = 'translateY(-8px)';
                 e.currentTarget.style.borderColor = 'rgba(220, 38, 38, 0.8)';
-                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 1)';
                 e.currentTarget.style.boxShadow = '0 20px 40px rgba(220, 38, 38, 0.3)';
               }
             }}
@@ -251,28 +251,23 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
               if (!('ontouchstart' in window)) {
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.borderColor = 'rgba(153, 27, 27, 0.5)';
-                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
                 e.currentTarget.style.boxShadow = 'none';
               }
             }}
             style={{
-              ...{
-                background: section.gradient,
-                borderRadius: '16px',
-                backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                border: '1px solid rgba(153, 27, 27, 0.5)',
-                padding: section.featured ? '2rem' : '1.5rem',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                position: 'relative',
-                overflow: 'hidden',
-                gridColumn: section.featured ? 'span 2' : 'span 1',
-                minHeight: section.featured ? '200px' : '160px'
-              },
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
+              borderRadius: '16px',
+              border: '1px solid rgba(153, 27, 27, 0.5)',
+              padding: window.innerWidth < 768 ? (section.featured ? '1.5rem' : '1rem') : (section.featured ? '2rem' : '1.5rem'),
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden',
+              gridColumn: section.featured ? 'span 2' : 'span 1',
+              minHeight: window.innerWidth < 768 ? (section.featured ? '180px' : '140px') : (section.featured ? '200px' : '160px'),
               touchAction: 'manipulation',
               WebkitTapHighlightColor: 'transparent',
-              minHeight: window.innerWidth < 768 ? (section.featured ? '180px' : '140px') : (section.featured ? '200px' : '160px'),
-              padding: window.innerWidth < 768 ? (section.featured ? '1.5rem' : '1rem') : (section.featured ? '2rem' : '1.5rem'),
               fontSize: window.innerWidth < 768 ? '0.9rem' : '1rem'
             }}
           >
