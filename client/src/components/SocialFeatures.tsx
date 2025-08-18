@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Users, MessageCircle, Heart, UserPlus, Crown, Star, Coffee, Music, Camera, Flame, ThumbsUp, Zap } from 'lucide-react';
 import { LiveChat } from './LiveChat';
+import { useAuth } from '../hooks/useAuth';
 
 interface User {
   id: string;
@@ -82,6 +83,9 @@ export function SocialFeatures({ userId }: { userId?: string }) {
   const [socialConnections, setSocialConnections] = useState<SocialConnection[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Get authenticated user from persistent session
+  const { user: currentUser, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
     loadSocialData();
