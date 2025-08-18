@@ -448,7 +448,7 @@ const App = () => {
       )}
 
       {/* Global CSS animations for smooth transitions */}
-      <style>{`
+      <style dangerouslySetInnerHTML={{__html: `
         @keyframes fadeInUp {
           from {
             opacity: 0;
@@ -501,7 +501,7 @@ const App = () => {
           min-height: 100vh;
           color: white;
         }
-      `}</style>
+      `}} />
 
     </div>
   );
