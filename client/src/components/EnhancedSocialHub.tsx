@@ -1,6 +1,7 @@
 import { ActivityFeed } from './ActivityFeed';
 import { BasicMessagingFallback } from './BasicMessagingFallback';
-import { MessageCircle, Users, TrendingUp, Heart, Calendar, Camera, Bell, Settings, Star, Music, Zap } from 'lucide-react';
+import { ProximityMatcher } from './ProximityMatcher';
+import { MessageCircle, Users, TrendingUp, Heart, Calendar, Camera, Bell, Settings, Star, Music, Zap, Navigation, MapPin } from 'lucide-react';
 
 interface SocialHubProps {
   userId?: string;
@@ -58,6 +59,14 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
       badge: stats.upcomingEvents,
       description: 'Concerts, meetups, and festivals',
       color: 'from-yellow-500 to-orange-500'
+    },
+    {
+      id: 'proximity',
+      name: 'Concert Proximity',
+      icon: Navigation,
+      badge: 0,
+      description: 'Find metalheads at your concert venue',
+      color: 'from-purple-500 to-indigo-500'
     }
   ];
 
@@ -234,6 +243,23 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
                 Explore Event Discovery
               </button>
             </div>
+          </div>
+        );
+      case 'proximity':
+        return (
+          <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold text-white">Concert Proximity</h2>
+                <p className="text-gray-400 mt-2">Find and connect with metalheads at your concert venue</p>
+              </div>
+              <div className="flex items-center space-x-2 bg-black/40 px-4 py-2 rounded-lg border border-purple-500/30">
+                <MapPin className="h-4 w-4 text-purple-400" />
+                <span className="text-purple-400 font-semibold">Location-Based Discovery</span>
+              </div>
+            </div>
+            
+            <ProximityMatcher />
           </div>
         );
       default:

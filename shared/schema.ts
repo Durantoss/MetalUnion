@@ -38,6 +38,10 @@ export const users = pgTable("users", {
   // Preferences
   notificationSettings: jsonb("notification_settings"),
   theme: varchar("theme").default("dark"),
+  // Proximity matching settings
+  proximityEnabled: boolean("proximity_enabled").default(false),
+  proximityRadius: integer("proximity_radius").default(500), // meters
+  shareLocationAtConcerts: boolean("share_location_at_concerts").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -237,6 +241,8 @@ export const commentReactionsRelations = relations(commentReactions, ({ one }) =
   }),
 }));
 
+
+
 export const insertBandSchema = createInsertSchema(bands).omit({
   id: true,
   ownerId: true,
@@ -305,6 +311,10 @@ export type InsertCommentReaction = z.infer<typeof insertCommentReactionSchema>;
 export const upsertUserSchema = createInsertSchema(users);
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+export type UserLocation = typeof userLocations.$inferSelect;
+export type InsertUserLocation = typeof userLocations.$inferInsert;
+export type ProximityMatch = typeof proximityMatches.$inferSelect;
+export type InsertProximityMatch = typeof proximityMatches.$inferInsert;
 
 // Message Board (The Pit) Tables
 export const pitMessages = pgTable("pit_messages", {
@@ -318,6 +328,36 @@ export const pitMessages = pgTable("pit_messages", {
   isPinned: integer("is_pinned").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User location data for proximity matching
+export const userLocations = pgTable("user_locations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  latitude: real("latitude").notNull(),
+  longitude: real("longitude").notNull(),
+  accuracy: real("accuracy"), // GPS accuracy in meters
+  venueName: varchar("venue_name"), // Concert venue name if at event
+  eventName: varchar("event_name"), // Concert/event name
+  isAtConcert: boolean("is_at_concert").default(false),
+  isVisible: boolean("is_visible").default(true), // User can toggle visibility
+  expiresAt: timestamp("expires_at"), // Location expires after certain time
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Concert proximity matches for connecting users at same venues
+export const proximityMatches = pgTable("proximity_matches", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId1: varchar("user_id_1").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  userId2: varchar("user_id_2").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  distance: real("distance"), // Distance in meters
+  venueName: varchar("venue_name"),
+  eventName: varchar("event_name"),
+  matchType: varchar("match_type").default("concert"), // 'concert', 'venue', 'general'
+  isActive: boolean("is_active").default(true),
+  lastSeen: timestamp("last_seen").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const pitReplies = pgTable("pit_replies", {
@@ -706,6 +746,27 @@ export const pitRepliesRelations = relations(pitReplies, ({ one }) => ({
   message: one(pitMessages, {
     fields: [pitReplies.messageId],
     references: [pitMessages.id],
+  }),
+}));
+
+// Proximity matching relations
+export const userLocationsRelations = relations(userLocations, ({ one }) => ({
+  user: one(users, {
+    fields: [userLocations.userId],
+    references: [users.id],
+  }),
+}));
+
+export const proximityMatchesRelations = relations(proximityMatches, ({ one }) => ({
+  user1: one(users, {
+    fields: [proximityMatches.userId1],
+    references: [users.id],
+    relationName: "user1Matches",
+  }),
+  user2: one(users, {
+    fields: [proximityMatches.userId2],
+    references: [users.id],
+    relationName: "user2Matches",
   }),
 }));
 

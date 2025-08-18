@@ -5,6 +5,8 @@ import {
   type Tour, type InsertTour, 
   type Message, type InsertMessage, 
   type User, type UpsertUser,
+  type UserLocation, type InsertUserLocation,
+  type ProximityMatch, type InsertProximityMatch,
   type PitMessage, type InsertPitMessage,
   type PitReply, type InsertPitReply,
   type Comment, type InsertComment,
@@ -14,7 +16,8 @@ import {
   type MessageEncryptionKey, type InsertMessageEncryptionKey,
   type MessageDeliveryReceipt, type InsertMessageDeliveryReceipt,
   users, bands, reviews, photos, tours, messages, pitMessages, pitReplies, comments, commentReactions,
-  conversations, directMessages, messageEncryptionKeys, messageDeliveryReceipts
+  conversations, directMessages, messageEncryptionKeys, messageDeliveryReceipts,
+  userLocations, proximityMatches
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
@@ -2003,6 +2006,107 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error getting message delivery receipts:", error);
       return [];
+    }
+  }
+
+  // Proximity matching methods
+  async updateUserLocation(locationData: InsertUserLocation): Promise<UserLocation> {
+    try {
+      // Remove old location for this user
+      await db.delete(userLocations).where(eq(userLocations.userId, locationData.userId));
+      
+      // Insert new location
+      const [location] = await db.insert(userLocations).values({
+        ...locationData,
+        id: randomUUID()
+      }).returning();
+      return location;
+    } catch (error) {
+      console.error("Error updating user location:", error);
+      throw error;
+    }
+  }
+
+  async getUserLocation(userId: string): Promise<UserLocation | undefined> {
+    try {
+      const [location] = await db.select().from(userLocations)
+        .where(eq(userLocations.userId, userId))
+        .orderBy(sql`${userLocations.updatedAt} DESC`)
+        .limit(1);
+      return location;
+    } catch (error) {
+      console.error("Error getting user location:", error);
+      return undefined;
+    }
+  }
+
+  async findNearbyUsers(userId: string, radiusMeters: number = 500): Promise<ProximityMatch[]> {
+    try {
+      const userLocation = await this.getUserLocation(userId);
+      if (!userLocation) {
+        return [];
+      }
+
+      // Find other users within radius using Haversine formula approximation
+      const matches = await db
+        .select({
+          id: proximityMatches.id,
+          userId1: proximityMatches.userId1,
+          userId2: proximityMatches.userId2,
+          distance: proximityMatches.distance,
+          venueName: proximityMatches.venueName,
+          eventName: proximityMatches.eventName,
+          matchType: proximityMatches.matchType,
+          isActive: proximityMatches.isActive,
+          lastSeen: proximityMatches.lastSeen,
+          createdAt: proximityMatches.createdAt,
+        })
+        .from(userLocations)
+        .leftJoin(proximityMatches, sql`
+          (${proximityMatches.userId1} = ${userLocation.userId} AND ${proximityMatches.userId2} = ${userLocations.userId}) OR
+          (${proximityMatches.userId2} = ${userLocation.userId} AND ${proximityMatches.userId1} = ${userLocations.userId})
+        `)
+        .where(sql`
+          ${userLocations.userId} != ${userId} AND
+          ${userLocations.isVisible} = true AND
+          ${userLocations.expiresAt} > NOW() AND
+          (6371000 * acos(cos(radians(${userLocation.latitude})) * cos(radians(${userLocations.latitude})) * cos(radians(${userLocations.longitude}) - radians(${userLocation.longitude})) + sin(radians(${userLocation.latitude})) * sin(radians(${userLocations.latitude})))) <= ${radiusMeters}
+        `);
+
+      return matches.filter(match => match.id !== null) as ProximityMatch[];
+    } catch (error) {
+      console.error("Error finding nearby users:", error);
+      return [];
+    }
+  }
+
+  async createProximityMatch(matchData: InsertProximityMatch): Promise<ProximityMatch> {
+    try {
+      const [match] = await db.insert(proximityMatches).values({
+        ...matchData,
+        id: randomUUID()
+      }).returning();
+      return match;
+    } catch (error) {
+      console.error("Error creating proximity match:", error);
+      throw error;
+    }
+  }
+
+  async updateUserProximitySettings(userId: string, settings: {
+    proximityEnabled?: boolean;
+    proximityRadius?: number;
+    shareLocationAtConcerts?: boolean;
+  }): Promise<User | undefined> {
+    try {
+      const [user] = await db.update(users)
+        .set(settings)
+        .where(eq(users.id, userId))
+        .returning();
+      return user;
+    } catch (error) {
+      console.error("Error updating proximity settings:", error);
+      return undefined;
     }
   }
 
