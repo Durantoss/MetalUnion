@@ -30,6 +30,7 @@ export async function apiRequest(url: string, options?: RequestInit) {
   if (!response.ok) {
     const errorData = await response.text();
     console.error(`API Error ${response.status}:`, errorData);
+    console.error('Request details:', { url, method: options?.method, headers: options?.headers });
     throw new Error(`${response.status}: ${errorData || response.statusText}`);
   }
 

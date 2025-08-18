@@ -21,20 +21,24 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
 
   const loginMutation = useMutation({
     mutationFn: async (data: { stagename: string; safeword: string; rememberMe: boolean }) => {
-      return apiRequest('/api/auth/login', {
+      console.log('Frontend: Starting login mutation with data:', { stagename: data.stagename, hasPassword: !!data.safeword });
+      const result = await apiRequest('/api/auth/login', {
         method: 'POST',
-        body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' }
+        body: JSON.stringify(data)
       });
+      console.log('Frontend: Login mutation completed successfully');
+      return result;
     },
     onSuccess: (response) => {
+      console.log('Frontend: Login mutation onSuccess triggered with:', response);
       onAuthSuccess(response.user);
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       onClose();
       setError('');
     },
     onError: (error: any) => {
-      console.error('Login mutation error:', error);
+      console.error('Frontend: Login mutation error:', error);
+      console.error('Frontend: Error details:', { message: error.message, stack: error.stack });
       setError(error.message || 'Login failed');
     }
   });
