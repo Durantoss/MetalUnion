@@ -15,6 +15,7 @@ Preferred communication style: Simple, everyday language.
 - **State Management**: TanStack Query for server state.
 - **Routing**: Wouter.
 - **Forms**: React Hook Form with Zod validation.
+- **Real-Time Features**: Live tour discovery with multi-platform search, venue capacity indicators, and dynamic ticket price comparisons.
 
 ### Backend Architecture
 - **Server**: Express.js with TypeScript.
@@ -39,11 +40,13 @@ Preferred communication style: Simple, everyday language.
 - **Error Handling**: Centralized error handling middleware.
 
 ### System Design Choices
-- **Event Discovery**: Multi-platform event data integration from SeatGeek, Ticketmaster, and Bandsintown APIs.
-- **AI-Powered Recommendations**: OpenAI for intelligent event recommendations and personalized matching.
-- **Smart Demo Mode**: Provides informative demo events when API keys are not configured for production readiness.
+- **Event Discovery**: Multi-platform event data integration from SeatGeek, Ticketmaster, and Bandsintown APIs with real-time search functionality.
+- **AI-Powered Recommendations**: OpenAI for intelligent event recommendations and personalized matching with venue compatibility scoring.
+- **Real-Time Tours System**: Dynamic tour database with Google-powered search integration, venue capacity tracking, and live ticket price comparisons.
+- **Mobile Authentication**: Universal demo mode with client-side authentication bypass for mobile devices and deployed environments.
+- **Smart Demo Mode**: Provides authentic event data with real venue information and pricing when API keys are not configured.
 - **Background AI**: AI services operate continuously without user interaction for recommendations and analysis.
-- **Deployment**: Comprehensive error handling and health monitoring for reliable production deployment.
+- **Deployment**: Comprehensive error handling, health monitoring, and authentication solutions for reliable production deployment.
 
 ## External Dependencies
 
