@@ -149,6 +149,7 @@ const App = () => {
 
   const renderContent = () => {
     console.log('Rendering section:', currentSection, 'with', bands.length, 'bands');
+    console.log('About to enter switch statement with currentSection:', currentSection);
     console.log('Landing page should render for:', currentSection === 'landing' || !currentSection);
     
     // Force landing page display for mobile debugging
@@ -338,6 +339,7 @@ const App = () => {
       case 'polls':
         return <InteractivePolls />;
       case 'tours':
+        console.log('SWITCH: About to render TestToursPage');
         return <TestToursPage />;
       case 'reviews':
         return (
