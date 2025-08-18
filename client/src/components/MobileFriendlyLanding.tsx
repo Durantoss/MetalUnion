@@ -20,7 +20,14 @@ interface MobileFriendlyLandingProps {
 }
 
 export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onLogin, onLogout }: MobileFriendlyLandingProps) {
-  console.log('Rendering MobileFriendlyLanding component');
+  console.log('MobileFriendlyLanding - Props received:', {
+    hasOnSectionChange: !!onSectionChange,
+    bandsCount: bands?.length || 0,
+    hasCurrentUser: !!currentUser,
+    hasOnLogin: !!onLogin,
+    hasOnLogout: !!onLogout,
+    onLoginType: typeof onLogin
+  });
   
   const featuredBands = bands?.slice(0, 3) || [];
   

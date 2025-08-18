@@ -225,7 +225,7 @@ const App = () => {
   }
 
   const handleLogin = () => {
-    console.log('Login button clicked');
+    console.log('Login button clicked - opening auth modal');
     setShowAuthModal(true);
   };
 
@@ -256,6 +256,12 @@ const App = () => {
       console.log('Rendering MobileFriendlyLanding component');
       
       // Use MobileFriendlyLanding for the redesigned landing page
+      console.log('Passing props to MobileFriendlyLanding:', {
+        hasCurrentUser: !!currentUser,
+        hasOnLogin: !!handleLogin,
+        hasOnLogout: !!handleLogout
+      });
+      
       return (
         <MobileFriendlyLanding 
           onSectionChange={setCurrentSection}
@@ -614,11 +620,13 @@ const App = () => {
       `}} />
       
       {/* Authentication Modal */}
-      <AuthModal 
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onAuthSuccess={handleAuthSuccess}
-      />
+      {showAuthModal && (
+        <AuthModal 
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onAuthSuccess={handleAuthSuccess}
+        />
+      )}
 
       {/* Global Authentication Handler */}
       <GlobalAuthHandler />
