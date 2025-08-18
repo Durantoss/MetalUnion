@@ -367,9 +367,7 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans">
-
-      
+    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', color: '#ffffff' }}>
       {currentSection !== 'landing' && (
         <ModernNavigation
           currentSection={currentSection}
@@ -380,13 +378,8 @@ const App = () => {
         />
       )}
       
-      <main className={`w-full ${currentSection === 'landing' ? '' : 'max-w-7xl mx-auto px-6'} transition-all duration-500 ease-out`} style={{
-        animation: 'fadeInUp 0.4s ease-out',
-        animationFillMode: 'both'
-      }}>
-        <div style={{
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-        }}>
+      <main style={{ width: '100%' }}>
+        <div>
           {renderContent()}
         </div>
         
