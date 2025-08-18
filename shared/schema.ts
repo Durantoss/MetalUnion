@@ -49,6 +49,10 @@ export const users = pgTable("users", {
   proximityEnabled: boolean("proximity_enabled").default(false),
   proximityRadius: integer("proximity_radius").default(500), // meters
   shareLocationAtConcerts: boolean("share_location_at_concerts").default(false),
+  // Admin and role management
+  role: varchar("role").default("user"), // user, moderator, admin
+  isAdmin: boolean("is_admin").default(false),
+  permissions: jsonb("permissions").default(sql`'{}'::jsonb`),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

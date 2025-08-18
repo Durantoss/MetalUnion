@@ -202,6 +202,32 @@ export function Navigation({ currentSection, onSectionChange, onShowComparison, 
             Photos
           </button>
           
+          <button
+            onClick={() => onSectionChange('admin')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: currentSection === 'admin' ? '#facc15' : '#d1d5db',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              padding: '0.5rem 1rem',
+              borderRadius: '6px',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              if (currentSection !== 'admin') {
+                e.currentTarget.style.color = '#facc15';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (currentSection !== 'admin') {
+                e.currentTarget.style.color = '#d1d5db';
+              }
+            }}
+          >
+            🛡️ Admin
+          </button>
 
         </div>
         

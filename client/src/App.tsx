@@ -22,6 +22,7 @@ import { ActivityFeed } from './components/ActivityFeed';
 import { GameficationDashboard } from './components/GameficationDashboard';
 // Removed EventsHub - using EnhancedEventsPage instead
 import { InteractivePolls } from './components/InteractivePolls';
+import { AdminPanel } from './components/AdminPanel';
 import { Band } from './types';
 
 
@@ -453,6 +454,8 @@ const App = () => {
           window.history.replaceState({}, '', window.location.pathname);
           setCurrentSection(section);
         }} />;
+      case 'admin':
+        return <AdminPanel currentUserId="demo-user" />;
       default:
         return null;
     }

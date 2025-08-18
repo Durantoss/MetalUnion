@@ -1184,6 +1184,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin API routes
+  app.post('/api/admin/grant-admin', async (req, res) => {
+    try {
+      const { userId, adminCode } = req.body;
+      
+      // Verify admin code
+      if (adminCode !== 'MOSH_ADMIN_2025') {
+        return res.status(403).json({ error: 'Invalid admin code' });
+      }
+      
+      // Grant admin privileges
+      await db
+        .update(users)
+        .set({ 
+          isAdmin: true, 
+          role: 'admin',
+          permissions: { full_admin: true, user_management: true, content_moderation: true }
+        })
+        .where(eq(users.id, userId));
+      
+      res.json({ success: true, message: 'Admin privileges granted' });
+    } catch (error) {
+      console.error('Error granting admin:', error);
+      res.status(500).json({ error: 'Failed to grant admin privileges' });
+    }
+  });
+
+  app.get('/api/admin/users', async (req, res) => {
+    try {
+      const allUsers = await db
+        .select({
+          id: users.id,
+          stagename: users.stagename,
+          email: users.email,
+          role: users.role,
+          isAdmin: users.isAdmin,
+          isOnline: users.isOnline,
+          lastActive: users.lastActive,
+          reputationPoints: users.reputationPoints,
+          createdAt: users.createdAt
+        })
+        .from(users)
+        .orderBy(users.createdAt);
+      
+      res.json(allUsers);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  });
+
+  app.put('/api/admin/users/role', async (req, res) => {
+    try {
+      const { userId, role } = req.body;
+      
+      await db
+        .update(users)
+        .set({ role })
+        .where(eq(users.id, userId));
+      
+      res.json({ success: true, message: 'User role updated' });
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      res.status(500).json({ error: 'Failed to update user role' });
+    }
+  });
+
+  app.put('/api/admin/users/admin', async (req, res) => {
+    try {
+      const { userId, isAdmin } = req.body;
+      
+      await db
+        .update(users)
+        .set({ 
+          isAdmin,
+          role: isAdmin ? 'admin' : 'user'
+        })
+        .where(eq(users.id, userId));
+      
+      res.json({ success: true, message: 'Admin status updated' });
+    } catch (error) {
+      console.error('Error updating admin status:', error);
+      res.status(500).json({ error: 'Failed to update admin status' });
+    }
+  });
+
   // Create HTTP server and setup WebSocket
   const httpServer = createServer(app);
   
