@@ -25,7 +25,7 @@ export function ModernNavigation({
 
   const navItems = [
     { id: 'bands', label: 'DISCOVER', icon: '🎸' },
-    { id: 'social', label: 'COMMUNITY HUB', icon: '🌐' },
+    { id: 'social', label: 'THE PIT', icon: '🔥' },
     { id: 'events', label: 'EVENT DISCOVERY', icon: '🎤' },
     { id: 'messaging-test', label: 'MESSAGING TEST', icon: '🔒' },
     { id: 'tours', label: 'TOURS', icon: '🚌' },

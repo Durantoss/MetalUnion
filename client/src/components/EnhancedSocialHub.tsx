@@ -60,10 +60,10 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
   const tabs = [
     {
       id: 'feed',
-      name: 'Community Hub',
+      name: 'The Pit',
       icon: Users,
       badge: stats.todaysPosts,
-      description: 'Feed, discussions, and metal community',
+      description: 'Metal discussions, feed, and community',
       color: 'from-red-500 to-pink-500'
     },
     {

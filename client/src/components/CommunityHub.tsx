@@ -26,14 +26,14 @@ export function CommunityHub({ stats }: CommunityHubProps) {
   const sections = [
     {
       id: 'feed',
-      name: 'Community Feed',
+      name: 'Metal Feed',
       icon: TrendingUp,
       description: 'Latest posts and discussions',
       count: stats.todaysPosts
     },
     {
       id: 'pit',
-      name: 'The Pit',
+      name: 'Discussions',
       icon: Hash,
       description: 'Metal discussions and debates',
       count: 45
@@ -104,7 +104,7 @@ export function CommunityHub({ stats }: CommunityHubProps) {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
-        <h2 className="text-2xl md:text-3xl font-bold text-white">Community Hub</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-white">The Pit</h2>
         <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
           <div className="flex items-center space-x-2 bg-black/40 px-3 py-2 rounded-lg border border-green-500/30">
             <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
