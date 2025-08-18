@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Users, MessageCircle, Heart, UserPlus, Crown, Star, Coffee, Music, Camera, Flame, ThumbsUp, Zap } from 'lucide-react';
 import { LiveChat } from './LiveChat';
-import { useAuth } from '../hooks/useAuth';
 
 interface User {
   id: string;
@@ -74,7 +73,7 @@ const reactionEmojis = [
   { id: '8', emoji: '👹', name: 'demon', category: 'metal' }
 ];
 
-export function SocialFeatures({ userId }: { userId?: string }) {
+export function SocialFeatures({ userId, currentUser }: { userId?: string, currentUser?: any }) {
   const [activeTab, setActiveTab] = useState('groups');
   const [groups, setGroups] = useState<GroupData[]>([]);
   const [mentors, setMentors] = useState<MentorData[]>([]);
@@ -83,9 +82,6 @@ export function SocialFeatures({ userId }: { userId?: string }) {
   const [socialConnections, setSocialConnections] = useState<SocialConnection[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Get authenticated user from persistent session
-  const { user: currentUser, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
     loadSocialData();

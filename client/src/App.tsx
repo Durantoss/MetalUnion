@@ -40,8 +40,8 @@ const App = () => {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   
-  // Use useAuth hook for persistent authentication
-  const { user: currentUser, isLoading: authLoading, refetch: refetchAuth } = useAuth();
+  // Use useAuth hook for persistent authentication - simplified
+  const { user: currentUser, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   
   // Check URL parameters for section navigation - ONLY on mount, not on every section change
