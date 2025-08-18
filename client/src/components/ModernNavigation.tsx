@@ -38,7 +38,6 @@ export function ModernNavigation({
     { id: 'bands', label: 'DISCOVER' },
     { id: 'social', label: 'THE PIT' },
     { id: 'events', label: 'EVENT DISCOVERY' },
-    { id: 'messaging-test', label: 'MESSAGING TEST' },
     { id: 'tours', label: 'TOURS' },
     { id: 'reviews', label: 'REVIEWS' },
     { id: 'photos', label: 'PHOTOS' }

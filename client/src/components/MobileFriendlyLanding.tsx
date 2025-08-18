@@ -67,18 +67,16 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
       title: 'Event Discovery',
       subtitle: 'Intelligent Concert Discovery',
       description: 'Discover metal concerts tailored to your taste with smart recommendations',
-
-      gradient: 'linear-gradient(135deg, #dc2626, #facc15)',
+      gradient: 'linear-gradient(135deg, #dc2626, #ffffff)',
       stats: `${stats.events} events`,
       featured: true
     },
     {
       id: 'social',
-      title: 'Social Hub',
+      title: 'The Pit',
       subtitle: 'Global Metal Community',
-      description: 'Connect with metalheads worldwide and share experiences',
-
-      gradient: 'linear-gradient(135deg, #facc15, #dc2626)',
+      description: 'Connect with metalheads worldwide, share experiences, and dive into heated debates',
+      gradient: 'linear-gradient(135deg, #ffffff, #dc2626)',
       stats: `${stats.activeUsers} online`,
       featured: true
     },
@@ -87,8 +85,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
       title: 'Band Discovery',
       subtitle: 'Explore Metal Universe',
       description: 'Deep dive into band profiles, albums, and histories',
-
-      gradient: 'linear-gradient(135deg, #dc2626, #991b1b)',
+      gradient: 'linear-gradient(135deg, #dc2626, #ffffff)',
       stats: `${stats.bands} bands`
     },
     {
@@ -96,8 +93,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
       title: 'Reviews & Ratings',
       subtitle: 'Community Insights',
       description: 'Share and discover authentic metal community reviews',
-
-      gradient: 'linear-gradient(135deg, #facc15, #eab308)',
+      gradient: 'linear-gradient(135deg, #ffffff, #dc2626)',
       stats: `${stats.reviews} reviews`
     },
     {
@@ -105,8 +101,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
       title: 'Metal Photography',
       subtitle: 'Visual Stories',
       description: 'Capture and share the raw energy of metal culture',
-
-      gradient: 'linear-gradient(135deg, #dc2626, #facc15)',
+      gradient: 'linear-gradient(135deg, #dc2626, #ffffff)',
       stats: `${stats.photos} photos`
     },
     {
@@ -114,18 +109,8 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
       title: 'Tour Dates',
       subtitle: 'Live Experience Tracker',
       description: 'Track upcoming tours and live performances',
-
-      gradient: 'linear-gradient(135deg, #991b1b, #dc2626)',
+      gradient: 'linear-gradient(135deg, #ffffff, #dc2626)',
       stats: `${stats.tours} tours`
-    },
-    {
-      id: 'pit',
-      title: 'The Pit',
-      subtitle: 'Community Discussions',
-      description: 'Dive into heated debates and metal discussions',
-
-      gradient: 'linear-gradient(135deg, #facc15, #dc2626)',
-      stats: `${stats.posts} posts`
     }
   ];
 
@@ -209,7 +194,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
                 backgroundColor: 'rgba(0, 0, 0, 0.6)',
                 borderRadius: '8px',
                 border: '1px solid rgba(220, 38, 38, 0.3)',
-                color: '#facc15',
+                color: '#ffffff',
                 fontSize: '0.9rem',
                 fontWeight: '600'
               }}
@@ -285,7 +270,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
               
               <div style={{ flex: 1 }}>
                 <h3 style={{
-                  color: '#facc15',
+                  color: '#ffffff',
                   fontSize: section.featured ? '1.5rem' : '1.25rem',
                   fontWeight: '700',
                   marginBottom: '0.25rem'
@@ -317,7 +302,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
                   backgroundColor: 'rgba(220, 38, 38, 0.2)',
                   borderRadius: '20px',
                   border: '1px solid rgba(220, 38, 38, 0.3)',
-                  color: '#facc15',
+                  color: '#ffffff',
                   fontSize: '0.75rem',
                   fontWeight: '600'
                 }}>
@@ -338,13 +323,13 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
           <h2 style={{
             fontSize: '2rem',
             fontWeight: '700',
-            background: 'linear-gradient(45deg, #dc2626, #facc15)',
+            background: 'linear-gradient(45deg, #dc2626, #ffffff)',
             backgroundClip: 'text',
             WebkitBackgroundClip: 'text',
             color: 'transparent',
             marginBottom: '2rem'
           }}>
-            🎸 Featured Metal Acts
+            Featured Metal Acts
           </h2>
           
           <div style={{
@@ -379,7 +364,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
                 }}
               >
                 <h3 style={{
-                  color: '#facc15',
+                  color: '#ffffff',
                   fontSize: '1.25rem',
                   fontWeight: '700',
                   marginBottom: '0.5rem'
@@ -435,12 +420,12 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
         margin: '4rem auto 0 auto'
       }}>
         <h3 style={{
-          color: '#facc15',
+          color: '#ffffff',
           fontSize: '1.5rem',
           fontWeight: '700',
           marginBottom: '1rem'
         }}>
-          🤘 Join the Metal Revolution
+          Join the Metal Revolution
         </h3>
         
         <p style={{
@@ -456,7 +441,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
           onClick={() => onSectionChange('events')}
           style={{
             padding: '1rem 2rem',
-            background: 'linear-gradient(45deg, #dc2626, #facc15)',
+            background: 'linear-gradient(45deg, #dc2626, #ffffff)',
             color: 'white',
             border: 'none',
             borderRadius: '8px',
@@ -474,7 +459,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands }: MobileFriendly
             e.currentTarget.style.boxShadow = 'none';
           }}
         >
-          🎯 Start AI Event Discovery
+          Start AI Event Discovery
         </button>
       </div>
     </div>
