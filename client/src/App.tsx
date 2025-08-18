@@ -164,6 +164,7 @@ const App = () => {
       );
     }
     
+    console.log('EXECUTING SWITCH STATEMENT with currentSection:', currentSection);
     switch (currentSection) {
       case 'bands':
         return (
