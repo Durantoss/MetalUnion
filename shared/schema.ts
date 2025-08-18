@@ -195,6 +195,13 @@ export const tours = pgTable("tours", {
   seatgeekUrl: text("seatgeek_url"),
   price: text("price"),
   status: text("status").default("upcoming"), // 'upcoming', 'sold_out', 'cancelled'
+  // Venue capacity and crowd energy fields
+  venueCapacity: integer("venue_capacity"), // Maximum venue capacity
+  currentAttendance: integer("current_attendance").default(0), // Current ticket sales/attendance
+  crowdEnergyLevel: real("crowd_energy_level").default(0.0), // 0.0 to 1.0 crowd energy score
+  lastEnergyUpdate: timestamp("last_energy_update").defaultNow(),
+  attendeeCount: integer("attendee_count").default(0), // Real-time attendee count
+  energyMetrics: jsonb("energy_metrics").default(sql`'{}'::jsonb`), // Social media buzz, reviews, etc.
 });
 
 export const messages = pgTable("messages", {

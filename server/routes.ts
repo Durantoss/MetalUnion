@@ -68,6 +68,7 @@ import { concertRecommendationService, type ConcertRecommendation, type ConcertR
 import { ticketmasterService } from "./ticketmasterService";
 import { MessagingWebSocketServer } from "./websocket";
 import { MessageEncryption } from "./encryption";
+import { getRealtimeVenueData, simulateRealtimeUpdates, type VenueRealtimeData } from "./venueCapacityService";
 import multer from "multer";
 import path from "path";
 
@@ -816,6 +817,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching tours:", error);
       console.error("Stack trace:", error.stack);
       res.status(500).json({ message: "Failed to fetch tours" });
+    }
+  });
+
+  // Real-time venue capacity and crowd energy endpoints
+  app.get('/api/tours/:tourId/venue-data', async (req, res) => {
+    try {
+      const { tourId } = req.params;
+      
+      // Get tour details from database
+      const tour = await storage.getTour(tourId);
+      if (!tour) {
+        return res.status(404).json({ error: 'Tour not found' });
+      }
+
+      // Get band information
+      const band = await storage.getBand(tour.bandId);
+      const bandName = band?.name || 'Unknown Band';
+      
+      // Generate real-time venue data
+      const venueData = getRealtimeVenueData(
+        tourId,
+        tour.venue,
+        bandName,
+        tour.date.toISOString()
+      );
+
+      res.json(venueData);
+    } catch (error) {
+      console.error('Error fetching venue data:', error);
+      res.status(500).json({ error: 'Failed to fetch venue data' });
+    }
+  });
+
+  // WebSocket endpoint for real-time venue updates
+  app.get('/api/tours/venue-updates/stream', async (req, res) => {
+    try {
+      // Get all upcoming tours with venue data
+      const tours = await storage.getUpcomingTours();
+      const venueUpdates: VenueRealtimeData[] = [];
+
+      for (const tour of tours) {
+        const band = await storage.getBand(tour.bandId);
+        const bandName = band?.name || 'Unknown Band';
+        
+        const venueData = getRealtimeVenueData(
+          tour.id,
+          tour.venue,
+          bandName,
+          tour.date.toISOString()
+        );
+        
+        venueUpdates.push(venueData);
+      }
+
+      res.json(venueUpdates);
+    } catch (error) {
+      console.error('Error fetching venue updates:', error);
+      res.status(500).json({ error: 'Failed to fetch venue updates' });
+    }
+  });
+
+  // Venue capacity status for multiple tours
+  app.post('/api/tours/venue-status', async (req, res) => {
+    try {
+      const { tourIds } = req.body;
+      
+      if (!Array.isArray(tourIds)) {
+        return res.status(400).json({ error: 'tourIds must be an array' });
+      }
+
+      const venueStatusData = [];
+      
+      for (const tourId of tourIds) {
+        const tour = await storage.getTour(tourId);
+        if (tour) {
+          const band = await storage.getBand(tour.bandId);
+          const bandName = band?.name || 'Unknown Band';
+          
+          const venueData = getRealtimeVenueData(
+            tourId,
+            tour.venue,
+            bandName,
+            tour.date.toISOString()
+          );
+          
+          venueStatusData.push(venueData);
+        }
+      }
+
+      res.json(venueStatusData);
+    } catch (error) {
+      console.error('Error fetching venue status:', error);
+      res.status(500).json({ error: 'Failed to fetch venue status' });
     }
   });
 

@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { VenueCapacityIndicator, useVenueStatuses } from './VenueCapacityIndicator';
 
 interface Tour {
   id: string;
@@ -176,6 +177,10 @@ export function EnhancedToursPage() {
       return response.json();
     }
   });
+
+  // Get venue statuses for all tours
+  const tourIds = tours.map(tour => tour.id);
+  const { venueStatuses } = useVenueStatuses(tourIds);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -497,6 +502,13 @@ export function EnhancedToursPage() {
                           </div>
                         )}
                       </div>
+
+                      {/* Real-time Venue Capacity & Crowd Energy Indicator */}
+                      <VenueCapacityIndicator 
+                        tourId={tour.id} 
+                        compact={true}
+                        className="my-3"
+                      />
                       
                       {tour.ticketUrl && (
                         <a 
