@@ -502,7 +502,7 @@ const App = () => {
           color: white;
         }
       `}</style>
-      {/* <MobileCompatibilityCheck /> */}
+
     </div>
   );
 };

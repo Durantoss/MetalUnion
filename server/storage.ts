@@ -634,10 +634,8 @@ export class MemStorage implements IStorage {
   }
 
   // Messages (stub implementations - not used since we use DatabaseStorage)
-  async getMessages(): Promise<Message[]> { return []; }
   async getMessage(id: string): Promise<Message | undefined> { return undefined; }
   async getMessagesByCategory(category: string): Promise<Message[]> { return []; }
-  async createMessage(message: InsertMessage): Promise<Message> { throw new Error("Not implemented"); }
   async updateMessage(id: string, message: Partial<InsertMessage>): Promise<Message | undefined> { return undefined; }
   async deleteMessage(id: string): Promise<boolean> { return false; }
   async likeMessage(id: string): Promise<Message | undefined> { return undefined; }
@@ -1208,6 +1206,60 @@ export class MemStorage implements IStorage {
       isActive: true,
       createdAt: new Date()
     };
+  }
+
+  // Missing PitMessage methods
+  async getPitMessages(): Promise<any[]> {
+    return [];
+  }
+
+  async getPitMessage(id: string): Promise<any> {
+    return undefined;
+  }
+
+  async createPitMessage(messageData: any): Promise<any> {
+    return { id: randomUUID(), ...messageData, createdAt: new Date() };
+  }
+
+  async incrementPitMessageLikes(id: string): Promise<void> {
+    console.log(`Pit message ${id} likes incremented`);
+  }
+
+  async incrementPitMessageReplies(id: string): Promise<void> {
+    console.log(`Pit message ${id} replies incremented`);
+  }
+
+  // Missing User Groups methods
+  async getUserGroups(): Promise<any[]> {
+    return [];
+  }
+
+  async createUserGroup(group: any): Promise<any> {
+    return { id: randomUUID(), ...group, createdAt: new Date() };
+  }
+
+  async joinGroup(groupId: string, userId: string): Promise<any> {
+    return { groupId, userId, joinedAt: new Date() };
+  }
+
+  async getGroupPosts(groupId: string): Promise<any[]> {
+    return [];
+  }
+
+  async createGroupPost(post: any): Promise<any> {
+    return { id: randomUUID(), ...post, createdAt: new Date() };
+  }
+
+  async getMentorProfiles(): Promise<any[]> {
+    return [];
+  }
+
+  async createMentorProfile(profile: any): Promise<any> {
+    return { id: randomUUID(), ...profile, createdAt: new Date() };
+  }
+
+  async requestMentorship(mentorship: any): Promise<any> {
+    return { id: randomUUID(), ...mentorship, createdAt: new Date() };
   }
 }
 
