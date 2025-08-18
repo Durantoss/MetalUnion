@@ -1,5 +1,5 @@
 import { ActivityFeed } from './ActivityFeed';
-import { SecureDirectMessaging } from './SecureDirectMessaging';
+import { SimplifiedSecureMessaging } from './SimplifiedSecureMessaging';
 import { MessageCircle, Users, TrendingUp, Heart, Calendar, Camera, Bell, Settings, Star, Music, Zap } from 'lucide-react';
 
 interface SocialHubProps {
@@ -92,7 +92,7 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
                 <span className="text-green-400 font-semibold">End-to-End Encrypted</span>
               </div>
             </div>
-            <SecureDirectMessaging userId={userId} />
+            <SimplifiedSecureMessaging userId={userId} />
           </div>
         );
       case 'community':
@@ -216,7 +216,7 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
               </div>
               <button 
                 onClick={() => window.location.hash = 'events'}
-                className="bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-4 rounded-lg font-semibold hover:from-red-700 hover:to-red-800 transition-all transform hover:scale-105"
+                className="bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-4 rounded-lg font-semibold hover:from-red-700 hover:to-red-800 transition-all transform hover:scale-105 touch-manipulation"
               >
                 Explore Event Discovery
               </button>

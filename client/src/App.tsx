@@ -15,6 +15,7 @@ import { EnhancedEventsPage } from './components/EnhancedEventsPage';
 import { SimpleToursPage } from './components/SimpleToursPage';
 import { UserProfile } from './components/UserProfile';
 import { NotificationCenter } from './components/NotificationCenter';
+import { MessagingTestPage } from './components/MessagingTestPage';
 import { ActivityFeed } from './components/ActivityFeed';
 import { GameficationDashboard } from './components/GameficationDashboard';
 // Removed EventsHub - using EnhancedEventsPage instead
@@ -359,6 +360,12 @@ const App = () => {
         return (
           <div style={{ padding: '0 2rem' }}>
             <ThePit />
+          </div>
+        );
+      case 'messaging-test':
+        return (
+          <div>
+            <MessagingTestPage />
           </div>
         );
       default:
