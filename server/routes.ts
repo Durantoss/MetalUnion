@@ -28,8 +28,11 @@ import {
   insertDirectMessageSchema,
   insertMessageEncryptionKeySchema,
   insertMessageDeliveryReceiptSchema
-} from "@shared/schema";
+, users } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./auth";
+import { db } from "./db";
+
+import { eq } from "drizzle-orm";
 import { performGoogleSearch } from "./googleSearch";
 import { tourDataService } from "./tourDataService";
 import { aiService, type BandRecommendation, type ChatResponse } from "./aiService";
@@ -1184,17 +1187,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin API routes
-  app.post('/api/admin/grant-admin', async (req, res) => {
+  // Admin API routes - Grant admin to current session user
+  app.post('/api/admin/grant-admin', async (req: any, res) => {
     try {
-      const { userId, adminCode } = req.body;
+      const { adminCode } = req.body;
+      const userId = req.session?.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: 'Must be logged in to grant admin access' });
+      }
       
       // Verify admin code
       if (adminCode !== 'MOSH_ADMIN_2025') {
         return res.status(403).json({ error: 'Invalid admin code' });
       }
       
-      // Grant admin privileges
+      // Grant admin privileges to the current session user
       await db
         .update(users)
         .set({ 
@@ -1204,7 +1212,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .where(eq(users.id, userId));
       
-      res.json({ success: true, message: 'Admin privileges granted' });
+      // Update session to reflect admin status
+      req.session.isAdmin = true;
+      
+      res.json({ success: true, message: 'Admin privileges granted successfully' });
     } catch (error) {
       console.error('Error granting admin:', error);
       res.status(500).json({ error: 'Failed to grant admin privileges' });

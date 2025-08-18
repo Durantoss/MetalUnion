@@ -31,7 +31,7 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
         const response = await fetch('/api/admin/grant-admin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: currentUserId, adminCode })
+          body: JSON.stringify({ adminCode })
         });
         
         if (response.ok) {

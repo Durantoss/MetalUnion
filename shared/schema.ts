@@ -436,6 +436,12 @@ export type PostCommentLike = typeof postCommentLikes.$inferSelect;
 export const upsertUserSchema = createInsertSchema(users);
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+export type CreateUser = typeof users.$inferInsert;
+export type LoginRequest = {
+  stagename: string;
+  safeword: string;
+  rememberMe?: boolean;
+};
 export type UserLocation = typeof userLocations.$inferSelect;
 export type InsertUserLocation = typeof userLocations.$inferInsert;
 export type ProximityMatch = typeof proximityMatches.$inferSelect;

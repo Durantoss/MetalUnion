@@ -23,6 +23,7 @@ import { GameficationDashboard } from './components/GameficationDashboard';
 // Removed EventsHub - using EnhancedEventsPage instead
 import { InteractivePolls } from './components/InteractivePolls';
 import { AdminPanel } from './components/AdminPanel';
+import { AuthModal } from './components/auth/AuthModal';
 import { Band } from './types';
 
 
@@ -36,6 +37,7 @@ const App = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   
   // Check URL parameters for section navigation - ONLY on mount, not on every section change
   useEffect(() => {
@@ -224,16 +226,12 @@ const App = () => {
 
   const handleLogin = () => {
     console.log('Login button clicked');
-    fetch('/api/login')
-      .then(response => response.json())
-      .then(data => {
-        console.log('Login response:', data);
-        alert(data.message || 'Login functionality temporarily disabled for testing');
-      })
-      .catch(err => {
-        console.error('Login error:', err);
-        alert('Login service temporarily unavailable');
-      });
+    setShowAuthModal(true);
+  };
+
+  const handleAuthSuccess = (user) => {
+    setCurrentUser(user);
+    console.log('User authenticated:', user);
   };
 
   const renderContent = () => {
@@ -455,7 +453,7 @@ const App = () => {
           setCurrentSection(section);
         }} />;
       case 'admin':
-        return <AdminPanel currentUserId="demo-user" />;
+        return <AdminPanel currentUserId={currentUser?.id} />;
       default:
         return null;
     }
@@ -598,6 +596,13 @@ const App = () => {
         }
       `}} />
       
+      {/* Authentication Modal */}
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onAuthSuccess={handleAuthSuccess}
+      />
+
       {/* Global Authentication Handler */}
       <GlobalAuthHandler />
 
