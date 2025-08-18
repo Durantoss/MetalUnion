@@ -1,32 +1,28 @@
-// Dedicated test page for secure messaging functionality
-import { useState } from 'react';
-import { SimplifiedSecureMessaging } from './SimplifiedSecureMessaging';
+// Dedicated test page for secure messaging functionality - hook-free
+import { HookFreeSecureMessagingComponent } from './HookFreeSecureMessaging';
 import { Shield, MessageCircle, TestTube, Users, Key, Lock, CheckCircle } from 'lucide-react';
 
 export function MessagingTestPage() {
-  const [selectedTest, setSelectedTest] = useState<'basic' | 'advanced' | 'encryption'>('basic');
-  const [testUserId, setTestUserId] = useState('demo-user');
-
-  const testScenarios = {
-    basic: {
+  const testScenarios = [
+    {
       title: 'Basic Messaging Test',
       description: 'Test the core messaging interface with demo conversations',
       icon: MessageCircle,
       color: 'blue'
     },
-    advanced: {
+    {
       title: 'Advanced Features Test',
       description: 'Test advanced messaging features like status, typing indicators, etc.',
       icon: Users,
       color: 'purple'
     },
-    encryption: {
+    {
       title: 'Encryption Demo',
       description: 'See how end-to-end encryption works in the messaging system',
       icon: Shield,
       color: 'green'
     }
-  };
+  ];
 
   const encryptionSteps = [
     {
@@ -59,6 +55,8 @@ export function MessagingTestPage() {
     }
   ];
 
+  const testUserId = 'demo-user-' + Date.now();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-red-900/20 to-gray-900 p-4">
       <div className="max-w-7xl mx-auto">
@@ -76,95 +74,77 @@ export function MessagingTestPage() {
         <div className="bg-black/40 border border-red-900/30 rounded-lg p-6 mb-8">
           <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
             <TestTube className="h-5 w-5 text-red-400" />
-            <span>Test Controls</span>
+            <span>Test Scenarios</span>
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            {Object.entries(testScenarios).map(([key, scenario]) => {
+            {testScenarios.map((scenario, index) => {
               const Icon = scenario.icon;
-              const isSelected = selectedTest === key;
               
               return (
-                <button
-                  key={key}
-                  onClick={() => setSelectedTest(key as any)}
-                  className={`p-4 rounded-lg border transition-all text-left ${
-                    isSelected
-                      ? 'border-red-500 bg-red-600/20'
-                      : 'border-red-900/30 bg-black/20 hover:border-red-700/50'
-                  }`}
+                <div
+                  key={index}
+                  className="p-4 rounded-lg border border-red-900/30 bg-black/20"
                 >
                   <div className="flex items-center space-x-3 mb-2">
-                    <Icon className={`h-5 w-5 ${isSelected ? 'text-red-400' : 'text-gray-400'}`} />
-                    <span className={`font-medium ${isSelected ? 'text-white' : 'text-gray-300'}`}>
+                    <Icon className="h-5 w-5 text-red-400" />
+                    <span className="font-medium text-white">
                       {scenario.title}
                     </span>
                   </div>
                   <p className="text-gray-400 text-sm">{scenario.description}</p>
-                </button>
+                </div>
               );
             })}
           </div>
 
           <div className="flex items-center space-x-4">
-            <label className="text-white font-medium">Test User ID:</label>
-            <input
-              type="text"
-              value={testUserId}
-              onChange={(e) => setTestUserId(e.target.value)}
-              className="bg-black/40 border border-red-900/30 rounded px-3 py-1 text-white focus:outline-none focus:border-red-500"
-              placeholder="Enter user ID for testing"
-            />
-            <button
-              onClick={() => setTestUserId(`user-${Date.now()}`)}
-              className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors text-sm"
-            >
-              Generate Random
-            </button>
+            <label className="text-white font-medium">Current Test User:</label>
+            <span className="bg-red-600/20 text-red-400 px-3 py-1 rounded border border-red-500/30">
+              {testUserId}
+            </span>
           </div>
         </div>
 
-        {/* Encryption Demo (when selected) */}
-        {selectedTest === 'encryption' && (
-          <div className="bg-black/40 border border-green-500/30 rounded-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold text-white mb-6 flex items-center space-x-2">
-              <Shield className="h-5 w-5 text-green-400" />
-              <span>End-to-End Encryption Process</span>
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              {encryptionSteps.map((step) => {
-                const Icon = step.icon;
-                return (
-                  <div key={step.step} className="bg-black/30 border border-green-500/20 rounded-lg p-4">
-                    <div className="flex items-center space-x-2 mb-3">
-                      <div className="bg-green-600 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
-                        {step.step}
-                      </div>
-                      <Icon className="h-4 w-4 text-green-400" />
+        {/* Encryption Demo */}
+        <div className="bg-black/40 border border-green-500/30 rounded-lg p-6 mb-8">
+          <h2 className="text-xl font-semibold text-white mb-6 flex items-center space-x-2">
+            <Shield className="h-5 w-5 text-green-400" />
+            <span>End-to-End Encryption Process</span>
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {encryptionSteps.map((step) => {
+              const Icon = step.icon;
+              return (
+                <div key={step.step} className="bg-black/30 border border-green-500/20 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <div className="bg-green-600 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+                      {step.step}
                     </div>
-                    <h3 className="text-white font-medium mb-2">{step.title}</h3>
-                    <p className="text-gray-400 text-sm">{step.description}</p>
+                    <Icon className="h-4 w-4 text-green-400" />
                   </div>
-                );
-              })}
-            </div>
-
-            <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-4">
-              <div className="flex items-center space-x-2 mb-2">
-                <Shield className="h-5 w-5 text-green-400" />
-                <span className="text-green-400 font-semibold">Security Features</span>
-              </div>
-              <ul className="text-gray-300 text-sm space-y-1">
-                <li>• RSA-2048 public-key cryptography for key exchange</li>
-                <li>• AES-256-GCM for symmetric encryption of messages</li>
-                <li>• Perfect Forward Secrecy with ephemeral keys</li>
-                <li>• Message authentication and integrity verification</li>
-                <li>• No server-side message storage in plaintext</li>
-              </ul>
-            </div>
+                  <h3 className="text-white font-medium mb-2">{step.title}</h3>
+                  <p className="text-gray-400 text-sm">{step.description}</p>
+                </div>
+              );
+            })}
           </div>
-        )}
+
+          <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-4">
+            <div className="flex items-center space-x-2 mb-2">
+              <Shield className="h-5 w-5 text-green-400" />
+              <span className="text-green-400 font-semibold">Security Features</span>
+            </div>
+            <ul className="text-gray-300 text-sm space-y-1">
+              <li>• RSA-2048 public-key cryptography for key exchange</li>
+              <li>• AES-256-GCM for symmetric encryption of messages</li>
+              <li>• Perfect Forward Secrecy with ephemeral keys</li>
+              <li>• Message authentication and integrity verification</li>
+              <li>• No server-side message storage in plaintext</li>
+            </ul>
+          </div>
+        </div>
 
         {/* Testing Instructions */}
         <div className="bg-black/40 border border-yellow-500/30 rounded-lg p-6 mb-8">
@@ -205,14 +185,14 @@ export function MessagingTestPage() {
               <MessageCircle className="h-5 w-5 text-red-400" />
               <span>Live Messaging Interface</span>
               <span className="text-sm bg-red-600/20 text-red-400 px-2 py-1 rounded">
-                Testing as: {testUserId}
+                Testing Mode
               </span>
             </h2>
           </div>
           
           {/* Messaging Component */}
           <div className="h-[600px]">
-            <SimplifiedSecureMessaging userId={testUserId} />
+            <HookFreeSecureMessagingComponent userId={testUserId} />
           </div>
         </div>
 

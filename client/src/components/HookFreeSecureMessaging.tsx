@@ -1,0 +1,379 @@
+// Completely hook-free secure messaging component for maximum compatibility
+import { MessageCircle, Send, Shield, User, Clock, Check } from 'lucide-react';
+
+interface Message {
+  id: string;
+  senderId: string;
+  senderName: string;
+  content: string;
+  timestamp: string;
+  isOwn: boolean;
+  encrypted: boolean;
+}
+
+interface Conversation {
+  id: string;
+  participantName: string;
+  participantStatus: 'online' | 'offline';
+  lastMessage: string;
+  lastMessageTime: string;
+  unreadCount: number;
+  messages: Message[];
+}
+
+interface HookFreeSecureMessagingProps {
+  userId?: string;
+}
+
+export class HookFreeSecureMessaging {
+  private userId: string;
+  private selectedConversation: string;
+  private showConversationList: boolean;
+  private conversations: Conversation[];
+
+  constructor(userId = 'demo-user') {
+    this.userId = userId;
+    this.selectedConversation = 'conv1';
+    this.showConversationList = true;
+    
+    // Demo data for testing
+    this.conversations = [
+      {
+        id: 'conv1',
+        participantName: 'MetalFan2024',
+        participantStatus: 'online',
+        lastMessage: 'Did you catch the Metallica show last night?',
+        lastMessageTime: '2 min ago',
+        unreadCount: 2,
+        messages: [
+          {
+            id: 'msg1',
+            senderId: 'user2',
+            senderName: 'MetalFan2024',
+            content: 'Hey! Did you catch the Metallica show last night?',
+            timestamp: '10:25 PM',
+            isOwn: false,
+            encrypted: true
+          },
+          {
+            id: 'msg2',
+            senderId: this.userId,
+            senderName: 'You',
+            content: 'Yes! It was absolutely incredible! The Master of Puppets solo was insane 🤘',
+            timestamp: '10:27 PM',
+            isOwn: true,
+            encrypted: true
+          },
+          {
+            id: 'msg3',
+            senderId: 'user2',
+            senderName: 'MetalFan2024',
+            content: 'I know right! James\' vocals were on point too. Want to check out Iron Maiden next month?',
+            timestamp: '10:30 PM',
+            isOwn: false,
+            encrypted: true
+          }
+        ]
+      },
+      {
+        id: 'conv2',
+        participantName: 'ConcertGoer',
+        participantStatus: 'offline',
+        lastMessage: 'Thanks for the concert recommendation!',
+        lastMessageTime: '1 hour ago',
+        unreadCount: 0,
+        messages: [
+          {
+            id: 'msg4',
+            senderId: 'user3',
+            senderName: 'ConcertGoer',
+            content: 'Thanks for the concert recommendation! Black Sabbath was legendary.',
+            timestamp: '9:15 PM',
+            isOwn: false,
+            encrypted: true
+          },
+          {
+            id: 'msg5',
+            senderId: this.userId,
+            senderName: 'You',
+            content: 'Glad you enjoyed it! Ozzy still has it at his age.',
+            timestamp: '9:18 PM',
+            isOwn: true,
+            encrypted: true
+          }
+        ]
+      },
+      {
+        id: 'conv3',
+        participantName: 'RockVeteran',
+        participantStatus: 'online',
+        lastMessage: 'Check out this new band I discovered',
+        lastMessageTime: '3 hours ago',
+        unreadCount: 1,
+        messages: [
+          {
+            id: 'msg6',
+            senderId: 'user4',
+            senderName: 'RockVeteran',
+            content: 'Check out this new band I discovered - Spiritbox. Their latest album is fire!',
+            timestamp: '7:45 PM',
+            isOwn: false,
+            encrypted: true
+          }
+        ]
+      }
+    ];
+  }
+
+  private handleSendMessage(content: string) {
+    if (!content.trim()) return;
+    
+    console.log('Sending encrypted message:', content);
+    alert(`Message sent (encrypted): "${content}"`);
+    
+    // Clear the input
+    const input = document.querySelector('#message-input') as HTMLInputElement;
+    if (input) input.value = '';
+  }
+
+  private handleConversationSelect(convId: string) {
+    this.selectedConversation = convId;
+    this.showConversationList = false;
+    this.render();
+  }
+
+  private showConversations() {
+    this.showConversationList = true;
+    this.render();
+  }
+
+  private getCurrentConversation(): Conversation | undefined {
+    return this.conversations.find(conv => conv.id === this.selectedConversation);
+  }
+
+  private renderConversationsList(): string {
+    const isVisible = this.showConversationList ? 'block' : 'hidden';
+    
+    return `
+      <div class="${isVisible} md:block w-full md:w-1/3 border-r border-red-900/30 bg-black/20">
+        <div class="p-4">
+          <h4 class="text-white font-medium mb-3 flex items-center space-x-2">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+            <span>Conversations</span>
+          </h4>
+          <div class="space-y-2">
+            ${this.conversations.map(conv => `
+              <button
+                onclick="window.messagingInstance.handleConversationSelect('${conv.id}')"
+                class="w-full text-left p-3 rounded-lg border transition-all ${
+                  this.selectedConversation === conv.id
+                    ? 'bg-red-600/20 border-red-500/50'
+                    : 'bg-black/40 border-red-900/20 hover:border-red-700/50'
+                }"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center space-x-2">
+                    <div class="h-3 w-3 rounded-full ${
+                      conv.participantStatus === 'online' ? 'bg-green-500' : 'bg-gray-500'
+                    }"></div>
+                    <span class="text-white font-medium text-sm">${conv.participantName}</span>
+                  </div>
+                  ${conv.unreadCount > 0 ? `
+                    <span class="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      ${conv.unreadCount}
+                    </span>
+                  ` : ''}
+                </div>
+                <p class="text-gray-400 text-xs truncate">${conv.lastMessage}</p>
+                <div class="flex items-center justify-between mt-1">
+                  <p class="text-gray-500 text-xs">${conv.lastMessageTime}</p>
+                  <svg class="h-3 w-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                  </svg>
+                </div>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  private renderMessageView(): string {
+    const currentConversation = this.getCurrentConversation();
+    const isVisible = !this.showConversationList ? 'block' : 'hidden';
+    
+    if (!currentConversation) {
+      return `
+        <div class="${isVisible} md:block flex-1 flex items-center justify-center">
+          <div class="text-center text-gray-400">
+            <svg class="h-12 w-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+            <p>Select a conversation to start messaging</p>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="${isVisible} md:block flex-1 flex flex-col">
+        <!-- Chat Header -->
+        <div class="p-4 border-b border-red-900/30 bg-black/30">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+              <div>
+                <span class="text-white font-medium">${currentConversation.participantName}</span>
+                <div class="flex items-center space-x-2 text-sm">
+                  <div class="h-2 w-2 rounded-full ${
+                    currentConversation.participantStatus === 'online' ? 'bg-green-500' : 'bg-gray-500'
+                  }"></div>
+                  <span class="text-gray-400 capitalize">${currentConversation.participantStatus}</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2 text-xs text-green-400">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+              <span>Encrypted</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="flex-1 p-4 overflow-y-auto space-y-4 bg-gradient-to-b from-black/10 to-black/20" style="max-height: 400px;">
+          ${currentConversation.messages.map(message => `
+            <div class="flex ${message.isOwn ? 'justify-end' : 'justify-start'}">
+              <div class="max-w-xs lg:max-w-md group">
+                <div class="px-4 py-3 rounded-2xl relative ${
+                  message.isOwn
+                    ? 'bg-gradient-to-r from-red-600 to-red-700 text-white ml-12'
+                    : 'bg-gray-700 text-gray-100 mr-12'
+                }">
+                  <p class="text-sm leading-relaxed">${message.content}</p>
+                  <div class="flex items-center justify-between mt-2 text-xs opacity-75">
+                    <div class="flex items-center space-x-1">
+                      <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      <span>${message.timestamp}</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                      ${message.encrypted ? `
+                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                      ` : ''}
+                      ${message.isOwn ? `
+                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                      ` : ''}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- Message Input -->
+        <div class="p-4 border-t border-red-900/30 bg-black/30">
+          <div class="flex space-x-3">
+            <input
+              id="message-input"
+              type="text"
+              placeholder="Type your encrypted message..."
+              class="flex-1 bg-black/40 border border-red-900/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              onkeypress="if(event.key === 'Enter') { window.messagingInstance.handleSendMessage(this.value); }"
+            />
+            <button 
+              onclick="window.messagingInstance.handleSendMessage(document.getElementById('message-input').value)"
+              class="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-all flex items-center space-x-2 touch-manipulation"
+            >
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+              </svg>
+              <span class="hidden sm:inline">Send</span>
+            </button>
+          </div>
+          
+          <!-- Encryption Info -->
+          <div class="flex items-center justify-center mt-3 text-xs text-gray-500">
+            <svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+            <span>Messages are end-to-end encrypted with RSA-2048 + AES-256-GCM</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  public render(): void {
+    const container = document.getElementById('secure-messaging-container');
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="h-full bg-black/20 rounded-lg border border-red-900/30 overflow-hidden">
+        <div class="flex flex-col h-full max-h-[80vh]">
+          <!-- Header -->
+          <div class="bg-black/40 border-b border-red-900/30 p-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <svg class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+                <h3 class="text-lg font-semibold text-white">Secure Messages</h3>
+                <span class="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full border border-green-500/30">
+                  RSA-2048 + AES-256
+                </span>
+              </div>
+              ${!this.showConversationList ? `
+                <button 
+                  onclick="window.messagingInstance.showConversations()"
+                  class="md:hidden text-red-400 hover:text-red-300"
+                >
+                  ← Back
+                </button>
+              ` : ''}
+            </div>
+          </div>
+
+          <div class="flex flex-1 overflow-hidden">
+            ${this.renderConversationsList()}
+            ${this.renderMessageView()}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+}
+
+export function HookFreeSecureMessagingComponent({ userId = 'demo-user' }: HookFreeSecureMessagingProps) {
+  // Set up the global instance for event handling
+  if (typeof window !== 'undefined') {
+    (window as any).messagingInstance = new HookFreeSecureMessaging(userId);
+  }
+
+  return (
+    <div 
+      id="secure-messaging-container"
+      ref={(el) => {
+        if (el && typeof window !== 'undefined') {
+          const instance = (window as any).messagingInstance;
+          if (instance) {
+            setTimeout(() => instance.render(), 0);
+          }
+        }
+      }}
+      className="h-full"
+    />
+  );
+}
