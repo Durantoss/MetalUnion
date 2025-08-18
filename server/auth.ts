@@ -132,10 +132,12 @@ export async function setupAuth(app: Express) {
   // Login endpoint
   app.post('/api/auth/login', async (req: Request, res: Response) => {
     try {
+      console.log('Login attempt:', { stagename: req.body.stagename, hasPassword: !!req.body.safeword });
       const { stagename, safeword, rememberMe } = req.body;
       
       // Validate required fields
       if (!stagename || !safeword) {
+        console.log('Missing required fields');
         return res.status(400).json({ 
           error: 'Stagename and safeword are required' 
         });
@@ -144,6 +146,7 @@ export async function setupAuth(app: Express) {
       // Get user by stagename
       const user = await storage.getUserByStagename(stagename);
       if (!user) {
+        console.log('User not found:', stagename);
         return res.status(401).json({ 
           error: 'Invalid credentials' 
         });
@@ -152,10 +155,13 @@ export async function setupAuth(app: Express) {
       // Verify password
       const isValidPassword = await verifyPassword(safeword, user.safeword || '');
       if (!isValidPassword) {
+        console.log('Invalid password for user:', stagename);
         return res.status(401).json({ 
           error: 'Invalid credentials' 
         });
       }
+      
+      console.log('Authentication successful for:', stagename);
       
       // Update last login
       await storage.updateUserLastLogin(user.id, rememberMe || false);
@@ -165,6 +171,8 @@ export async function setupAuth(app: Express) {
       (req.session as any).stagename = user.stagename;
       (req.session as any).isAdmin = user.isAdmin;
       
+      console.log('Session set:', { userId: user.id, stagename: user.stagename });
+      
       // Extend session if remember me is selected
       if (rememberMe) {
         req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -172,6 +180,7 @@ export async function setupAuth(app: Express) {
       
       // Return user data (without password)
       const { safeword: _, ...userResponse } = user;
+      console.log('Login response sent successfully');
       res.json({ 
         message: 'Login successful',
         user: userResponse 
@@ -205,9 +214,17 @@ export async function setupAuth(app: Express) {
   // Current user endpoint
   app.get('/api/auth/user', optionalAuth, async (req: Request, res: Response) => {
     try {
+      console.log('Auth check - Session:', { 
+        hasSession: !!req.session,
+        userId: (req.session as any)?.userId,
+        sessionKeys: req.session ? Object.keys(req.session) : [],
+        cookies: req.headers.cookie
+      });
+      
       const userId = (req.session as any)?.userId;
       
       if (!userId) {
+        console.log('No userId in session, returning 401');
         return res.status(401).json({ error: 'Not authenticated' });
       }
       
