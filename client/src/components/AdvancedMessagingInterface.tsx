@@ -56,6 +56,23 @@ interface AdvancedMessagingInterfaceProps {
 }
 
 export function AdvancedMessagingInterface({ onNavigate }: AdvancedMessagingInterfaceProps = {}) {
+  console.log('AdvancedMessagingInterface mounted', { onNavigate });
+  
+  // Safe navigation handler
+  const handleNavigation = (destination: string) => {
+    console.log('Attempting navigation to:', destination);
+    try {
+      if (onNavigate && typeof onNavigate === 'function') {
+        onNavigate(destination);
+      } else {
+        console.warn('onNavigate not available, falling back to window navigation');
+        window.location.href = '/';
+      }
+    } catch (error) {
+      console.error('Navigation error:', error);
+      window.location.href = '/';
+    }
+  };
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('disconnected');
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -73,7 +90,7 @@ export function AdvancedMessagingInterface({ onNavigate }: AdvancedMessagingInte
   const currentUserId = 'demo-user'; // In real app, get from auth
 
   useEffect(() => {
-    // Simplified initialization without database dependencies
+    // Simplified initialization - no WebSocket, no database calls
     setConnectionStatus('connected');
     setIsConnected(true);
     
@@ -94,11 +111,7 @@ export function AdvancedMessagingInterface({ onNavigate }: AdvancedMessagingInte
       isBlocked: false
     }]);
     
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    };
+    // No cleanup needed - simplified mode
   }, []);
 
   const connectWebSocket = () => {
@@ -313,13 +326,13 @@ export function AdvancedMessagingInterface({ onNavigate }: AdvancedMessagingInte
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-red-950 to-black p-4" data-testid="advanced-messaging-interface">
+    <div className="min-h-screen bg-gradient-to-br from-black via-red-950 to-black p-3 sm:p-4 overflow-hidden" data-testid="advanced-messaging-interface">
       <div className="max-w-6xl mx-auto">
         {/* Mobile-Optimized Navigation Header */}
         <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:justify-between">
           <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
             <Button
-              onClick={() => onNavigate?.('landing')}
+              onClick={() => handleNavigation('landing')}
               variant="outline"
               className="border-red-600/30 text-red-400 hover:bg-red-600/10 min-h-[44px] px-4 py-2 touch-manipulation flex-1 sm:flex-none"
               data-testid="button-back-home"
@@ -329,7 +342,7 @@ export function AdvancedMessagingInterface({ onNavigate }: AdvancedMessagingInte
               <span className="sm:hidden">Back</span>
             </Button>
             <Button
-              onClick={() => onNavigate?.('social')}
+              onClick={() => handleNavigation('social')}
               variant="outline"
               className="border-yellow-600/30 text-yellow-400 hover:bg-yellow-600/10 min-h-[44px] px-4 py-2 touch-manipulation flex-1 sm:flex-none"
               data-testid="button-social-hub"

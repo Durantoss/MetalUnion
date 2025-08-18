@@ -30,7 +30,10 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showComparison, setShowComparison] = useState(false);
-  const [currentSection, setCurrentSection] = useState('landing');
+  const [currentSection, setCurrentSection] = useState(() => {
+    console.log('Initializing currentSection state');
+    return 'landing';
+  });
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
@@ -53,9 +56,12 @@ const App = () => {
   }, [currentSection]);
 
   const handleReturnHome = () => {
-    console.log('handleReturnHome called');
+    console.log('handleReturnHome called - forcing navigation to landing');
     setCurrentSection('landing');
     setShowComparison(false);
+    // Force page refresh to ensure clean state
+    window.location.hash = '';
+    window.history.replaceState({}, '', window.location.pathname);
   };
 
   useEffect(() => {
@@ -378,7 +384,10 @@ const App = () => {
           </div>
         );
       case 'advanced-messaging':
-        return <AdvancedMessagingInterface onNavigate={setCurrentSection} />;
+        return <AdvancedMessagingInterface onNavigate={(section) => {
+          console.log('Navigation requested from messaging interface to:', section);
+          setCurrentSection(section);
+        }} />;
       default:
         return null;
     }
