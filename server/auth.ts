@@ -133,7 +133,13 @@ export async function setupAuth(app: Express) {
   // Login endpoint
   app.post('/api/auth/login', async (req: Request, res: Response) => {
     try {
-      console.log('Login attempt:', { stagename: req.body.stagename, hasPassword: !!req.body.safeword });
+      console.log('Backend: Login attempt received:', { 
+        stagename: req.body.stagename, 
+        hasPassword: !!req.body.safeword,
+        origin: req.headers.origin,
+        userAgent: req.headers['user-agent'],
+        cookies: req.headers.cookie
+      });
       const { stagename, safeword, rememberMe } = req.body;
       
       // Validate required fields

@@ -21,13 +21,37 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
 
   const loginMutation = useMutation({
     mutationFn: async (data: { stagename: string; safeword: string; rememberMe: boolean }) => {
-      console.log('Frontend: Starting login mutation with data:', { stagename: data.stagename, hasPassword: !!data.safeword });
-      const result = await apiRequest('/api/auth/login', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
-      console.log('Frontend: Login mutation completed successfully');
-      return result;
+      console.log('Frontend: Starting login with credentials:', { stagename: data.stagename, hasPassword: !!data.safeword });
+      
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+
+        console.log('Frontend: Raw response received:', {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Frontend: Login failed with response:', errorText);
+          throw new Error(`Login failed: ${response.status} ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log('Frontend: Login successful, received user data:', result);
+        return result;
+      } catch (error) {
+        console.error('Frontend: Login error caught:', error);
+        throw error;
+      }
     },
     onSuccess: (response) => {
       console.log('Frontend: Login mutation onSuccess triggered with:', response);
