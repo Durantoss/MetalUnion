@@ -3,6 +3,7 @@ import { ActivityFeed } from './ActivityFeed';
 import { BasicMessagingFallback } from './BasicMessagingFallback';
 import { ProximityMatcher } from './ProximityMatcher';
 import { CommunityFeed } from './CommunityFeed';
+import { CommunityHub } from './CommunityHub';
 import { MessageCircle, Users, TrendingUp, Heart, Calendar, Camera, Bell, Settings, Star, Music, Zap, Navigation, MapPin } from 'lucide-react';
 
 interface SocialHubProps {
@@ -59,11 +60,11 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
   const tabs = [
     {
       id: 'feed',
-      name: 'Community Feed',
-      icon: TrendingUp,
+      name: 'Community Hub',
+      icon: Users,
       badge: stats.todaysPosts,
-      description: 'Latest activity from the metal community',
-      color: 'from-blue-500 to-purple-500'
+      description: 'Feed, discussions, and metal community',
+      color: 'from-red-500 to-pink-500'
     },
     {
       id: 'messaging',
@@ -72,14 +73,6 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
       badge: stats.activeConversations,
       description: 'End-to-end encrypted messaging',
       color: 'from-green-500 to-teal-500'
-    },
-    {
-      id: 'community',
-      name: 'Metal Community',
-      icon: Users,
-      badge: stats.onlineUsers,
-      description: 'Connect with metalheads worldwide',
-      color: 'from-red-500 to-pink-500'
     },
     {
       id: 'events',
@@ -102,24 +95,7 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
   const renderTabContent = () => {
     switch (activeTab) {
       case 'feed':
-        return (
-          <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
-              <h2 className="text-2xl md:text-3xl font-bold text-white">Community Feed</h2>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                <div className="flex items-center space-x-2 bg-black/40 px-3 py-2 rounded-lg border border-green-500/30">
-                  <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-green-400 font-semibold text-sm">{stats.onlineUsers} online</span>
-                </div>
-                <div className="flex items-center space-x-2 bg-black/40 px-3 py-2 rounded-lg border border-blue-500/30">
-                  <TrendingUp className="h-4 w-4 text-blue-400" />
-                  <span className="text-blue-400 font-semibold text-sm">{stats.todaysPosts} posts today</span>
-                </div>
-              </div>
-            </div>
-            <CommunityFeed />
-          </div>
-        );
+        return <CommunityHub stats={stats} />;
       case 'messaging':
         return (
           <div className="space-y-6">
@@ -146,97 +122,7 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
             <BasicMessagingFallback />
           </div>
         );
-      case 'community':
-        return (
-          <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
-              <h2 className="text-2xl md:text-3xl font-bold text-white">Metal Community</h2>
-              <div className="flex items-center space-x-2 bg-black/40 px-3 py-2 rounded-lg border border-red-500/30">
-                <Users className="h-4 w-4 text-red-400" />
-                <span className="text-red-400 font-semibold text-sm">{stats.totalMembers} total members</span>
-              </div>
-            </div>
-            
-            {/* Mobile-Optimized Community Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-black/40 border border-red-500/30 rounded-lg p-6 text-center">
-                <div className="text-3xl font-bold text-red-400 mb-2">{stats.onlineUsers}</div>
-                <div className="text-gray-400">Online Now</div>
-                <div className="h-2 w-2 bg-green-500 rounded-full mx-auto mt-2 animate-pulse"></div>
-              </div>
-              <div className="bg-black/40 border border-yellow-500/30 rounded-lg p-6 text-center">
-                <div className="text-3xl font-bold text-yellow-400 mb-2">23</div>
-                <div className="text-gray-400">Active Groups</div>
-              </div>
-              <div className="bg-black/40 border border-blue-500/30 rounded-lg p-6 text-center">
-                <div className="text-3xl font-bold text-blue-400 mb-2">156</div>
-                <div className="text-gray-400">Photos Shared</div>
-              </div>
-              <div className="bg-black/40 border border-purple-500/30 rounded-lg p-6 text-center">
-                <div className="text-3xl font-bold text-purple-400 mb-2">2.8k</div>
-                <div className="text-gray-400">Total Reactions</div>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Popular Groups */}
-              <div className="bg-black/40 border border-red-900/30 rounded-lg p-6">
-                <div className="flex items-center space-x-3 mb-6">
-                  <Users className="h-6 w-6 text-red-500" />
-                  <h3 className="text-xl font-semibold text-white">Popular Groups</h3>
-                </div>
-                <div className="space-y-4">
-                  {[
-                    { name: 'Metal Heads United', members: 1247, category: 'Discussion', active: true },
-                    { name: 'Concert Photography', members: 823, category: 'Creative', active: true },
-                    { name: 'Local Scene Network', members: 456, category: 'Networking', active: false },
-                    { name: 'Gear & Equipment', members: 634, category: 'Discussion', active: true }
-                  ].map((group, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-black/20 rounded-lg border border-red-900/20">
-                      <div className="flex items-center space-x-3">
-                        <div className={`h-3 w-3 rounded-full ${group.active ? 'bg-green-500' : 'bg-gray-500'}`}></div>
-                        <div>
-                          <div className="text-white font-medium">{group.name}</div>
-                          <div className="text-gray-400 text-sm">{group.category}</div>
-                        </div>
-                      </div>
-                      <div className="text-red-400 font-semibold">{group.members}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="bg-black/40 border border-red-900/30 rounded-lg p-6">
-                <div className="flex items-center space-x-3 mb-6">
-                  <Zap className="h-6 w-6 text-yellow-500" />
-                  <h3 className="text-xl font-semibold text-white">Quick Actions</h3>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
-                  <button className="flex items-center justify-center sm:justify-start space-x-3 w-full bg-gradient-to-r from-red-600/20 to-red-700/20 border border-red-500/30 text-red-400 py-3 px-4 rounded-lg hover:from-red-600/30 hover:to-red-700/30 transition-all touch-manipulation">
-                    <TrendingUp className="h-5 w-5" />
-                    <span className="text-sm font-medium">Start a Poll</span>
-                  </button>
-                  <button className="flex items-center justify-center sm:justify-start space-x-3 w-full bg-gradient-to-r from-yellow-600/20 to-yellow-700/20 border border-yellow-500/30 text-yellow-400 py-3 px-4 rounded-lg hover:from-yellow-600/30 hover:to-yellow-700/30 transition-all touch-manipulation">
-                    <Camera className="h-5 w-5" />
-                    <span className="text-sm font-medium">Share Photo</span>
-                  </button>
-                  <button className="flex items-center justify-center sm:justify-start space-x-3 w-full bg-gradient-to-r from-blue-600/20 to-blue-700/20 border border-blue-500/30 text-blue-400 py-3 px-4 rounded-lg hover:from-blue-600/30 hover:to-blue-700/30 transition-all touch-manipulation">
-                    <Music className="h-5 w-5" />
-                    <span className="text-sm font-medium">Recommend Band</span>
-                  </button>
-                  <button 
-                    onClick={() => handleTabChange('events')}
-                    className="flex items-center justify-center sm:justify-start space-x-3 w-full bg-gradient-to-r from-purple-600/20 to-purple-700/20 border border-purple-500/30 text-purple-400 py-3 px-4 rounded-lg hover:from-purple-600/30 hover:to-purple-700/30 transition-all touch-manipulation"
-                  >
-                    <Calendar className="h-5 w-5" />
-                    <span className="text-sm font-medium">Find Events</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
       case 'events':
         return (
           <div className="space-y-6">

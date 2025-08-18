@@ -364,12 +364,7 @@ const App = () => {
             <PhotosSection />
           </div>
         );
-      case 'pit':
-        return (
-          <div style={{ padding: '0 2rem' }}>
-            <ThePit />
-          </div>
-        );
+
       case 'messaging-test':
         return (
           <div>

@@ -25,13 +25,12 @@ export function ModernNavigation({
 
   const navItems = [
     { id: 'bands', label: 'DISCOVER', icon: '🎸' },
-    { id: 'social', label: 'SOCIAL HUB', icon: '🌐' },
+    { id: 'social', label: 'COMMUNITY HUB', icon: '🌐' },
     { id: 'events', label: 'EVENT DISCOVERY', icon: '🎤' },
     { id: 'messaging-test', label: 'MESSAGING TEST', icon: '🔒' },
     { id: 'tours', label: 'TOURS', icon: '🚌' },
     { id: 'reviews', label: 'REVIEWS', icon: '⭐' },
-    { id: 'photos', label: 'PHOTOS', icon: '📸' },
-    { id: 'pit', label: 'THE PIT', icon: '🔥' }
+    { id: 'photos', label: 'PHOTOS', icon: '📸' }
   ];
 
   return (
