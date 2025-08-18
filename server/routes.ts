@@ -1202,15 +1202,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: 'Invalid admin code' });
       }
       
-      // Grant admin privileges to the current session user
-      await db
-        .update(users)
-        .set({ 
-          isAdmin: true, 
-          role: 'admin',
-          permissions: { full_admin: true, user_management: true, content_moderation: true }
-        })
-        .where(eq(users.id, userId));
+      // Get current user to check if they're Durantoss
+      const currentUser = await storage.getUser(userId);
+      if (!currentUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      // Only grant full admin to Durantoss
+      if (currentUser.stagename === 'Durantoss') {
+        await db
+          .update(users)
+          .set({ 
+            isAdmin: true, 
+            role: 'admin',
+            permissions: { full_admin: true, user_management: true, content_moderation: true, band_management: true, tour_management: true, review_moderation: true, photo_moderation: true, messaging_moderation: true }
+          })
+          .where(eq(users.id, userId));
+      } else {
+        return res.status(403).json({ error: 'Only Durantoss can have full admin access. Contact super admin for specific permissions.' });
+      }
       
       // Update session to reflect admin status
       req.session.isAdmin = true;
@@ -1224,6 +1234,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/admin/users', async (req, res) => {
     try {
+      // Check if user is authenticated
+      if (!req.session || !req.session.userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      // Get current user and check admin status
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser || !currentUser.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      // Check if user has user management privileges or is the super admin
+      const hasUserManagement = currentUser.stagename === 'Durantoss' || 
+                                currentUser.permissions?.user_management === true;
+      
+      if (!hasUserManagement) {
+        return res.status(403).json({ error: 'User management privileges required' });
+      }
+
       const allUsers = await db
         .select({
           id: users.id,
@@ -1231,6 +1260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: users.email,
           role: users.role,
           isAdmin: users.isAdmin,
+          permissions: users.permissions,
           isOnline: users.isOnline,
           lastActive: users.lastActive,
           reputationPoints: users.reputationPoints,
@@ -1264,20 +1294,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/admin/users/admin', async (req, res) => {
     try {
+      // Check if user is authenticated
+      if (!req.session || !req.session.userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      // Get current user - only super admin (Durantoss) can grant admin privileges
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser || currentUser.stagename !== 'Durantoss') {
+        return res.status(403).json({ error: 'Only super admin can grant admin privileges' });
+      }
+
       const { userId, isAdmin } = req.body;
+      
+      // Prevent granting full admin to anyone (only Durantoss should have full admin)
+      if (isAdmin) {
+        return res.status(403).json({ error: 'Full admin access cannot be granted. Use specific permissions instead.' });
+      }
       
       await db
         .update(users)
         .set({ 
-          isAdmin,
-          role: isAdmin ? 'admin' : 'user'
+          isAdmin: false,
+          role: 'user',
+          permissions: {} // Remove all admin permissions
         })
         .where(eq(users.id, userId));
       
-      res.json({ success: true, message: 'Admin status updated' });
+      res.json({ success: true, message: 'Admin privileges revoked' });
     } catch (error) {
       console.error('Error updating admin status:', error);
       res.status(500).json({ error: 'Failed to update admin status' });
+    }
+  });
+
+  // New route for granting specific admin permissions - only super admin can use this
+  app.post('/api/admin/grant-permissions', async (req, res) => {
+    try {
+      // Check if user is authenticated
+      if (!req.session || !req.session.userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      // Get current user - only super admin (Durantoss) can grant permissions
+      const currentUser = await storage.getUser(req.session.userId);
+      if (!currentUser || currentUser.stagename !== 'Durantoss') {
+        return res.status(403).json({ error: 'Only super admin can grant specific permissions' });
+      }
+
+      const { userId, permissions } = req.body;
+      
+      // Validate permissions - only allow specific ones, never full_admin
+      const allowedPermissions = [
+        'user_management',
+        'content_moderation', 
+        'band_management',
+        'tour_management',
+        'review_moderation',
+        'photo_moderation',
+        'messaging_moderation'
+      ];
+      
+      const invalidPermissions = Object.keys(permissions).filter(
+        perm => !allowedPermissions.includes(perm) || perm === 'full_admin'
+      );
+      
+      if (invalidPermissions.length > 0) {
+        return res.status(400).json({ 
+          error: `Invalid permissions: ${invalidPermissions.join(', ')}. Only specific privileges can be granted.` 
+        });
+      }
+      
+      // Grant the specific permissions (not full admin)
+      await db
+        .update(users)
+        .set({ 
+          permissions: permissions,
+          role: Object.keys(permissions).length > 0 ? 'moderator' : 'user'
+        })
+        .where(eq(users.id, userId));
+      
+      res.json({ 
+        success: true, 
+        message: 'Specific admin permissions granted',
+        permissions: permissions
+      });
+    } catch (error) {
+      console.error('Error granting permissions:', error);
+      res.status(500).json({ error: 'Failed to grant permissions' });
     }
   });
 

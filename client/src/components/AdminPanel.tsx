@@ -7,6 +7,16 @@ interface AdminUser {
   email: string;
   role: string;
   isAdmin: boolean;
+  permissions?: {
+    full_admin?: boolean;
+    user_management?: boolean;
+    content_moderation?: boolean;
+    band_management?: boolean;
+    tour_management?: boolean;
+    review_moderation?: boolean;
+    photo_moderation?: boolean;
+    messaging_moderation?: boolean;
+  };
   isOnline: boolean;
   lastActive: string;
   reputationPoints: number;
@@ -23,6 +33,8 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState('users');
   const [adminCode, setAdminCode] = useState('');
   const [showGrantAdmin, setShowGrantAdmin] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
 
   // Grant admin access with special code
   const grantAdminAccess = async () => {
@@ -96,6 +108,36 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
     } catch (error) {
       console.error('Error updating admin status:', error);
     }
+  };
+
+  // Grant specific permissions to a user - only super admin can do this
+  const grantSpecificPermissions = async (userId: string, permissions: Record<string, boolean>) => {
+    try {
+      const response = await fetch('/api/admin/grant-permissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, permissions })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Permissions granted successfully: ${Object.keys(permissions).join(', ')}`);
+        loadUsers(); // Refresh data
+        setShowPermissionModal(false);
+      } else {
+        const error = await response.json();
+        alert(`Failed to grant permissions: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error granting permissions:', error);
+      alert('Error granting permissions');
+    }
+  };
+
+  // Open permission modal for a specific user
+  const openPermissionModal = (user: AdminUser) => {
+    setSelectedUser(user);
+    setShowPermissionModal(true);
   };
 
   useEffect(() => {
@@ -278,30 +320,36 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
                       {user.reputationPoints}
                     </div>
                     
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                       <button
+                        onClick={() => openPermissionModal(user)}
                         style={{
-                          backgroundColor: '#059669',
+                          backgroundColor: '#3b82f6',
                           color: '#ffffff',
                           border: 'none',
                           borderRadius: '4px',
                           padding: '0.25rem',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          fontSize: '0.7rem'
                         }}
+                        title="Grant specific permissions"
                       >
-                        <CheckCircle style={{ width: '1rem', height: '1rem' }} />
+                        Permissions
                       </button>
+                      
                       <button
+                        onClick={() => toggleAdminStatus(user.id, user.isAdmin)}
                         style={{
-                          backgroundColor: '#dc2626',
+                          backgroundColor: user.isAdmin ? '#dc2626' : '#059669',
                           color: '#ffffff',
                           border: 'none',
                           borderRadius: '4px',
                           padding: '0.25rem',
                           cursor: 'pointer'
                         }}
+                        title={user.isAdmin ? 'Revoke all admin privileges' : 'Grant admin'}
                       >
-                        <Ban style={{ width: '1rem', height: '1rem' }} />
+                        {user.isAdmin ? <Ban style={{ width: '1rem', height: '1rem' }} /> : <CheckCircle style={{ width: '1rem', height: '1rem' }} />}
                       </button>
                     </div>
                   </div>
@@ -462,6 +510,224 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Permission Management Modal */}
+      {showPermissionModal && selectedUser && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: '#111827',
+            borderRadius: '8px',
+            border: '1px solid #374151',
+            padding: '2rem',
+            width: '90%',
+            maxWidth: '500px',
+            maxHeight: '80vh',
+            overflow: 'auto'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '1.5rem'
+            }}>
+              <h3 style={{
+                fontSize: '1.25rem',
+                fontWeight: 'bold',
+                color: '#dc2626'
+              }}>
+                Grant Permissions: {selectedUser.stagename}
+              </h3>
+              <button
+                onClick={() => setShowPermissionModal(false)}
+                style={{
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: '#9ca3af',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer'
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <p style={{ color: '#facc15', marginBottom: '1rem' }}>
+                Current Permissions:
+              </p>
+              <div style={{
+                backgroundColor: '#1f2937',
+                padding: '1rem',
+                borderRadius: '4px',
+                marginBottom: '1rem'
+              }}>
+                {selectedUser.permissions && Object.keys(selectedUser.permissions).length > 0 ? (
+                  Object.entries(selectedUser.permissions).map(([key, value]) => (
+                    <div key={key} style={{ 
+                      color: value ? '#22c55e' : '#9ca3af',
+                      marginBottom: '0.25rem'
+                    }}>
+                      {key.replace(/_/g, ' ').toUpperCase()}: {value ? '✓ Granted' : '✗ Not granted'}
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ color: '#9ca3af' }}>No permissions granted</div>
+                )}
+              </div>
+            </div>
+
+            <PermissionCheckboxes 
+              userId={selectedUser.id}
+              onGrantPermissions={grantSpecificPermissions}
+              onClose={() => setShowPermissionModal(false)}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Permission Checkboxes Component
+function PermissionCheckboxes({ 
+  userId, 
+  onGrantPermissions, 
+  onClose 
+}: { 
+  userId: string; 
+  onGrantPermissions: (userId: string, permissions: Record<string, boolean>) => void;
+  onClose: () => void;
+}) {
+  const [selectedPermissions, setSelectedPermissions] = useState<Record<string, boolean>>({});
+
+  const availablePermissions = [
+    { key: 'user_management', label: 'User Management', description: 'Manage user accounts and roles' },
+    { key: 'content_moderation', label: 'Content Moderation', description: 'Moderate posts, reviews, and discussions' },
+    { key: 'band_management', label: 'Band Management', description: 'Add/edit/remove bands from the database' },
+    { key: 'tour_management', label: 'Tour Management', description: 'Manage tour dates and venues' },
+    { key: 'review_moderation', label: 'Review Moderation', description: 'Moderate band and album reviews' },
+    { key: 'photo_moderation', label: 'Photo Moderation', description: 'Moderate uploaded photos and images' },
+    { key: 'messaging_moderation', label: 'Messaging Moderation', description: 'Moderate private messages and reports' }
+  ];
+
+  const handlePermissionToggle = (key: string, checked: boolean) => {
+    setSelectedPermissions(prev => ({
+      ...prev,
+      [key]: checked
+    }));
+  };
+
+  const handleGrantPermissions = () => {
+    // Filter out unchecked permissions
+    const filteredPermissions = Object.fromEntries(
+      Object.entries(selectedPermissions).filter(([_, value]) => value)
+    );
+    
+    if (Object.keys(filteredPermissions).length === 0) {
+      alert('Please select at least one permission to grant.');
+      return;
+    }
+    
+    onGrantPermissions(userId, filteredPermissions);
+  };
+
+  return (
+    <div>
+      <p style={{ color: '#facc15', marginBottom: '1rem' }}>
+        Select permissions to grant:
+      </p>
+      
+      <div style={{ marginBottom: '1.5rem' }}>
+        {availablePermissions.map((permission) => (
+          <div key={permission.key} style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '0.75rem',
+            marginBottom: '1rem',
+            padding: '0.75rem',
+            backgroundColor: '#1f2937',
+            borderRadius: '4px'
+          }}>
+            <input
+              type="checkbox"
+              id={permission.key}
+              checked={selectedPermissions[permission.key] || false}
+              onChange={(e) => handlePermissionToggle(permission.key, e.target.checked)}
+              style={{
+                marginTop: '0.125rem',
+                accentColor: '#dc2626'
+              }}
+            />
+            <div style={{ flex: 1 }}>
+              <label
+                htmlFor={permission.key}
+                style={{
+                  color: '#ffffff',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'block',
+                  marginBottom: '0.25rem'
+                }}
+              >
+                {permission.label}
+              </label>
+              <p style={{
+                color: '#9ca3af',
+                fontSize: '0.8rem',
+                margin: 0
+              }}>
+                {permission.description}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{
+        display: 'flex',
+        justifyContent: 'flex-end',
+        gap: '1rem'
+      }}>
+        <button
+          onClick={onClose}
+          style={{
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#374151',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Cancel
+        </button>
+        
+        <button
+          onClick={handleGrantPermissions}
+          style={{
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#dc2626',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}
+        >
+          Grant Selected Permissions
+        </button>
       </div>
     </div>
   );
