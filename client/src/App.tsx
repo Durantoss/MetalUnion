@@ -52,14 +52,10 @@ export default function App() {
   useEffect(() => {
     console.log('App mount - checking URL params');
     
-    // Only check URL parameters on initial mount
-    const urlParams = new URLSearchParams(window.location.search);
-    const sectionParam = urlParams.get('section');
-    
-    if (sectionParam) {
-      console.log('Setting initial section from URL param:', sectionParam);
-      setCurrentSection(sectionParam);
-    }
+    // Force clear URL params and go to landing page to show new design
+    window.history.replaceState({}, '', window.location.pathname);
+    setCurrentSection('landing');
+    console.log('Forced navigation to landing page to show new design');
   }, []); // Empty dependency array - only run on mount
 
   const handleReturnHome = () => {
