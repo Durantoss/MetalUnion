@@ -115,8 +115,8 @@ async function seedDatabase() {
     // Seed chat rooms if they don't exist
     await seedChatRooms();
     
-    // Only seed if we have fewer than 5 unique bands
-    if (existingBands.length < 5) {
+    // Only seed if we have fewer than 20 unique bands (increased to add Billboard bands)
+    if (existingBands.length < 20) {
       console.log("Seeding database with initial bands...");
       
       // Create top 10 rock/metal bands if they don't exist
@@ -230,6 +230,94 @@ async function seedDatabase() {
           albums: ["OK Computer", "Kid A", "In Rainbows", "Hail to the Thief", "A Moon Shaped Pool"],
           website: "https://radiohead.com",
           instagram: "https://instagram.com/radiohead",
+        },
+        {
+          name: "SLEEP TOKEN",
+          genre: "Progressive Metal",
+          description: "Anonymous progressive metal collective with atmospheric sound. 2024 Billboard Music Award winner for Top Hard Rock Album 'Take Me Back to Eden'.",
+          imageUrl: null,
+          founded: 2016,
+          members: ["Vessel", "II", "III", "IV"],
+          albums: ["Sundowning", "This Place Will Become Your Tomb", "Take Me Back to Eden"],
+          website: "https://sleep-token.com",
+          instagram: "https://instagram.com/sleep_token",
+        },
+        {
+          name: "FALLING IN REVERSE",
+          genre: "Post-Hardcore",
+          description: "Las Vegas post-hardcore band led by Ronnie Radke. 2024 Billboard Music Award winner for Top Hard Rock Song 'All My Life' featuring Jelly Roll.",
+          imageUrl: null,
+          founded: 2008,
+          members: ["Ronnie Radke", "Max Georgiev", "Christian Thompson", "Luke Holland"],
+          albums: ["The Drug in Me Is You", "Fashionably Late", "Coming Home", "Popular Monster"],
+          website: "https://fallinginreverse.com",
+          instagram: "https://instagram.com/fallinginreverse",
+        },
+        {
+          name: "BAD OMENS",
+          genre: "Metalcore",
+          description: "American metalcore band from Richmond, Virginia. Known for their dark aesthetic and heavy sound with melodic elements.",
+          imageUrl: null,
+          founded: 2015,
+          members: ["Noah Sebastian", "Joakim Karlsson", "Nick Ruffilo", "Nick Folio"],
+          albums: ["Bad Omens", "Finding God Before God Finds Me", "THE DEATH OF PEACE OF MIND"],
+          website: "https://badomensofficial.com",
+          instagram: "https://instagram.com/badomensofficial",
+        },
+        {
+          name: "BRING ME THE HORIZON",
+          genre: "Metalcore",
+          description: "British metalcore band that evolved from deathcore to alternative metal. Multiple Billboard Music Award nominees with global success.",
+          imageUrl: null,
+          founded: 2004,
+          members: ["Oliver Sykes", "Lee Malia", "Matt Kean", "Matt Nicholls", "Jordan Fish"],
+          albums: ["Suicide Season", "Sempiternal", "That's the Spirit", "amo", "POST HUMAN: SURVIVAL HORROR"],
+          website: "https://bringmethehorizon.co.uk",
+          instagram: "https://instagram.com/bringmethehorizon",
+        },
+        {
+          name: "BLINK-182",
+          genre: "Pop Punk",
+          description: "Pioneering pop-punk trio from San Diego. Reformed in 2022 with original lineup and continue to dominate rock charts.",
+          imageUrl: null,
+          founded: 1992,
+          members: ["Mark Hoppus", "Tom DeLonge", "Travis Barker"],
+          albums: ["Cheshire Cat", "Dude Ranch", "Enema of the State", "Take Off Your Pants and Jacket", "ONE MORE TIME..."],
+          website: "https://blink182.com",
+          instagram: "https://instagram.com/blink182",
+        },
+        {
+          name: "PEARL JAM",
+          genre: "Grunge",
+          description: "Seattle grunge legends and Rock & Roll Hall of Fame inductees. Continuous Billboard chart presence with social consciousness.",
+          imageUrl: null,
+          founded: 1990,
+          members: ["Eddie Vedder", "Stone Gossard", "Jeff Ament", "Mike McCready", "Matt Cameron"],
+          albums: ["Ten", "Vs.", "Vitalogy", "No Code", "Dark Matter"],
+          website: "https://pearljam.com",
+          instagram: "https://instagram.com/pearljam",
+        },
+        {
+          name: "THE ROLLING STONES",
+          genre: "Rock",
+          description: "Legendary British rock band still dominating charts after 60+ years. The world's greatest rock and roll band continues their legacy.",
+          imageUrl: null,
+          founded: 1962,
+          members: ["Mick Jagger", "Keith Richards", "Ronnie Wood", "Steve Jordan"],
+          albums: ["Beggars Banquet", "Let It Bleed", "Sticky Fingers", "Exile on Main St.", "Hackney Diamonds"],
+          website: "https://rollingstones.com",
+          instagram: "https://instagram.com/therollingstones",
+        },
+        {
+          name: "BRUCE SPRINGSTEEN",
+          genre: "Rock",
+          description: "The Boss continues his legendary career with consistent Billboard chart presence. American rock icon with blue-collar anthems.",
+          imageUrl: null,
+          founded: 1972,
+          members: ["Bruce Springsteen"],
+          albums: ["Born to Run", "Darkness on the Edge of Town", "The River", "Born in the U.S.A.", "Letter to You"],
+          website: "https://brucespringsteen.net",
+          instagram: "https://instagram.com/springsteen",
         }
       ];
 
