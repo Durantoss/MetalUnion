@@ -129,7 +129,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
     { id: 'tours', title: 'Tours', icon: '' },
     { id: 'reviews', title: 'Reviews', icon: '' },
     { id: 'photos', title: 'Photos', icon: '' },
-    { id: 'messages', title: 'Messages', icon: '' }
+    { id: 'messaging', title: 'Messages', icon: '' }
   ];
   
   // Get latest data for scrolling panels
