@@ -224,7 +224,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
             }}
             onTouchEnd={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.2)';
+              e.currentTarget.style.backgroundColor = 'transparent';
             }}
             onMouseEnter={(e) => {
               if (!('ontouchstart' in window)) {
@@ -235,12 +235,12 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
             onMouseLeave={(e) => {
               if (!('ontouchstart' in window)) {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.2)';
+                e.currentTarget.style.backgroundColor = 'transparent';
               }
             }}
             style={{
               padding: '0.75rem 1.5rem',
-              backgroundColor: 'rgba(220, 38, 38, 0.2)',
+              backgroundColor: 'transparent',
               border: '1px solid rgba(220, 38, 38, 0.5)',
               borderRadius: '25px',
               color: '#ffffff',
