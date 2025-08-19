@@ -287,8 +287,10 @@ export default function App() {
       );
     }
     
+    console.log('🔍 SWITCH STATEMENT - Checking section:', currentSection);
     switch (currentSection) {
       case 'bands':
+        console.log('✅ BANDS CASE - Rendering band discovery');
         return (
           <SharedSectionLayout 
             title="DISCOVER BANDS" 
@@ -481,16 +483,36 @@ export default function App() {
           </SharedSectionLayout>
         );
       default:
-        console.log('DEFAULT CASE - Unknown section:', currentSection, '- Redirecting to landing');
-        debugSetCurrentSection('landing');
+        console.log('🚨 DEFAULT CASE - Unknown section:', currentSection, 'Type:', typeof currentSection);
+        console.log('🚨 Available cases: bands, social, tours, reviews, photos, messaging');
+        console.log('🚨 NOT redirecting to landing, showing error instead');
         return (
-          <MobileFriendlyLanding 
-            onSectionChange={debugSetCurrentSection}
-            bands={bands}
-            currentUser={currentUser}
-            onLogin={handleLogin}
-            onLogout={handleLogout}
-          />
+          <SharedSectionLayout 
+            title="SECTION ERROR" 
+            subtitle={`Unknown section: ${currentSection}`}
+          >
+            <div style={{
+              textAlign: 'center',
+              padding: '2rem',
+              color: '#dc2626'
+            }}>
+              <h2>🚨 Section "{currentSection}" not found</h2>
+              <p>Available sections: bands, social, tours, reviews, photos, messaging</p>
+              <button 
+                onClick={() => debugSetCurrentSection('landing')}
+                style={{
+                  background: '#dc2626',
+                  color: 'white',
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer'
+                }}
+              >
+                Return to Landing
+              </button>
+            </div>
+          </SharedSectionLayout>
         );
     }
   };
