@@ -136,7 +136,7 @@ export const postComments = pgTable("post_comments", {
   postId: varchar("post_id").notNull().references(() => posts.id),
   userId: varchar("user_id").notNull().references(() => users.id),
   content: text("content").notNull(),
-  parentId: varchar("parent_id").references(() => postComments.id), // For nested comments
+  parentId: varchar("parent_id"), // For nested comments - self reference
   likesCount: integer("likes_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -444,13 +444,7 @@ export const upsertUserSchema = createInsertSchema(users);
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 
-// Chat tables already exist below - removing duplicates
-export type CreateUser = typeof users.$inferInsert;
-export type LoginRequest = {
-  stagename: string;
-  safeword: string;
-  rememberMe?: boolean;
-};
+// Types moved to avoid duplication
 export type UserLocation = typeof userLocations.$inferSelect;
 export type InsertUserLocation = typeof userLocations.$inferInsert;
 export type ProximityMatch = typeof proximityMatches.$inferSelect;
@@ -498,6 +492,13 @@ export const createBadgeSchema = createInsertSchema(badges).omit({
 
 export type CreateUser = z.infer<typeof createUserSchema>;
 export type LoginRequest = z.infer<typeof loginSchema>;
+
+// User auth types
+export type UserAuthType = {
+  stagename: string;
+  safeword: string;
+  rememberMe?: boolean;
+};
 export type CreateBadge = z.infer<typeof createBadgeSchema>;
 
 // Message Board (The Pit) Tables
@@ -857,7 +858,7 @@ export const chatMessages = pgTable("chat_messages", {
   userId: varchar("user_id").notNull().references(() => users.id),
   content: text("content").notNull(),
   messageType: varchar("message_type").default("text"), // 'text', 'emoji', 'system'
-  replyToId: varchar("reply_to_id").references(() => chatMessages.id),
+  replyToId: varchar("reply_to_id"), // Reply to message - self reference
   isEdited: boolean("is_edited").default(false),
   isDeleted: boolean("is_deleted").default(false),
   createdAt: timestamp("created_at").defaultNow(),

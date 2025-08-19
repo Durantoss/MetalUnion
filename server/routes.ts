@@ -68,6 +68,9 @@ import { concertRecommendationService, type ConcertRecommendation, type ConcertR
 import { ticketmasterService } from "./ticketmasterService";
 import { MessagingWebSocketServer } from "./websocket";
 import { MessageEncryption } from "./encryption";
+import { registerEncryptionRoutes } from "./encryptionRoutes";
+import { WebSocketExamples } from "./websocketExamples";
+import { registerDatabaseExamples } from "./databaseExamples";
 import { getRealtimeVenueData, simulateRealtimeUpdates, type VenueRealtimeData } from "./venueCapacityService";
 import multer from "multer";
 import path from "path";
@@ -2231,6 +2234,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { ChatWebSocketServer } = await import('./chatWebSocket');
   (global as any).chatWebSocketServer = new ChatWebSocketServer(httpServer);
   console.log('Chat WebSocket server initialized for live chat');
+  
+  // Register complete encryption examples and demonstrations
+  registerEncryptionRoutes(app);
+  console.log('Encryption examples and demos initialized');
+  
+  // Initialize WebSocket Examples for comprehensive real-time demos
+  const wsExamples = new WebSocketExamples(httpServer);
+  console.log('WebSocket examples and demos initialized');
+  
+  // Register complete database examples and operations
+  registerDatabaseExamples(app);
+  console.log('Database examples and operations initialized');
   
   return httpServer;
 }

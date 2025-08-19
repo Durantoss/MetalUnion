@@ -9,10 +9,9 @@ import {
   type ProximityMatch, type InsertProximityMatch,
   type PitMessage, type InsertPitMessage,
   type PitReply, type InsertPitReply,
-  type Comment, type InsertComment,
-  type CommentReaction, type InsertCommentReaction,
-  type Post, type InsertPost,
   type PostComment, type InsertPostComment,
+  type ContentReaction, type InsertContentReaction,
+  type Post, type InsertPost,
   type PostLike, type PostCommentLike,
   type Conversation, type InsertConversation,
   type DirectMessage, type InsertDirectMessage,
@@ -21,8 +20,8 @@ import {
   type Badge, type InsertBadge, type CreateBadge,
   type UserBadge, type InsertUserBadge,
   type ConcertAttendance, type InsertConcertAttendance,
-  users, bands, reviews, photos, tours, messages, pitMessages, pitReplies, comments, commentReactions,
-  posts, postComments, postLikes, postCommentLikes,
+  users, bands, reviews, photos, tours, messages, pitMessages, pitReplies, postComments, contentReactions,
+  posts, postLikes, postCommentLikes,
   conversations, directMessages, messageEncryptionKeys, messageDeliveryReceipts,
   userLocations, proximityMatches, badges, userBadges, concertAttendance
 } from "@shared/schema";
@@ -126,11 +125,11 @@ export interface IStorage {
   incrementPitReplyLikes(id: string): Promise<void>;
 
   // Comments system
-  getComments(targetType: string, targetId: string): Promise<Comment[]>;
-  createComment(comment: InsertComment): Promise<Comment>;
-  updateComment(id: string, content: string): Promise<Comment>;
+  getComments(targetType: string, targetId: string): Promise<PostComment[]>;
+  createComment(comment: InsertPostComment): Promise<PostComment>;
+  updateComment(id: string, content: string): Promise<PostComment>;
   deleteComment(id: string, reason: string): Promise<void>;
-  createCommentReaction(reaction: InsertCommentReaction): Promise<CommentReaction>;
+  createCommentReaction(reaction: InsertContentReaction): Promise<ContentReaction>;
 
   // Real-time messaging system
   createConversation(conversation: InsertConversation): Promise<Conversation>;
@@ -189,14 +188,8 @@ export interface IStorage {
   // Online Users
   getOnlineUsers(): Promise<any[]>;
 
-  // Secure Direct Messaging
-  getConversations(userId: string): Promise<any[]>;
-  getConversation(conversationId: string): Promise<any>;
-  createConversation(conversation: any): Promise<any>;
-  getMessages(conversationId: string): Promise<any[]>;
-  createMessage(message: any): Promise<any>;
-  markMessageAsRead(messageId: string, userId: string): Promise<void>;
-  getEncryptionKeys(userId: string): Promise<any[]>;
+  // Encryption key management
+  getEncryptionKeys(userId: string): Promise<MessageEncryptionKey[]>;
   createEncryptionKey(key: any): Promise<any>;
 }
 
@@ -402,8 +395,8 @@ export class DatabaseStorage implements IStorage {
     // Update comment count
     const commentCount = await db
       .select({ count: sql<number>`count(*)` })
-      .from(comments)
-      .where(eq(comments.authorId, userId));
+      .from(postComments)
+      .where(eq(postComments.userId, userId));
 
     // Update review count  
     const reviewCount = await db

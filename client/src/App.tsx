@@ -19,6 +19,7 @@ import { UserProfile } from './components/UserProfile';
 import { NotificationCenter } from './components/NotificationCenter';
 import { MessagingTestPage } from './components/MessagingTestPage';
 import { AdvancedMessagingInterface } from './components/AdvancedMessagingInterface';
+import { MessagingDemo } from './pages/MessagingDemo';
 import { ActivityFeed } from './components/ActivityFeed';
 import { GameficationDashboard } from './components/GameficationDashboard';
 // Events Discovery functionality has been migrated to Tours section
@@ -479,6 +480,8 @@ const App = () => {
           window.history.replaceState({}, '', window.location.pathname);
           setCurrentSection(section);
         }} />;
+      case 'messaging-demo':
+        return <MessagingDemo />;
       case 'admin':
         return <AdminPanel currentUserId={currentUser?.id} />;
       default:
