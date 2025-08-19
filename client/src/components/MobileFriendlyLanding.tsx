@@ -129,7 +129,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
     { id: 'tours', title: 'Tours', icon: '' },
     { id: 'reviews', title: 'Reviews', icon: '' },
     { id: 'photos', title: 'Photos', icon: '' },
-    { id: 'messages', title: 'Messages', icon: '💬' }
+    { id: 'messages', title: 'Messages', icon: '' }
   ];
   
   // Get latest data for scrolling panels
@@ -244,10 +244,11 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
       <div style={{
         display: 'flex',
         justifyContent: 'center',
-        gap: '1rem',
+        gap: window.innerWidth < 768 ? '0.5rem' : '0.75rem',
         padding: '1.5rem',
         borderBottom: '1px solid rgba(220, 38, 38, 0.3)',
-        flexWrap: 'wrap'
+        flexWrap: 'nowrap',
+        overflowX: 'auto'
       }}>
         {navigationSections.map((section) => (
           <button
@@ -274,22 +275,23 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
               }
             }}
             style={{
-              padding: '0.75rem 1.5rem',
+              padding: window.innerWidth < 768 ? '0.5rem 1rem' : '0.65rem 1.25rem',
               backgroundColor: 'transparent',
               border: 'none',
               borderRadius: '25px',
               color: '#ffffff',
-              fontSize: '0.9rem',
+              fontSize: window.innerWidth < 768 ? '0.8rem' : '0.85rem',
               fontWeight: '600',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              minWidth: '100px',
+              gap: '0.3rem',
+              minWidth: window.innerWidth < 768 ? '75px' : '85px',
               justifyContent: 'center',
               touchAction: 'manipulation',
-              WebkitTapHighlightColor: 'transparent'
+              WebkitTapHighlightColor: 'transparent',
+              whiteSpace: 'nowrap'
             }}
             data-testid={`nav-${section.id}`}
           >
@@ -1030,7 +1032,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
               fontWeight: '700',
               margin: 0
             }}>
-              💬 Private Messages
+              Private Messages
             </h3>
             <div style={{
               backgroundColor: 'rgba(220, 38, 38, 0.2)',
