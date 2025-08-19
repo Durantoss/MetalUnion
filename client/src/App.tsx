@@ -489,7 +489,7 @@ export default function App() {
         debugSetCurrentSection('landing');
         return (
           <MobileFriendlyLanding 
-            onSectionChange={setCurrentSection}
+            onSectionChange={debugSetCurrentSection}
             bands={bands}
             currentUser={currentUser}
             onLogin={handleLogin}
