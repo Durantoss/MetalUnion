@@ -917,7 +917,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                       e.currentTarget.nextElementSibling && 
-                        (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
+                        ((e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex');
                     }}
                   />
                   <div style={{
