@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ActivityFeed } from './ActivityFeed';
 import { BasicMessagingFallback } from './BasicMessagingFallback';
 import { ProximityMatcher } from './ProximityMatcher';
@@ -13,16 +13,14 @@ interface SocialHubProps {
 }
 
 export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }: SocialHubProps) {
-  // Static tab management without hooks for stability
-  const getCurrentTab = () => {
+  // Use proper state management for tabs
+  const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
       const currentHash = window.location.hash.replace('#', '') || 'social-feed';
-      return currentHash.split('-')[1] || 'feed';
+      return currentHash.split('-')[1] || initialTab;
     }
-    return 'feed';
-  };
-  
-  const activeTab = getCurrentTab();
+    return initialTab;
+  });
 
   const stats = {
     onlineUsers: 147,
@@ -35,13 +33,11 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
 
   const handleTabChange = (tab: string) => {
     console.log('Tab change requested:', tab);
-    window.location.hash = `social-${tab}`;
-    // Force re-render by triggering a small DOM update
-    document.body.classList.add('tab-changing');
-    setTimeout(() => {
-      document.body.classList.remove('tab-changing');
-      window.location.reload(); // Simple refresh to ensure correct tab display
-    }, 100);
+    setActiveTab(tab);
+    // Update URL hash without reload
+    if (typeof window !== 'undefined') {
+      window.location.hash = `social-${tab}`;
+    }
   };
 
   const tabs = [
