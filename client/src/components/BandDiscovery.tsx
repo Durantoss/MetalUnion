@@ -11,14 +11,13 @@ export function BandDiscovery({ bands }: BandDiscoveryProps) {
   const [selectedGenre, setSelectedGenre] = useState('all');
 
   // Extract unique genres from bands
-  const genres = ['all', ...Array.from(new Set(bands.flatMap(band => band.genres || [])))];
+  const genres = ['all', ...Array.from(new Set(bands.map(band => band.genre).filter(Boolean)))];
 
   // Filter bands based on search and genre
   const filteredBands = bands.filter(band => {
     const matchesSearch = band.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           band.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesGenre = selectedGenre === 'all' || 
-                         (band.genres && band.genres.includes(selectedGenre));
+    const matchesGenre = selectedGenre === 'all' || band.genre === selectedGenre;
     return matchesSearch && matchesGenre;
   });
 
@@ -107,29 +106,26 @@ export function BandDiscovery({ bands }: BandDiscoveryProps) {
               <CardTitle data-testid={`text-band-name-${band.id}`}>
                 {band.name}
               </CardTitle>
-              {band.genres && band.genres.length > 0 && (
+              {band.genre && (
                 <div style={{
                   display: 'flex',
                   flexWrap: 'wrap',
                   gap: '0.5rem',
                   marginTop: '0.5rem'
                 }}>
-                  {band.genres.map(genre => (
-                    <span
-                      key={genre}
-                      data-testid={`badge-genre-${genre}`}
-                      style={{
-                        padding: '0.25rem 0.5rem',
-                        backgroundColor: '#dc2626',
-                        color: '#ffffff',
-                        borderRadius: '9999px',
-                        fontSize: '0.75rem',
-                        fontWeight: '500'
-                      }}
-                    >
-                      {genre}
-                    </span>
-                  ))}
+                  <span
+                    data-testid={`badge-genre-${band.genre}`}
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      backgroundColor: '#dc2626',
+                      color: '#ffffff',
+                      borderRadius: '9999px',
+                      fontSize: '0.75rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {band.genre}
+                  </span>
                 </div>
               )}
             </CardHeader>
@@ -189,7 +185,6 @@ export function BandDiscovery({ bands }: BandDiscoveryProps) {
                     e.currentTarget.style.backgroundColor = '#dc2626';
                   }}
                   onClick={() => {
-                    console.log('View profile for:', band.name);
                     // Add navigation to band profile here
                   }}
                 >
@@ -218,7 +213,6 @@ export function BandDiscovery({ bands }: BandDiscoveryProps) {
                     e.currentTarget.style.color = '#dc2626';
                   }}
                   onClick={() => {
-                    console.log('Follow band:', band.name);
                     // Add follow functionality here
                   }}
                 >
