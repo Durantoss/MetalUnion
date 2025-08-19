@@ -35,6 +35,12 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [showComparison, setShowComparison] = useState(false);
   const [currentSection, setCurrentSection] = useState('landing');
+  
+  // Debug function to track section changes
+  const debugSetCurrentSection = (newSection: string) => {
+    console.log('Section change requested:', currentSection, '->', newSection);
+    setCurrentSection(newSection);
+  };
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -65,10 +71,10 @@ export default function App() {
   }, []); // Empty dependency array - only run on mount
 
   const handleReturnHome = () => {
-    console.log('handleReturnHome called - forcing navigation to landing');
+    console.log('handleReturnHome called - navigation to landing');
     // Clear URL params first to prevent trap
     window.history.replaceState({}, '', window.location.pathname);
-    setCurrentSection('landing');
+    debugSetCurrentSection('landing');
     setShowComparison(false);
   };
 
@@ -276,7 +282,7 @@ export default function App() {
       
       return (
         <MobileFriendlyLanding 
-          onSectionChange={setCurrentSection}
+          onSectionChange={debugSetCurrentSection}
           bands={bands}
           currentUser={currentUser}
           onLogin={handleLogin}
@@ -480,7 +486,7 @@ export default function App() {
         );
       default:
         console.log('DEFAULT CASE - Unknown section:', currentSection, '- Redirecting to landing');
-        setCurrentSection('landing');
+        debugSetCurrentSection('landing');
         return (
           <MobileFriendlyLanding 
             onSectionChange={setCurrentSection}
@@ -498,7 +504,7 @@ export default function App() {
       {currentSection !== 'landing' && (
         <ModernNavigation
           currentSection={currentSection}
-          onSectionChange={setCurrentSection}
+          onSectionChange={debugSetCurrentSection}
           onShowComparison={() => setShowComparison(true)}
           onShowLogin={handleLogin}
           onReturnHome={handleReturnHome}
@@ -563,7 +569,7 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => setCurrentSection('feed')}
+            onClick={() => debugSetCurrentSection('feed')}
             className={`${currentSection === 'feed' ? 'bg-lava-orange' : 'bg-border hover:bg-border/80'} text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110`}
             data-testid="button-activity-feed"
           >
