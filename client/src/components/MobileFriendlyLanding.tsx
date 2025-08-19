@@ -241,7 +241,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
             style={{
               padding: '0.75rem 1.5rem',
               backgroundColor: 'transparent',
-              border: '1px solid rgba(220, 38, 38, 0.5)',
+              border: 'none',
               borderRadius: '25px',
               color: '#ffffff',
               fontSize: '0.9rem',
