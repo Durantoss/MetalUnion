@@ -2291,6 +2291,46 @@ export class MemStorage implements IStorage {
       }
     };
   }
+
+  // Missing encryption methods implementation
+  async getUserEncryptionKeys(userId: string): Promise<MessageEncryptionKey | undefined> {
+    try {
+      const [key] = await db.select()
+        .from(messageEncryptionKeys)
+        .where(eq(messageEncryptionKeys.userId, userId))
+        .limit(1);
+      return key;
+    } catch (error) {
+      console.error('Error fetching user encryption keys:', error);
+      return undefined;
+    }
+  }
+
+  async updateUserEncryptionKeys(userId: string, keys: Partial<InsertMessageEncryptionKey>): Promise<MessageEncryptionKey | undefined> {
+    try {
+      const [updatedKey] = await db.update(messageEncryptionKeys)
+        .set(keys)
+        .where(eq(messageEncryptionKeys.userId, userId))
+        .returning();
+      return updatedKey;
+    } catch (error) {
+      console.error('Error updating user encryption keys:', error);
+      return undefined;
+    }
+  }
+
+  async createDeliveryReceipt(receipt: InsertMessageDeliveryReceipt): Promise<MessageDeliveryReceipt> {
+    const [newReceipt] = await db.insert(messageDeliveryReceipts)
+      .values(receipt)
+      .returning();
+    return newReceipt;
+  }
+
+  async getMessageDeliveryReceipts(messageId: string): Promise<MessageDeliveryReceipt[]> {
+    return await db.select()
+      .from(messageDeliveryReceipts)
+      .where(eq(messageDeliveryReceipts.messageId, messageId));
+  }
 }
 
 // Use DatabaseStorage instead of MemStorage
