@@ -91,16 +91,16 @@ app.use((req, res, next) => {
     log(`Environment: ${app.get("env") || "development"}`);
     log(`Node environment: ${process.env.NODE_ENV || "not set"}`);
     
-    // Test database connection before starting server
+    // Test storage connection before starting server
     try {
-      log("Testing database connection...");
-      // Import and test database connectivity
+      log("Testing storage connection...");
+      // Import and test storage connectivity
       const { storage } = await import("./storage");
-      await storage.getBands(); // Simple test to verify database connectivity
-      log("✅ Database connection successful");
+      await storage.getBands(); // Simple test to verify storage connectivity
+      log("✅ Storage connection successful");
     } catch (error) {
-      log(`❌ Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      console.error("Database error:", error);
+      log(`❌ Storage connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Storage error:", error);
       process.exit(1);
     }
 
