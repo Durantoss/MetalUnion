@@ -17,7 +17,6 @@ import { EnhancedSocialHub } from './components/EnhancedSocialHub';
 import { EnhancedToursPage } from './components/EnhancedToursPage';
 import { UserProfile } from './components/UserProfile';
 import { NotificationCenter } from './components/NotificationCenter';
-// Re-enabling messaging components for full functionality
 import { BasicMessagingFallback } from './components/BasicMessagingFallback';
 import { ActivityFeed } from './components/ActivityFeed';
 import { GameficationDashboard } from './components/GameficationDashboard';
@@ -63,7 +62,6 @@ export default function App() {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   
-  console.log('🎸 MoshUnion App - Section:', currentSection, '| Bands:', bands.length);
   
   // Use useAuth hook for persistent authentication
   const { user: currentUser, isLoading: authLoading } = useAuth();
@@ -303,10 +301,8 @@ export default function App() {
       );
     }
     
-    console.log('🔄 Loading section:', currentSection);
     switch (currentSection) {
       case 'bands':
-        console.log('🎸 Rendering Band Discovery');
         return (
           <SharedSectionLayout 
             title="Band Discovery" 
@@ -442,7 +438,6 @@ export default function App() {
           </SharedSectionLayout>
         );
       case 'social':
-        console.log('🔥 Rendering The Pit');
         return (
           <SharedSectionLayout title="THE PIT" subtitle="Connect with fellow metalheads and rock fans">
             <EnhancedSocialHub />
@@ -467,21 +462,18 @@ export default function App() {
           </SharedSectionLayout>
         );
       case 'tours':
-        console.log('🎫 Rendering Tours');
         return (
           <SharedSectionLayout title="TOUR DISCOVERY" subtitle="Find live shows and concerts near you">
             <EnhancedToursPage />
           </SharedSectionLayout>
         );
       case 'reviews':
-        console.log('⭐ Rendering Reviews');
         return (
           <SharedSectionLayout title="BAND REVIEWS" subtitle="Read and write reviews of your favorite bands">
             <ReviewsSection />
           </SharedSectionLayout>
         );
       case 'photos':
-        console.log('📷 Rendering Photos');
         return (
           <SharedSectionLayout title="CONCERT PHOTOS" subtitle="Share and explore amazing concert photography">
             <PhotosSection />
@@ -491,7 +483,6 @@ export default function App() {
       // Messaging cases with shared design
       case 'messaging-demo':
       case 'messaging':
-        console.log('💬 Rendering Messages');
         return (
           <SharedSectionLayout 
             title="Messages" 
@@ -515,7 +506,6 @@ export default function App() {
           </SharedSectionLayout>
         );
       default:
-        console.log('⚠️ Unknown section:', currentSection);
         return (
           <SharedSectionLayout 
             title="SECTION ERROR" 
