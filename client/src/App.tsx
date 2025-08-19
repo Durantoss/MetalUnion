@@ -37,26 +37,18 @@ export default function App() {
   const [showComparison, setShowComparison] = useState(false);
   const [currentSection, setCurrentSection] = useState('landing');
   
-  // Enhanced debugging for state changes
+  // Track state changes
   useEffect(() => {
-    console.log('🔄 APP STATE CHANGED - currentSection is now:', currentSection);
+    // Section changed
   }, [currentSection]);
   
-  // Enhanced section change handler with comprehensive debugging
+  // Section change handler
   const debugSetCurrentSection = (newSection: string) => {
-    console.log('🔄 SECTION CHANGE START');
-    console.log('🔄 From:', currentSection, '(type:', typeof currentSection, ')');
-    console.log('🔄 To:', newSection, '(type:', typeof newSection, ')');
-    console.log('🔄 Valid sections: bands, social, tours, reviews, photos, messaging');
-    
     if (!newSection || typeof newSection !== 'string') {
-      console.error('❌ Invalid section provided:', newSection);
       return;
     }
     
-    console.log('✅ Calling setCurrentSection with:', newSection);
     setCurrentSection(newSection);
-    console.log('🔄 SECTION CHANGE END');
   };
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
@@ -67,27 +59,22 @@ export default function App() {
   const { user: currentUser, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   
-  console.log('Auth state:', { currentUser, authLoading });
+  // Auth state tracking
   
   // Check URL parameters for section navigation - ONLY on mount, not on every section change
   useEffect(() => {
-    console.log('App mount - checking URL params');
-    
     // Check for section in URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const urlSection = urlParams.get('section');
     
     if (urlSection && ['bands', 'social', 'tours', 'reviews', 'photos', 'feed', 'gamification', 'polls', 'messaging', 'admin'].includes(urlSection)) {
-      console.log('Setting section from URL:', urlSection);
       setCurrentSection(urlSection);
     } else {
-      console.log('No valid section in URL, defaulting to landing');
       setCurrentSection('landing');
     }
   }, []); // Empty dependency array - only run on mount
 
   const handleReturnHome = () => {
-    console.log('handleReturnHome called - navigation to landing');
     // Clear URL params first to prevent trap
     window.history.replaceState({}, '', window.location.pathname);
     debugSetCurrentSection('landing');
@@ -95,8 +82,6 @@ export default function App() {
   };
 
   useEffect(() => {
-    console.log('App component mounted - React is working!');
-    
     // Ensure dark mode is always applied
     document.documentElement.classList.add('dark');
     document.documentElement.classList.remove('light');
@@ -109,12 +94,10 @@ export default function App() {
         return response.json();
       })
       .then(data => {
-        console.log('API call successful - Loaded bands:', data.length);
         setBands(data);
         setLoading(false);
       })
       .catch(err => {
-        console.error('Error loading bands:', err);
         setError('Failed to load bands. Please try again.');
         setLoading(false);
       });
@@ -258,7 +241,6 @@ export default function App() {
   }
 
   const handleLogin = () => {
-    console.log('Login button clicked - opening auth modal');
     setShowAuthModal(true);
   };
 
@@ -266,7 +248,6 @@ export default function App() {
     // Update React Query cache with user data for immediate persistence
     queryClient.setQueryData(['/api/auth/user'], user);
     setShowAuthModal(false);
-    console.log('User authenticated:', user);
   };
 
   const handleLogout = async () => {
@@ -277,18 +258,14 @@ export default function App() {
       });
       // Clear auth cache
       queryClient.setQueryData(['/api/auth/user'], null);
-      console.log('User logged out');
     } catch (error) {
-      console.error('Logout error:', error);
+      // Logout error
     }
   };
 
   const renderContent = () => {
-    console.log('🔍 RENDER DEBUG - Current section:', currentSection, 'Type:', typeof currentSection, 'Bands:', bands.length);
-    
     // Only show landing page if explicitly set to 'landing' or initially undefined
     if (currentSection === 'landing' || currentSection === null || currentSection === undefined) {
-      console.log('📱 Rendering MobileFriendlyLanding component');
       
       return (
         <MobileFriendlyLanding 
