@@ -384,12 +384,12 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
       
       {/* Real-time Data Panels */}
       <div style={{
-        padding: '2rem',
+        padding: window.innerWidth < 768 ? '0.5rem' : '1rem',
         display: 'grid',
-        gap: '1.5rem',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        maxWidth: '1400px',
-        margin: '0 auto'
+        gap: window.innerWidth < 768 ? '0.75rem' : '1rem',
+        gridTemplateColumns: window.innerWidth < 768 ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))',
+        width: '100%',
+        margin: '0'
       }}>
         {/* The Pit Panel */}
         <div 
@@ -417,11 +417,11 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             border: '1px solid rgba(220, 38, 38, 0.3)',
-            borderRadius: '12px',
-            padding: '1.5rem',
+            borderRadius: window.innerWidth < 768 ? '8px' : '12px',
+            padding: window.innerWidth < 768 ? '1rem' : '1.5rem',
             cursor: 'pointer',
             transition: 'all 0.3s ease',
-            minHeight: '250px',
+            height: window.innerWidth < 768 ? '200px' : '250px',
             touchAction: 'manipulation',
             WebkitTapHighlightColor: 'transparent'
           }}
@@ -516,11 +516,11 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             border: '1px solid rgba(220, 38, 38, 0.3)',
-            borderRadius: '12px',
-            padding: '1.5rem',
+            borderRadius: window.innerWidth < 768 ? '8px' : '12px',
+            padding: window.innerWidth < 768 ? '1rem' : '1.5rem',
             cursor: 'pointer',
             transition: 'all 0.3s ease',
-            minHeight: '250px',
+            height: window.innerWidth < 768 ? '200px' : '250px',
             touchAction: 'manipulation',
             WebkitTapHighlightColor: 'transparent'
           }}
@@ -617,11 +617,11 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             border: '1px solid rgba(220, 38, 38, 0.3)',
-            borderRadius: '12px',
-            padding: '1.5rem',
+            borderRadius: window.innerWidth < 768 ? '8px' : '12px',
+            padding: window.innerWidth < 768 ? '1rem' : '1.5rem',
             cursor: 'pointer',
             transition: 'all 0.3s ease',
-            minHeight: '250px',
+            height: window.innerWidth < 768 ? '200px' : '250px',
             touchAction: 'manipulation',
             WebkitTapHighlightColor: 'transparent'
           }}
@@ -722,11 +722,11 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             border: '1px solid rgba(220, 38, 38, 0.3)',
-            borderRadius: '12px',
-            padding: '1.5rem',
+            borderRadius: window.innerWidth < 768 ? '8px' : '12px',
+            padding: window.innerWidth < 768 ? '1rem' : '1.5rem',
             cursor: 'pointer',
             transition: 'all 0.3s ease',
-            minHeight: '250px',
+            height: window.innerWidth < 768 ? '200px' : '250px',
             touchAction: 'manipulation',
             WebkitTapHighlightColor: 'transparent'
           }}
@@ -839,11 +839,11 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             border: '1px solid rgba(220, 38, 38, 0.3)',
-            borderRadius: '12px',
-            padding: '1.5rem',
+            borderRadius: window.innerWidth < 768 ? '8px' : '12px',
+            padding: window.innerWidth < 768 ? '1rem' : '1.5rem',
             cursor: 'pointer',
             transition: 'all 0.3s ease',
-            minHeight: '250px',
+            height: window.innerWidth < 768 ? '200px' : '250px',
             touchAction: 'manipulation',
             WebkitTapHighlightColor: 'transparent'
           }}
