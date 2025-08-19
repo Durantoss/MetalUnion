@@ -31,6 +31,15 @@ export class HookFreeSecureMessaging {
   private showConversationList: boolean;
   private conversations: Conversation[];
 
+  private escapeHtml(unsafe: string): string {
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   constructor(userId = 'demo-user') {
     this.userId = userId;
     this.selectedConversation = 'conv1';
@@ -166,7 +175,7 @@ export class HookFreeSecureMessaging {
           <div class="space-y-2">
             ${this.conversations.map(conv => `
               <button
-                onclick="window.messagingInstance.handleConversationSelect('${conv.id}')"
+                onclick="window.messagingInstance.handleConversationSelect('${this.escapeHtml(conv.id)}')"
                 class="w-full text-left p-3 rounded-lg border transition-all ${
                   this.selectedConversation === conv.id
                     ? 'bg-red-600/20 border-red-500/50'
@@ -178,7 +187,7 @@ export class HookFreeSecureMessaging {
                     <div class="h-3 w-3 rounded-full ${
                       conv.participantStatus === 'online' ? 'bg-green-500' : 'bg-gray-500'
                     }"></div>
-                    <span class="text-white font-medium text-sm">${conv.participantName}</span>
+                    <span class="text-white font-medium text-sm">${this.escapeHtml(conv.participantName)}</span>
                   </div>
                   ${conv.unreadCount > 0 ? `
                     <span class="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -186,9 +195,9 @@ export class HookFreeSecureMessaging {
                     </span>
                   ` : ''}
                 </div>
-                <p class="text-gray-400 text-xs truncate">${conv.lastMessage}</p>
+                <p class="text-gray-400 text-xs truncate">${this.escapeHtml(conv.lastMessage)}</p>
                 <div class="flex items-center justify-between mt-1">
-                  <p class="text-gray-500 text-xs">${conv.lastMessageTime}</p>
+                  <p class="text-gray-500 text-xs">${this.escapeHtml(conv.lastMessageTime)}</p>
                   <svg class="h-3 w-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                   </svg>
@@ -228,12 +237,12 @@ export class HookFreeSecureMessaging {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
               </svg>
               <div>
-                <span class="text-white font-medium">${currentConversation.participantName}</span>
+                <span class="text-white font-medium">${this.escapeHtml(currentConversation.participantName)}</span>
                 <div class="flex items-center space-x-2 text-sm">
                   <div class="h-2 w-2 rounded-full ${
                     currentConversation.participantStatus === 'online' ? 'bg-green-500' : 'bg-gray-500'
                   }"></div>
-                  <span class="text-gray-400 capitalize">${currentConversation.participantStatus}</span>
+                  <span class="text-gray-400 capitalize">${this.escapeHtml(currentConversation.participantStatus)}</span>
                 </div>
               </div>
             </div>
@@ -256,13 +265,13 @@ export class HookFreeSecureMessaging {
                     ? 'bg-gradient-to-r from-red-600 to-red-700 text-white ml-12'
                     : 'bg-gray-700 text-gray-100 mr-12'
                 }">
-                  <p class="text-sm leading-relaxed">${message.content}</p>
+                  <p class="text-sm leading-relaxed">${this.escapeHtml(message.content)}</p>
                   <div class="flex items-center justify-between mt-2 text-xs opacity-75">
                     <div class="flex items-center space-x-1">
                       <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                       </svg>
-                      <span>${message.timestamp}</span>
+                      <span>${this.escapeHtml(message.timestamp)}</span>
                     </div>
                     <div class="flex items-center space-x-1">
                       ${message.encrypted ? `
@@ -320,39 +329,53 @@ export class HookFreeSecureMessaging {
     const container = document.getElementById('secure-messaging-container');
     if (!container) return;
 
-    container.innerHTML = `
-      <div class="h-full bg-black/20 rounded-lg border border-red-900/30 overflow-hidden">
-        <div class="flex flex-col h-full max-h-[80vh]">
-          <!-- Header -->
-          <div class="bg-black/40 border-b border-red-900/30 p-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-3">
-                <svg class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                </svg>
-                <h3 class="text-lg font-semibold text-white">Secure Messages</h3>
-                <span class="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full border border-green-500/30">
-                  RSA-2048 + AES-256
-                </span>
-              </div>
-              ${!this.showConversationList ? `
-                <button 
-                  onclick="window.messagingInstance.showConversations()"
-                  class="md:hidden text-red-400 hover:text-red-300"
-                >
-                  ← Back
-                </button>
-              ` : ''}
-            </div>
-          </div>
-
-          <div class="flex flex-1 overflow-hidden">
-            ${this.renderConversationsList()}
-            ${this.renderMessageView()}
-          </div>
+    // Clear container safely
+    container.textContent = '';
+    
+    // Create main wrapper
+    const mainDiv = document.createElement('div');
+    mainDiv.className = 'h-full bg-black/20 rounded-lg border border-red-900/30 overflow-hidden';
+    
+    const innerDiv = document.createElement('div');
+    innerDiv.className = 'flex flex-col h-full max-h-[80vh]';
+    
+    // Create header
+    const header = document.createElement('div');
+    header.className = 'bg-black/40 border-b border-red-900/30 p-4';
+    header.innerHTML = `
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <svg class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          <h3 class="text-lg font-semibold text-white">Secure Messages</h3>
+          <span class="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full border border-green-500/30">
+            RSA-2048 + AES-256
+          </span>
         </div>
+        ${!this.showConversationList ? `
+          <button 
+            onclick="window.messagingInstance.showConversations()"
+            class="md:hidden text-red-400 hover:text-red-300"
+          >
+            ← Back
+          </button>
+        ` : ''}
       </div>
     `;
+    
+    // Create content area
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'flex flex-1 overflow-hidden';
+    
+    // Add conversations and messages with safe rendering
+    contentDiv.innerHTML = this.renderConversationsList() + this.renderMessageView();
+    
+    // Assemble and append
+    innerDiv.appendChild(header);
+    innerDiv.appendChild(contentDiv);
+    mainDiv.appendChild(innerDiv);
+    container.appendChild(mainDiv);
   }
 }
 
