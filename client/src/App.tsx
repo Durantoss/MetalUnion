@@ -24,6 +24,7 @@ import { GameficationDashboard } from './components/GameficationDashboard';
 import { InteractivePolls } from './components/InteractivePolls';
 import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/auth/AuthModal';
+import { SharedSectionLayout } from './components/SharedSectionLayout';
 import { Band } from './types';
 
 
@@ -50,10 +51,17 @@ export default function App() {
   useEffect(() => {
     console.log('App mount - checking URL params');
     
-    // Force clear URL params and go to landing page to show new design
-    window.history.replaceState({}, '', window.location.pathname);
-    setCurrentSection('landing');
-    console.log('Forced navigation to landing page to show new design');
+    // Check for section in URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSection = urlParams.get('section');
+    
+    if (urlSection && ['bands', 'social', 'tours', 'reviews', 'photos', 'feed', 'gamification', 'polls', 'messaging', 'admin'].includes(urlSection)) {
+      console.log('Setting section from URL:', urlSection);
+      setCurrentSection(urlSection);
+    } else {
+      console.log('No valid section in URL, defaulting to landing');
+      setCurrentSection('landing');
+    }
   }, []); // Empty dependency array - only run on mount
 
   const handleReturnHome = () => {
@@ -256,20 +264,6 @@ export default function App() {
   const renderContent = () => {
     console.log('RENDER DEBUG - Current section:', currentSection, 'Bands:', bands.length);
     
-    // AGGRESSIVE FORCE TO LANDING PAGE FOR DEBUGGING
-    console.log('FORCING LANDING PAGE - Ignoring currentSection for now');
-    return (
-      <MobileFriendlyLanding 
-        onSectionChange={setCurrentSection}
-        bands={bands}
-        currentUser={currentUser}
-        onLogin={handleLogin}
-        onLogout={handleLogout}
-      />
-    );
-    
-    // Original logic (disabled for debugging)
-    /*
     if (currentSection === 'landing' || !currentSection || currentSection === '' || currentSection === undefined) {
       console.log('Rendering MobileFriendlyLanding component');
       
@@ -294,49 +288,35 @@ export default function App() {
     switch (currentSection) {
       case 'bands':
         return (
-          <div>
-            <header style={{ textAlign: 'center', marginBottom: '3rem', paddingTop: '2rem' }}>
-              <h1 style={{
-                fontSize: '4rem',
-                color: '#dc2626',
-                fontWeight: 'bold',
-                marginBottom: '0.5rem',
-                letterSpacing: '0.1em'
-              }}>
-                DISCOVER BANDS
-              </h1>
-              <p style={{
-                fontSize: '1.2rem',
-                color: '#9ca3af',
-                marginBottom: '2rem'
-              }}>
-                Explore {bands.length} metal and rock bands from around the world
-              </p>
-            </header>
-
+          <SharedSectionLayout 
+            title="DISCOVER BANDS" 
+            subtitle={`Explore ${bands.length} metal and rock bands from around the world`}
+          >
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-              gap: '2rem',
-              padding: '0 2rem'
+              gap: '2rem'
             }}>
               {bands.map(band => (
                 <div
                   key={band.id}
                   style={{
-                    backgroundColor: '#1f2937',
-                    border: '1px solid #374151',
+                    backgroundColor: 'rgba(31, 41, 55, 0.8)',
+                    border: '1px solid rgba(220, 38, 38, 0.3)',
                     borderRadius: '12px',
                     padding: '1.5rem',
-                    transition: 'transform 0.2s, border-color 0.2s'
+                    transition: 'all 0.3s ease',
+                    backdropFilter: 'blur(5px)'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-4px)';
                     e.currentTarget.style.borderColor = '#dc2626';
+                    e.currentTarget.style.boxShadow = '0 8px 25px rgba(220, 38, 38, 0.3)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.borderColor = '#374151';
+                    e.currentTarget.style.borderColor = 'rgba(220, 38, 38, 0.3)';
+                    e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
                   {band.imageUrl && (
@@ -361,7 +341,7 @@ export default function App() {
                     {band.name}
                   </h3>
                   <p style={{
-                    color: '#f87171',
+                    color: '#facc15',
                     fontSize: '0.9rem',
                     marginBottom: '0.5rem',
                     fontWeight: '600'
@@ -390,9 +370,6 @@ export default function App() {
                       href={band.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={(e) => {
-                        console.log(`Opening ${band.name} website: ${band.website}`);
-                      }}
                       style={{
                         display: 'inline-block',
                         backgroundColor: '#dc2626',
@@ -406,14 +383,6 @@ export default function App() {
                         cursor: 'pointer',
                         transition: 'all 0.2s'
                       }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#b91c1c';
-                        e.currentTarget.style.transform = 'translateY(-1px)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#dc2626';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                      }}
                     >
                       Website ↗
                     </a>
@@ -423,13 +392,10 @@ export default function App() {
                       href={band.instagram}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={(e) => {
-                        console.log(`Opening ${band.name} Instagram: ${band.instagram}`);
-                      }}
                       style={{
                         display: 'inline-block',
-                        backgroundColor: '#7c3aed',
-                        color: 'white',
+                        backgroundColor: '#facc15',
+                        color: '#000',
                         padding: '8px 16px',
                         borderRadius: '6px',
                         textDecoration: 'none',
@@ -438,14 +404,6 @@ export default function App() {
                         cursor: 'pointer',
                         transition: 'all 0.2s'
                       }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#6d28d9';
-                        e.currentTarget.style.transform = 'translateY(-1px)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#7c3aed';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                      }}
                     >
                       Instagram ↗
                     </a>
@@ -453,46 +411,73 @@ export default function App() {
                 </div>
               ))}
             </div>
-          </div>
+          </SharedSectionLayout>
         );
       case 'social':
-        return <EnhancedSocialHub />;
+        return (
+          <SharedSectionLayout title="THE PIT" subtitle="Connect with fellow metalheads and rock fans">
+            <EnhancedSocialHub />
+          </SharedSectionLayout>
+        );
       case 'feed':
-        return <ActivityFeed />;
+        return (
+          <SharedSectionLayout title="ACTIVITY FEED" subtitle="Stay updated with the latest community action">
+            <ActivityFeed />
+          </SharedSectionLayout>
+        );
       case 'gamification':
-        return <GameficationDashboard />;
+        return (
+          <SharedSectionLayout title="ACHIEVEMENTS" subtitle="Unlock rewards and climb the leaderboards">
+            <GameficationDashboard />
+          </SharedSectionLayout>
+        );
       case 'polls':
-        return <InteractivePolls />;
+        return (
+          <SharedSectionLayout title="COMMUNITY POLLS" subtitle="Vote and shape the future of metal">
+            <InteractivePolls />
+          </SharedSectionLayout>
+        );
       case 'tours':
-        return <EnhancedToursPage />;
+        return (
+          <SharedSectionLayout title="TOUR DISCOVERY" subtitle="Find live shows and concerts near you">
+            <EnhancedToursPage />
+          </SharedSectionLayout>
+        );
       case 'reviews':
         return (
-          <div style={{ padding: '0 2rem' }}>
+          <SharedSectionLayout title="BAND REVIEWS" subtitle="Read and write reviews of your favorite bands">
             <ReviewsSection />
-          </div>
+          </SharedSectionLayout>
         );
       case 'photos':
         return (
-          <div style={{ padding: '0 2rem' }}>
+          <SharedSectionLayout title="CONCERT PHOTOS" subtitle="Share and explore amazing concert photography">
             <PhotosSection />
-          </div>
+          </SharedSectionLayout>
         );
 
-      // Messaging cases removed - forcing landing page
+      // Messaging cases with shared design
       case 'messaging-demo':
-        console.log('MESSAGING SECTION REQUESTED - REDIRECTING TO LANDING');
-        setCurrentSection('landing');
+      case 'messaging':
         return (
-          <MobileFriendlyLanding 
-            onSectionChange={setCurrentSection}
-            bands={bands}
-            currentUser={currentUser}
-            onLogin={handleLogin}
-            onLogout={handleLogout}
-          />
+          <SharedSectionLayout title="PRIVATE MESSAGES" subtitle="Connect privately with other metalheads">
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: '300px',
+              color: '#9ca3af'
+            }}>
+              <p>Private messaging feature coming soon...</p>
+            </div>
+          </SharedSectionLayout>
         );
       case 'admin':
-        return <AdminPanel currentUserId={currentUser?.id} />;
+        return (
+          <SharedSectionLayout title="ADMIN PANEL" subtitle="Manage the MoshUnion community">
+            <AdminPanel currentUserId={currentUser?.id} />
+          </SharedSectionLayout>
+        );
       default:
         console.log('DEFAULT CASE - Unknown section:', currentSection, '- Redirecting to landing');
         setCurrentSection('landing');
@@ -506,7 +491,6 @@ export default function App() {
           />
         );
     }
-    */
   };
 
   return (
