@@ -44,6 +44,27 @@ interface Photo {
   uploadedBy: string;
 }
 
+interface Conversation {
+  id: string;
+  participant1Id: string;
+  participant2Id: string;
+  lastMessageAt: string;
+  lastMessage?: string;
+  isEncrypted: boolean;
+  createdAt: string;
+}
+
+interface DirectMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  messageType: string;
+  content?: string;
+  encryptedContent?: string;
+  createdAt: string;
+  readAt?: string;
+}
+
 interface MobileFriendlyLandingProps {
   onSectionChange: (section: string) => void;
   bands: Band[];
@@ -74,6 +95,12 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
     refetchIntervalInBackground: true
   });
   
+  const { data: conversations = [], isLoading: conversationsLoading } = useQuery<Conversation[]>({
+    queryKey: ['/api/messaging/conversations'],
+    refetchInterval: refreshInterval,
+    refetchIntervalInBackground: true
+  });
+  
   // Get random photos for display
   const [randomPhotos, setRandomPhotos] = useState<Photo[]>([]);
   
@@ -90,6 +117,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
     reviews: reviews.length,
     photos: photos.length,
     tours: tours.length,
+    messages: conversations.length,
     activeUsers: Math.floor(Math.random() * 50) + 20, // Simulated active users
     events: tours.filter(tour => new Date(tour.date) > new Date()).length
   };
@@ -100,7 +128,8 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
     { id: 'bands', title: 'Bands', icon: '' },
     { id: 'tours', title: 'Tours', icon: '' },
     { id: 'reviews', title: 'Reviews', icon: '' },
-    { id: 'photos', title: 'Photos', icon: '' }
+    { id: 'photos', title: 'Photos', icon: '' },
+    { id: 'messages', title: 'Messages', icon: '💬' }
   ];
   
   // Get latest data for scrolling panels
@@ -127,6 +156,12 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
       { user: 'RiffMaster', action: 'shared concert photo from Wacken', time: '5m ago' },
       { user: 'BlastBeat', action: 'rated Metallica concert 5 stars', time: '8m ago' }
     ];
+  };
+  
+  const getLatestConversations = () => {
+    return conversations
+      .sort((a, b) => new Date(b.lastMessageAt || b.createdAt).getTime() - new Date(a.lastMessageAt || a.createdAt).getTime())
+      .slice(0, 3);
   };
 
   return (
@@ -946,6 +981,143 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
             )}
           </div>
         </div>
+        
+        {/* Private Messages Panel */}
+        <div 
+          onClick={() => onSectionChange('messages')}
+          onTouchStart={(e) => {
+            e.currentTarget.style.transform = 'scale(0.98)';
+            e.currentTarget.style.borderColor = 'rgba(220, 38, 38, 0.8)';
+          }}
+          onTouchEnd={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.borderColor = 'rgba(220, 38, 38, 0.3)';
+          }}
+          onMouseEnter={(e) => {
+            if (!('ontouchstart' in window)) {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.borderColor = 'rgba(220, 38, 38, 0.8)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!('ontouchstart' in window)) {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = 'rgba(220, 38, 38, 0.3)';
+            }
+          }}
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            border: '1px solid rgba(220, 38, 38, 0.3)',
+            borderRadius: window.innerWidth < 768 ? '4px' : '8px',
+            padding: window.innerWidth < 768 ? '1rem' : '1.5rem',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            height: '280px',
+            touchAction: 'manipulation',
+            WebkitTapHighlightColor: 'transparent'
+          }}
+          data-testid="panel-messages"
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginBottom: '1rem'
+          }}>
+            <h3 style={{
+              color: '#ffffff',
+              fontSize: '1.25rem',
+              fontWeight: '700',
+              margin: 0
+            }}>
+              💬 Private Messages
+            </h3>
+            <div style={{
+              backgroundColor: 'rgba(220, 38, 38, 0.2)',
+              color: '#dc2626',
+              padding: '0.25rem 0.5rem',
+              borderRadius: '12px',
+              fontSize: '0.7rem',
+              fontWeight: '600'
+            }}>
+              {conversations.length} active
+            </div>
+          </div>
+          
+          <div style={{
+            height: 'calc(100% - 3rem)',
+            overflowY: 'auto',
+            paddingRight: '8px'
+          }}>
+            {conversationsLoading ? (
+              <div style={{ color: '#9ca3af', textAlign: 'center', padding: '2rem 0' }}>
+                Loading conversations...
+              </div>
+            ) : conversations.length > 0 ? (
+              getLatestConversations().map((conversation, i) => (
+                <div key={conversation.id} style={{
+                  padding: '0.75rem 0',
+                  borderBottom: i < getLatestConversations().length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    marginBottom: '0.25rem'
+                  }}>
+                    <div style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      backgroundColor: conversation.isEncrypted ? '#10b981' : '#9ca3af'
+                    }} />
+                    <div style={{
+                      color: '#ffffff',
+                      fontSize: '0.9rem',
+                      fontWeight: '600'
+                    }}>
+                      User {conversation.participant2Id.slice(-6)}
+                    </div>
+                    <div style={{
+                      color: '#facc15',
+                      fontSize: '0.7rem'
+                    }}>
+                      {conversation.isEncrypted ? '🔒' : '🔓'}
+                    </div>
+                  </div>
+                  <div style={{
+                    color: '#9ca3af',
+                    fontSize: '0.8rem',
+                    marginBottom: '0.25rem'
+                  }}>
+                    {conversation.lastMessage ? 
+                      conversation.lastMessage.slice(0, 40) + '...' : 
+                      'No messages yet'
+                    }
+                  </div>
+                  <div style={{
+                    color: '#dc2626',
+                    fontSize: '0.7rem'
+                  }}>
+                    {new Date(conversation.lastMessageAt || conversation.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div style={{ 
+                color: '#9ca3af', 
+                textAlign: 'center', 
+                padding: '2rem 0',
+                fontSize: '0.9rem'
+              }}>
+                No conversations yet.<br />
+                <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+                  Start messaging other metalheads!
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
       
       {/* Live Stats Footer */}
@@ -966,6 +1138,7 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
             { label: 'Total Bands', value: stats.bands, icon: '🎸' },
             { label: 'Reviews', value: stats.reviews, icon: '⭐' },
             { label: 'Photos', value: stats.photos, icon: '📸' },
+            { label: 'Messages', value: stats.messages, icon: '💬' },
             { label: 'Upcoming Tours', value: stats.events, icon: '🎤' }
           ].map((stat, i) => (
             <div
