@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { storage } from "./storage";
-import { insertGroupChatSchema, insertGroupChatMemberSchema, insertGroupMessageSchema, insertGroupMessageReactionSchema } from "@shared/schema";
+import { insertGroupChatSchema as createGroupChatSchema, insertGroupChatMemberSchema, insertGroupMessageSchema, insertGroupMessageReactionSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService } from "./objectStorage";
 

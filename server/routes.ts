@@ -30,7 +30,7 @@ import {
   insertMessageDeliveryReceiptSchema,
   users
 } from "@shared/schema";
-import { setupAuth, isAuthenticated } from "./auth";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { registerGroupChatRoutes } from './groupChatRoutes';
 import { db } from "./db";
 
@@ -325,6 +325,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth middleware
   await setupAuth(app);
+
+  // Register group chat routes
+  registerGroupChatRoutes(app);
 
   // Seed database with initial data
   await seedDatabase();
