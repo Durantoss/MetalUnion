@@ -14,6 +14,11 @@ const requireAuth = (req: any, res: any, next: any) => {
 export function registerGroupChatRoutes(app: Express) {
   const objectStorage = new ObjectStorageService();
 
+  // Debug: Check what methods are available on storage
+  console.log('Storage methods available:', Object.getOwnPropertyNames(Object.getPrototypeOf(storage)));
+  console.log('Storage has createGroupChat:', typeof storage.createGroupChat);
+  console.log('Storage has getUserGroupChats:', typeof storage.getUserGroupChats);
+
   // Create a new group chat
   app.post('/api/group-chats', requireAuth, async (req, res) => {
     try {
@@ -41,6 +46,9 @@ export function registerGroupChatRoutes(app: Express) {
   // Get user's group chats
   app.get('/api/group-chats', requireAuth, async (req, res) => {
     try {
+      console.log('Attempting to call getUserGroupChats with user ID:', req.user.id);
+      console.log('Storage object type:', typeof storage);
+      console.log('getUserGroupChats method type:', typeof storage.getUserGroupChats);
       const groups = await storage.getUserGroupChats(req.user.id);
       res.json({
         success: true,
