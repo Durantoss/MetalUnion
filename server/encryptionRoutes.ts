@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { storage } from "./storage";
 import { MessageEncryption } from "./encryption";
-import { isAuthenticated } from "./replitAuth";
+import { isAuthenticated } from "./auth";
 
 /**
  * Complete Encryption Examples for Secured Messaging
@@ -12,7 +12,8 @@ export function registerEncryptionRoutes(app: Express) {
   // Generate encryption keys for a user
   app.post("/api/messaging/generate-keys", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Handle both demo mode and real authentication
+      const userId = req.user?.claims?.sub || req.session?.userId;
       
       // Generate new RSA key pair
       const keys = await MessageEncryption.generateKeyPair();
@@ -45,7 +46,8 @@ export function registerEncryptionRoutes(app: Express) {
   app.post("/api/messaging/test-encryption", isAuthenticated, async (req: any, res) => {
     try {
       const { message, recipientUserId } = req.body;
-      const senderId = req.user.claims.sub;
+      // Handle both demo mode and real authentication
+      const senderId = req.user?.claims?.sub || req.session?.userId;
       
       // Get recipient's public key
       const recipientKeys = await storage.getUserEncryptionKeys(recipientUserId);
@@ -90,7 +92,8 @@ export function registerEncryptionRoutes(app: Express) {
   // Get user's encryption keys
   app.get("/api/messaging/encryption-keys", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Handle both demo mode and real authentication
+      const userId = req.user?.claims?.sub || req.session?.userId;
       const keys = await storage.getUserEncryptionKeys(userId);
       
       if (!keys) {
