@@ -40,7 +40,7 @@ export function SimpleMobileMessaging({ userId = 'demo-user' }: SimpleMobileMess
           fontWeight: '600',
           margin: 0 
         }}>
-          Secure Messages
+          Messages
         </h3>
         <span style={{
           fontSize: '12px',

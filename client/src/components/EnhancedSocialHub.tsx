@@ -55,7 +55,7 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
     },
     {
       id: 'messaging',
-      name: 'Secure Messages',
+      name: 'Messages',
       icon: MessageCircle,
       badge: stats.activeConversations,
       description: 'End-to-end encrypted messaging',
@@ -87,7 +87,7 @@ export function EnhancedSocialHub({ userId = 'demo-user', initialTab = 'feed' }:
         return (
           <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
-              <h2 className="text-3xl font-bold text-white">Secure Messages</h2>
+              <h2 className="text-3xl font-bold text-white">Messages</h2>
               <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                 <div className="flex items-center space-x-2 bg-black/40 px-4 py-2 rounded-lg border border-green-500/30">
                   <MessageCircle className="h-4 w-4 text-green-400" />

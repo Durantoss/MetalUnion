@@ -46,7 +46,7 @@ interface EncryptionTest {
 
 /**
  * Complete Messaging Demo Interface
- * Showcases all secured messaging features and examples
+ * Showcases all messaging features and examples
  */
 export function MessagingDemo() {
   const { toast } = useToast();
@@ -352,7 +352,7 @@ export function MessagingDemo() {
   return (
     <div className="container mx-auto p-6 space-y-6" data-testid="messaging-demo">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-white">🤘 Secured Messaging Demo</h1>
+        <h1 className="text-3xl font-bold text-white">🤘 Messages Demo</h1>
         <p className="text-gray-400">Complete examples of end-to-end encrypted messaging</p>
         <div className="flex justify-center gap-4 text-sm">
           <Badge variant={isConnected ? "default" : "destructive"} data-testid="connection-status">

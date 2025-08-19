@@ -66,7 +66,7 @@ export function SecureDirectMessaging({ userId = 'demo-user' }: SecureDirectMess
         {/* Header */}
         <div className="bg-black/40 border-b border-red-900/30 p-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-white">Secure Messages</h3>
+            <h3 className="text-lg font-semibold text-white">Messages</h3>
             <div className="flex items-center space-x-2 text-sm">
               <div className="h-2 w-2 bg-green-500 rounded-full"></div>
               <span className="text-green-400">End-to-End Encrypted</span>

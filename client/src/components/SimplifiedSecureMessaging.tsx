@@ -143,7 +143,7 @@ export function SimplifiedSecureMessaging({ userId = 'demo-user' }: SimplifiedSe
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Shield className="h-5 w-5 text-green-400" />
-              <h3 className="text-lg font-semibold text-white">Secure Messages</h3>
+              <h3 className="text-lg font-semibold text-white">Messages</h3>
               <span className="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full border border-green-500/30">
                 RSA-2048 + AES-256
               </span>
