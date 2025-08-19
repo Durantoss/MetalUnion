@@ -384,9 +384,9 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
       
       {/* Real-time Data Panels */}
       <div style={{
-        padding: window.innerWidth < 768 ? '0.5rem' : '1rem',
+        padding: '0',
         display: 'grid',
-        gap: window.innerWidth < 768 ? '0.75rem' : '1rem',
+        gap: window.innerWidth < 768 ? '0.5rem' : '0.75rem',
         gridTemplateColumns: window.innerWidth < 768 ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))',
         width: '100%',
         margin: '0'
@@ -417,11 +417,11 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             border: '1px solid rgba(220, 38, 38, 0.3)',
-            borderRadius: window.innerWidth < 768 ? '8px' : '12px',
+            borderRadius: window.innerWidth < 768 ? '4px' : '8px',
             padding: window.innerWidth < 768 ? '1rem' : '1.5rem',
             cursor: 'pointer',
             transition: 'all 0.3s ease',
-            height: window.innerWidth < 768 ? '200px' : '250px',
+            height: '280px',
             touchAction: 'manipulation',
             WebkitTapHighlightColor: 'transparent'
           }}
@@ -516,11 +516,11 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             border: '1px solid rgba(220, 38, 38, 0.3)',
-            borderRadius: window.innerWidth < 768 ? '8px' : '12px',
+            borderRadius: window.innerWidth < 768 ? '4px' : '8px',
             padding: window.innerWidth < 768 ? '1rem' : '1.5rem',
             cursor: 'pointer',
             transition: 'all 0.3s ease',
-            height: window.innerWidth < 768 ? '200px' : '250px',
+            height: '280px',
             touchAction: 'manipulation',
             WebkitTapHighlightColor: 'transparent'
           }}
@@ -617,11 +617,11 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             border: '1px solid rgba(220, 38, 38, 0.3)',
-            borderRadius: window.innerWidth < 768 ? '8px' : '12px',
+            borderRadius: window.innerWidth < 768 ? '4px' : '8px',
             padding: window.innerWidth < 768 ? '1rem' : '1.5rem',
             cursor: 'pointer',
             transition: 'all 0.3s ease',
-            height: window.innerWidth < 768 ? '200px' : '250px',
+            height: '280px',
             touchAction: 'manipulation',
             WebkitTapHighlightColor: 'transparent'
           }}
@@ -722,11 +722,11 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             border: '1px solid rgba(220, 38, 38, 0.3)',
-            borderRadius: window.innerWidth < 768 ? '8px' : '12px',
+            borderRadius: window.innerWidth < 768 ? '4px' : '8px',
             padding: window.innerWidth < 768 ? '1rem' : '1.5rem',
             cursor: 'pointer',
             transition: 'all 0.3s ease',
-            height: window.innerWidth < 768 ? '200px' : '250px',
+            height: '280px',
             touchAction: 'manipulation',
             WebkitTapHighlightColor: 'transparent'
           }}
@@ -839,11 +839,11 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
           style={{
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             border: '1px solid rgba(220, 38, 38, 0.3)',
-            borderRadius: window.innerWidth < 768 ? '8px' : '12px',
+            borderRadius: window.innerWidth < 768 ? '4px' : '8px',
             padding: window.innerWidth < 768 ? '1rem' : '1.5rem',
             cursor: 'pointer',
             transition: 'all 0.3s ease',
-            height: window.innerWidth < 768 ? '200px' : '250px',
+            height: '280px',
             touchAction: 'manipulation',
             WebkitTapHighlightColor: 'transparent'
           }}
