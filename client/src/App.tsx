@@ -17,9 +17,7 @@ import { EnhancedSocialHub } from './components/EnhancedSocialHub';
 import { EnhancedToursPage } from './components/EnhancedToursPage';
 import { UserProfile } from './components/UserProfile';
 import { NotificationCenter } from './components/NotificationCenter';
-import { MessagingTestPage } from './components/MessagingTestPage';
-import { AdvancedMessagingInterface } from './components/AdvancedMessagingInterface';
-import { MessagingDemo } from './pages/MessagingDemo';
+// Messaging imports removed to force landing page
 import { ActivityFeed } from './components/ActivityFeed';
 import { GameficationDashboard } from './components/GameficationDashboard';
 // Events Discovery functionality has been migrated to Tours section
@@ -480,8 +478,7 @@ export default function App() {
           </div>
         );
 
-      case 'messaging-test':
-      case 'advanced-messaging':
+      // Messaging cases removed - forcing landing page
       case 'messaging-demo':
         console.log('MESSAGING SECTION REQUESTED - REDIRECTING TO LANDING');
         setCurrentSection('landing');
