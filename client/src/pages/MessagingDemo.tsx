@@ -24,6 +24,7 @@ import {
   Activity,
   Zap
 } from 'lucide-react';
+import { GroupChat } from '@/components/GroupChat';
 
 interface Message {
   id: string;
@@ -371,10 +372,14 @@ export function MessagingDemo() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="messaging" data-testid="tab-messaging">
             <MessageCircle className="w-4 h-4 mr-2" />
             Messaging
+          </TabsTrigger>
+          <TabsTrigger value="groups" data-testid="tab-groups">
+            <Users className="w-4 h-4 mr-2" />
+            Group Chats
           </TabsTrigger>
           <TabsTrigger value="encryption" data-testid="tab-encryption">
             <Shield className="w-4 h-4 mr-2" />
@@ -471,6 +476,24 @@ export function MessagingDemo() {
                 <span>Current User: {currentUserId}</span>
                 <span>Recipient: {recipientUserId}</span>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="groups" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                End-to-End Encrypted Group Chats
+                <Badge variant="secondary" className="text-xs">
+                  <Shield className="w-3 h-3 mr-1" />
+                  E2E Encrypted
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <GroupChat />
             </CardContent>
           </Card>
         </TabsContent>

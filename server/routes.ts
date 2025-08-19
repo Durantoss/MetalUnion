@@ -27,9 +27,11 @@ import {
   insertConversationSchema,
   insertDirectMessageSchema,
   insertMessageEncryptionKeySchema,
-  insertMessageDeliveryReceiptSchema
-, users } from "@shared/schema";
+  insertMessageDeliveryReceiptSchema,
+  users
+} from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./auth";
+import { registerGroupChatRoutes } from './groupChatRoutes';
 import { db } from "./db";
 
 import { eq, desc, and } from "drizzle-orm";
@@ -2238,6 +2240,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register complete encryption examples and demonstrations
   registerEncryptionRoutes(app);
   console.log('Encryption examples and demos initialized');
+  
+  // Register group chat routes with end-to-end encryption
+  registerGroupChatRoutes(app);
+  console.log('Group chat routes initialized');
   
   // Initialize WebSocket Examples for comprehensive real-time demos
   const wsExamples = new WebSocketExamples(httpServer);

@@ -20,13 +20,21 @@ import {
   type Badge, type InsertBadge, type CreateBadge,
   type UserBadge, type InsertUserBadge,
   type ConcertAttendance, type InsertConcertAttendance,
+  // Group Chat Types
+  type GroupChat, type InsertGroupChat,
+  type GroupChatMember, type InsertGroupChatMember,
+  type GroupMessage, type InsertGroupMessage,
+  type GroupMessageReaction, type InsertGroupMessageReaction,
+  type GroupEncryptionKey, type InsertGroupEncryptionKey,
+  type MediaUpload, type InsertMediaUpload,
   users, bands, reviews, photos, tours, messages, pitMessages, pitReplies, postComments, contentReactions,
   posts, postLikes, postCommentLikes,
   conversations, directMessages, messageEncryptionKeys, messageDeliveryReceipts,
-  userLocations, proximityMatches, badges, userBadges, concertAttendance
+  userLocations, proximityMatches, badges, userBadges, concertAttendance,
+  groupChats, groupChatMembers, groupMessages, groupMessageReactions, groupEncryptionKeys, mediaUploads
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql, gt } from "drizzle-orm";
+import { eq, sql, gt, desc, asc, and, or, like, isNull, not, lt, gte, lte, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -191,6 +199,24 @@ export interface IStorage {
   // Encryption key management
   getEncryptionKeys(userId: string): Promise<MessageEncryptionKey[]>;
   createEncryptionKey(key: any): Promise<any>;
+
+  // Group Chat Operations
+  createGroupChat(groupData: InsertGroupChat): Promise<GroupChat>;
+  getGroupChat(groupId: string): Promise<GroupChat | undefined>;
+  getUserGroupChats(userId: string): Promise<(GroupChat & { memberRole: string, lastReadAt: Date | null })[]>;
+  addGroupMember(memberData: InsertGroupChatMember): Promise<GroupChatMember>;
+  removeGroupMember(groupId: string, userId: string): Promise<boolean>;
+  getGroupMembers(groupId: string): Promise<(GroupChatMember & { user: User })[]>;
+  updateGroupMemberRole(groupId: string, userId: string, role: string, permissions: any): Promise<boolean>;
+  createGroupMessage(messageData: InsertGroupMessage): Promise<GroupMessage>;
+  getGroupMessages(groupId: string, limit?: number, before?: string): Promise<(GroupMessage & { sender: User, replyTo?: GroupMessage })[]>;
+  addGroupMessageReaction(reactionData: InsertGroupMessageReaction): Promise<GroupMessageReaction>;
+  removeGroupMessageReaction(messageId: string, userId: string, emoji: string): Promise<boolean>;
+  createMediaUpload(uploadData: InsertMediaUpload): Promise<MediaUpload>;
+  getMediaUpload(uploadId: string): Promise<MediaUpload | undefined>;
+  updateMediaUploadStatus(uploadId: string, status: string, thumbnailUrl?: string): Promise<boolean>;
+  updateGroupMemberLastRead(groupId: string, userId: string): Promise<void>;
+  checkGroupAdminPermissions(groupId: string, userId: string): Promise<{ isAdmin: boolean, permissions: any }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1976,6 +2002,294 @@ export class MemStorage implements IStorage {
 
   async requestMentorship(mentorship: any): Promise<any> {
     return { id: randomUUID(), ...mentorship, createdAt: new Date() };
+  }
+
+  // Group Chat Operations Implementation
+  async createGroupChat(groupData: InsertGroupChat): Promise<GroupChat> {
+    const [newGroup] = await db.insert(groupChats).values(groupData).returning();
+    
+    // Add creator as group admin
+    await db.insert(groupChatMembers).values({
+      groupId: newGroup.id,
+      userId: groupData.createdBy,
+      role: 'creator',
+      canAddMembers: true,
+      canRemoveMembers: true,
+      canEditGroup: true,
+      canDeleteMessages: true,
+    });
+    
+    return newGroup;
+  }
+
+  async getGroupChat(groupId: string): Promise<GroupChat | undefined> {
+    const [group] = await db.select().from(groupChats).where(eq(groupChats.id, groupId));
+    return group;
+  }
+
+  async getUserGroupChats(userId: string): Promise<(GroupChat & { memberRole: string, lastReadAt: Date | null })[]> {
+    const result = await db
+      .select({
+        id: groupChats.id,
+        name: groupChats.name,
+        description: groupChats.description,
+        iconUrl: groupChats.iconUrl,
+        createdBy: groupChats.createdBy,
+        isPrivate: groupChats.isPrivate,
+        maxMembers: groupChats.maxMembers,
+        memberCount: groupChats.memberCount,
+        lastMessageAt: groupChats.lastMessageAt,
+        encryptionEnabled: groupChats.encryptionEnabled,
+        groupKeyVersion: groupChats.groupKeyVersion,
+        allowMemberInvites: groupChats.allowMemberInvites,
+        allowMediaSharing: groupChats.allowMediaSharing,
+        allowEmojiReactions: groupChats.allowEmojiReactions,
+        createdAt: groupChats.createdAt,
+        updatedAt: groupChats.updatedAt,
+        memberRole: groupChatMembers.role,
+        lastReadAt: groupChatMembers.lastReadAt,
+      })
+      .from(groupChats)
+      .innerJoin(groupChatMembers, eq(groupChats.id, groupChatMembers.groupId))
+      .where(
+        and(
+          eq(groupChatMembers.userId, userId),
+          eq(groupChatMembers.isActive, true)
+        )
+      )
+      .orderBy(desc(groupChats.lastMessageAt));
+    
+    return result;
+  }
+
+  async addGroupMember(memberData: InsertGroupChatMember): Promise<GroupChatMember> {
+    const [newMember] = await db.insert(groupChatMembers).values(memberData).returning();
+    
+    // Update group member count
+    await db.update(groupChats)
+      .set({ memberCount: sql`${groupChats.memberCount} + 1` })
+      .where(eq(groupChats.id, memberData.groupId));
+    
+    return newMember;
+  }
+
+  async removeGroupMember(groupId: string, userId: string): Promise<boolean> {
+    const result = await db
+      .update(groupChatMembers)
+      .set({ isActive: false })
+      .where(
+        and(
+          eq(groupChatMembers.groupId, groupId),
+          eq(groupChatMembers.userId, userId)
+        )
+      );
+    
+    if (result.rowCount && result.rowCount > 0) {
+      // Update group member count
+      await db.update(groupChats)
+        .set({ memberCount: sql`${groupChats.memberCount} - 1` })
+        .where(eq(groupChats.id, groupId));
+      return true;
+    }
+    
+    return false;
+  }
+
+  async getGroupMembers(groupId: string): Promise<(GroupChatMember & { user: User })[]> {
+    const result = await db
+      .select({
+        id: groupChatMembers.id,
+        groupId: groupChatMembers.groupId,
+        userId: groupChatMembers.userId,
+        role: groupChatMembers.role,
+        canAddMembers: groupChatMembers.canAddMembers,
+        canRemoveMembers: groupChatMembers.canRemoveMembers,
+        canEditGroup: groupChatMembers.canEditGroup,
+        canDeleteMessages: groupChatMembers.canDeleteMessages,
+        joinedAt: groupChatMembers.joinedAt,
+        lastReadAt: groupChatMembers.lastReadAt,
+        isActive: groupChatMembers.isActive,
+        encryptedGroupKey: groupChatMembers.encryptedGroupKey,
+        keyVersion: groupChatMembers.keyVersion,
+        user: users,
+      })
+      .from(groupChatMembers)
+      .innerJoin(users, eq(groupChatMembers.userId, users.id))
+      .where(
+        and(
+          eq(groupChatMembers.groupId, groupId),
+          eq(groupChatMembers.isActive, true)
+        )
+      )
+      .orderBy(groupChatMembers.joinedAt);
+    
+    return result;
+  }
+
+  async updateGroupMemberRole(groupId: string, userId: string, role: string, permissions: any): Promise<boolean> {
+    const result = await db
+      .update(groupChatMembers)
+      .set({ 
+        role,
+        canAddMembers: permissions.canAddMembers || false,
+        canRemoveMembers: permissions.canRemoveMembers || false,
+        canEditGroup: permissions.canEditGroup || false,
+        canDeleteMessages: permissions.canDeleteMessages || false,
+      })
+      .where(
+        and(
+          eq(groupChatMembers.groupId, groupId),
+          eq(groupChatMembers.userId, userId)
+        )
+      );
+    
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  async createGroupMessage(messageData: InsertGroupMessage): Promise<GroupMessage> {
+    const [newMessage] = await db.insert(groupMessages).values(messageData).returning();
+    
+    // Update group's last message timestamp
+    await db.update(groupChats)
+      .set({ lastMessageAt: new Date() })
+      .where(eq(groupChats.id, messageData.groupId));
+    
+    return newMessage;
+  }
+
+  async getGroupMessages(groupId: string, limit: number = 50, before?: string): Promise<(GroupMessage & { sender: User, replyTo?: GroupMessage })[]> {
+    let query = db
+      .select({
+        id: groupMessages.id,
+        groupId: groupMessages.groupId,
+        senderId: groupMessages.senderId,
+        messageType: groupMessages.messageType,
+        encryptedContent: groupMessages.encryptedContent,
+        initializationVector: groupMessages.initializationVector,
+        mediaUrl: groupMessages.mediaUrl,
+        mediaType: groupMessages.mediaType,
+        mediaSize: groupMessages.mediaSize,
+        mediaDuration: groupMessages.mediaDuration,
+        thumbnailUrl: groupMessages.thumbnailUrl,
+        replyToId: groupMessages.replyToId,
+        isEdited: groupMessages.isEdited,
+        editedAt: groupMessages.editedAt,
+        isDeleted: groupMessages.isDeleted,
+        deletedAt: groupMessages.deletedAt,
+        keyVersion: groupMessages.keyVersion,
+        createdAt: groupMessages.createdAt,
+        sender: users,
+      })
+      .from(groupMessages)
+      .innerJoin(users, eq(groupMessages.senderId, users.id))
+      .where(
+        and(
+          eq(groupMessages.groupId, groupId),
+          eq(groupMessages.isDeleted, false)
+        )
+      );
+    
+    if (before) {
+      query = query.where(lt(groupMessages.createdAt, new Date(before)));
+    }
+    
+    const result = await query
+      .orderBy(desc(groupMessages.createdAt))
+      .limit(limit);
+    
+    return result;
+  }
+
+  async addGroupMessageReaction(reactionData: InsertGroupMessageReaction): Promise<GroupMessageReaction> {
+    // Remove existing reaction from same user for same message with same emoji
+    await db.delete(groupMessageReactions)
+      .where(
+        and(
+          eq(groupMessageReactions.messageId, reactionData.messageId),
+          eq(groupMessageReactions.userId, reactionData.userId),
+          eq(groupMessageReactions.emoji, reactionData.emoji)
+        )
+      );
+    
+    const [newReaction] = await db.insert(groupMessageReactions).values(reactionData).returning();
+    return newReaction;
+  }
+
+  async removeGroupMessageReaction(messageId: string, userId: string, emoji: string): Promise<boolean> {
+    const result = await db.delete(groupMessageReactions)
+      .where(
+        and(
+          eq(groupMessageReactions.messageId, messageId),
+          eq(groupMessageReactions.userId, userId),
+          eq(groupMessageReactions.emoji, emoji)
+        )
+      );
+    
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  async createMediaUpload(uploadData: InsertMediaUpload): Promise<MediaUpload> {
+    const [newUpload] = await db.insert(mediaUploads).values(uploadData).returning();
+    return newUpload;
+  }
+
+  async getMediaUpload(uploadId: string): Promise<MediaUpload | undefined> {
+    const [upload] = await db.select().from(mediaUploads).where(eq(mediaUploads.id, uploadId));
+    return upload;
+  }
+
+  async updateMediaUploadStatus(uploadId: string, status: string, thumbnailUrl?: string): Promise<boolean> {
+    const updateData: any = { processingStatus: status };
+    if (thumbnailUrl) {
+      updateData.thumbnailUrl = thumbnailUrl;
+    }
+    
+    const result = await db
+      .update(mediaUploads)
+      .set(updateData)
+      .where(eq(mediaUploads.id, uploadId));
+    
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  async updateGroupMemberLastRead(groupId: string, userId: string): Promise<void> {
+    await db.update(groupChatMembers)
+      .set({ lastReadAt: new Date() })
+      .where(
+        and(
+          eq(groupChatMembers.groupId, groupId),
+          eq(groupChatMembers.userId, userId)
+        )
+      );
+  }
+
+  async checkGroupAdminPermissions(groupId: string, userId: string): Promise<{ isAdmin: boolean, permissions: any }> {
+    const [member] = await db
+      .select()
+      .from(groupChatMembers)
+      .where(
+        and(
+          eq(groupChatMembers.groupId, groupId),
+          eq(groupChatMembers.userId, userId),
+          eq(groupChatMembers.isActive, true)
+        )
+      );
+    
+    if (!member) {
+      return { isAdmin: false, permissions: {} };
+    }
+    
+    const isAdmin = member.role === 'creator' || member.role === 'admin';
+    
+    return {
+      isAdmin,
+      permissions: {
+        canAddMembers: member.canAddMembers,
+        canRemoveMembers: member.canRemoveMembers,
+        canEditGroup: member.canEditGroup,
+        canDeleteMessages: member.canDeleteMessages,
+      }
+    };
   }
 }
 

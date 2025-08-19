@@ -740,6 +740,120 @@ export const messageDeliveryReceipts = pgTable("message_delivery_receipts", {
   timestamp: timestamp("timestamp").defaultNow(),
 });
 
+// Group Chat Tables - Private groups with end-to-end encryption
+export const groupChats = pgTable("group_chats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  iconUrl: varchar("icon_url"), // Group avatar/icon
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  isPrivate: boolean("is_private").default(true),
+  maxMembers: integer("max_members").default(50),
+  memberCount: integer("member_count").default(1),
+  lastMessageAt: timestamp("last_message_at").defaultNow(),
+  // Encryption settings
+  encryptionEnabled: boolean("encryption_enabled").default(true),
+  groupKeyVersion: integer("group_key_version").default(1),
+  // Group settings
+  allowMemberInvites: boolean("allow_member_invites").default(false),
+  allowMediaSharing: boolean("allow_media_sharing").default(true),
+  allowEmojiReactions: boolean("allow_emoji_reactions").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Group Members with roles and permissions (renamed to avoid conflict with existing table)
+export const groupChatMembers = pgTable("group_chat_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => groupChats.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: varchar("role").default("member"), // 'creator', 'admin', 'member'
+  // Permissions
+  canAddMembers: boolean("can_add_members").default(false),
+  canRemoveMembers: boolean("can_remove_members").default(false),
+  canEditGroup: boolean("can_edit_group").default(false),
+  canDeleteMessages: boolean("can_delete_messages").default(false),
+  // Status
+  joinedAt: timestamp("joined_at").defaultNow(),
+  lastReadAt: timestamp("last_read_at").defaultNow(),
+  isActive: boolean("is_active").default(true),
+  // Encryption keys for this member
+  encryptedGroupKey: text("encrypted_group_key"), // Group key encrypted with member's public key
+  keyVersion: integer("key_version").default(1),
+});
+
+// Group Messages with media support
+export const groupMessages = pgTable("group_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => groupChats.id, { onDelete: "cascade" }),
+  senderId: varchar("sender_id").notNull().references(() => users.id),
+  // Message content
+  messageType: varchar("message_type", { 
+    enum: ['text', 'image', 'video', 'file', 'emoji', 'system'] 
+  }).notNull().default('text'),
+  encryptedContent: text("encrypted_content"), // Encrypted message content
+  initializationVector: varchar("initialization_vector"),
+  // Media attachments
+  mediaUrl: varchar("media_url"), // URL to media file in object storage
+  mediaType: varchar("media_type"), // 'image/jpeg', 'video/mp4', etc.
+  mediaSize: integer("media_size"), // File size in bytes
+  mediaDuration: integer("media_duration"), // For videos/audio in seconds
+  thumbnailUrl: varchar("thumbnail_url"), // Thumbnail for videos/large images
+  // Message metadata
+  replyToId: varchar("reply_to_id"), // Reply to another message
+  isEdited: boolean("is_edited").default(false),
+  editedAt: timestamp("edited_at"),
+  isDeleted: boolean("is_deleted").default(false),
+  deletedAt: timestamp("deleted_at"),
+  // Encryption
+  keyVersion: integer("key_version").default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Group message reactions (emojis)
+export const groupMessageReactions = pgTable("group_message_reactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  messageId: varchar("message_id").notNull().references(() => groupMessages.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  emoji: varchar("emoji").notNull(), // Unicode emoji or custom emoji ID
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Group encryption keys management
+export const groupEncryptionKeys = pgTable("group_encryption_keys", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => groupChats.id, { onDelete: "cascade" }),
+  keyVersion: integer("key_version").notNull(),
+  algorithm: varchar("algorithm").default("AES-256-GCM"),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  isActive: boolean("is_active").default(true),
+  expiresAt: timestamp("expires_at"), // For key rotation
+});
+
+// Media uploads tracking
+export const mediaUploads = pgTable("media_uploads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  uploaderId: varchar("uploader_id").notNull().references(() => users.id),
+  fileName: varchar("file_name").notNull(),
+  originalName: varchar("original_name").notNull(),
+  mimeType: varchar("mime_type").notNull(),
+  fileSize: integer("file_size").notNull(),
+  width: integer("width"), // For images/videos
+  height: integer("height"), // For images/videos
+  duration: integer("duration"), // For videos/audio in seconds
+  // Storage info
+  storageUrl: varchar("storage_url").notNull(), // Full URL to object storage
+  thumbnailUrl: varchar("thumbnail_url"), // Generated thumbnail
+  // Processing status
+  processingStatus: varchar("processing_status").default("pending"), // 'pending', 'processing', 'completed', 'failed'
+  compressionLevel: varchar("compression_level").default("medium"), // 'low', 'medium', 'high'
+  // Metadata
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  isPublic: boolean("is_public").default(false),
+  expiresAt: timestamp("expires_at"), // For temporary uploads
+});
+
 // User Groups & Communities
 export const userGroups = pgTable("user_groups", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1236,6 +1350,74 @@ export const userConnectionsRelations = relations(userConnections, ({ one }) => 
   }),
 }));
 
+// Group Chat Relations
+export const groupChatsRelations = relations(groupChats, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [groupChats.createdBy],
+    references: [users.id],
+  }),
+  members: many(groupChatMembers),
+  messages: many(groupMessages),
+  encryptionKeys: many(groupEncryptionKeys),
+}));
+
+export const groupChatMembersRelations = relations(groupChatMembers, ({ one }) => ({
+  group: one(groupChats, {
+    fields: [groupChatMembers.groupId],
+    references: [groupChats.id],
+  }),
+  user: one(users, {
+    fields: [groupChatMembers.userId],
+    references: [users.id],
+  }),
+}));
+
+export const groupMessagesRelations = relations(groupMessages, ({ one, many }) => ({
+  group: one(groupChats, {
+    fields: [groupMessages.groupId],
+    references: [groupChats.id],
+  }),
+  sender: one(users, {
+    fields: [groupMessages.senderId],
+    references: [users.id],
+  }),
+  replyTo: one(groupMessages, {
+    fields: [groupMessages.replyToId],
+    references: [groupMessages.id],
+    relationName: "reply",
+  }),
+  reactions: many(groupMessageReactions),
+}));
+
+export const groupMessageReactionsRelations = relations(groupMessageReactions, ({ one }) => ({
+  message: one(groupMessages, {
+    fields: [groupMessageReactions.messageId],
+    references: [groupMessages.id],
+  }),
+  user: one(users, {
+    fields: [groupMessageReactions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const groupEncryptionKeysRelations = relations(groupEncryptionKeys, ({ one }) => ({
+  group: one(groupChats, {
+    fields: [groupEncryptionKeys.groupId],
+    references: [groupChats.id],
+  }),
+  creator: one(users, {
+    fields: [groupEncryptionKeys.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const mediaUploadsRelations = relations(mediaUploads, ({ one }) => ({
+  uploader: one(users, {
+    fields: [mediaUploads.uploaderId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas for message board
 export const insertPitMessageSchema = createInsertSchema(pitMessages).omit({
   id: true,
@@ -1270,6 +1452,47 @@ export const insertPollVoteSchema = createInsertSchema(pollVotes).omit({ id: tru
 export const insertEventSchema = createInsertSchema(events).omit({ id: true, createdAt: true, currentAttendees: true });
 export const insertEventAttendeeSchema = createInsertSchema(eventAttendees).omit({ id: true, joinedAt: true });
 export const insertReviewRatingSchema = createInsertSchema(reviewRatings).omit({ id: true, createdAt: true });
+
+// Group Chat Insert Schemas
+export const insertGroupChatSchema = createInsertSchema(groupChats).omit({ 
+  id: true, 
+  memberCount: true, 
+  lastMessageAt: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
+export const insertGroupChatMemberSchema = createInsertSchema(groupChatMembers).omit({ 
+  id: true, 
+  joinedAt: true, 
+  lastReadAt: true, 
+  keyVersion: true 
+});
+
+export const insertGroupMessageSchema = createInsertSchema(groupMessages).omit({ 
+  id: true, 
+  isEdited: true, 
+  editedAt: true, 
+  isDeleted: true, 
+  deletedAt: true, 
+  createdAt: true 
+});
+
+export const insertGroupMessageReactionSchema = createInsertSchema(groupMessageReactions).omit({ 
+  id: true, 
+  createdAt: true 
+});
+
+export const insertGroupEncryptionKeySchema = createInsertSchema(groupEncryptionKeys).omit({ 
+  id: true, 
+  createdAt: true 
+});
+
+export const insertMediaUploadSchema = createInsertSchema(mediaUploads).omit({ 
+  id: true, 
+  uploadedAt: true, 
+  processingStatus: true 
+});
 // Messaging schemas
 export const insertConversationSchema = createInsertSchema(conversations).omit({ 
   id: true, 
@@ -1373,6 +1596,20 @@ export type MessageEncryptionKey = typeof messageEncryptionKeys.$inferSelect;
 export type InsertMessageEncryptionKey = z.infer<typeof insertMessageEncryptionKeySchema>;
 export type MessageDeliveryReceipt = typeof messageDeliveryReceipts.$inferSelect;
 export type InsertMessageDeliveryReceipt = z.infer<typeof insertMessageDeliveryReceiptSchema>;
+
+// Group Chat Types
+export type GroupChat = typeof groupChats.$inferSelect;
+export type InsertGroupChat = z.infer<typeof insertGroupChatSchema>;
+export type GroupChatMember = typeof groupChatMembers.$inferSelect;
+export type InsertGroupChatMember = z.infer<typeof insertGroupChatMemberSchema>;
+export type GroupMessage = typeof groupMessages.$inferSelect;
+export type InsertGroupMessage = z.infer<typeof insertGroupMessageSchema>;
+export type GroupMessageReaction = typeof groupMessageReactions.$inferSelect;
+export type InsertGroupMessageReaction = z.infer<typeof insertGroupMessageReactionSchema>;
+export type GroupEncryptionKey = typeof groupEncryptionKeys.$inferSelect;
+export type InsertGroupEncryptionKey = z.infer<typeof insertGroupEncryptionKeySchema>;
+export type MediaUpload = typeof mediaUploads.$inferSelect;
+export type InsertMediaUpload = z.infer<typeof insertMediaUploadSchema>;
 export type SavedContent = typeof savedContent.$inferSelect;
 export type InsertSavedContent = z.infer<typeof insertSavedContentSchema>;
 export type PhotoAlbum = typeof photoAlbums.$inferSelect;

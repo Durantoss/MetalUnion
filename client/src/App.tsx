@@ -30,7 +30,7 @@ import { Band } from './types';
 
 
 
-const App = () => {
+export default function App() {
   const [bands, setBands] = useState<Band[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,9 +40,13 @@ const App = () => {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   
+  console.log('App rendering...');
+  
   // Use useAuth hook for persistent authentication
   const { user: currentUser, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
+  
+  console.log('Auth state:', { currentUser, authLoading });
   
   // Check URL parameters for section navigation - ONLY on mount, not on every section change
   useEffect(() => {
@@ -642,4 +646,3 @@ const App = () => {
   );
 };
 
-export default App;
