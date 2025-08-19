@@ -254,10 +254,8 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
           <button
             key={section.id}
             onClick={() => {
-              console.log('🔥 NAVIGATION BUTTON CLICKED:', section.id, section.title);
-              console.log('🔥 onSectionChange function exists:', !!onSectionChange);
+              console.log('🎸 NAVIGATION:', section.title, '->', section.id);
               onSectionChange(section.id);
-              console.log('🔥 onSectionChange called with:', section.id);
             }}
             onTouchStart={(e) => {
               e.currentTarget.style.transform = 'scale(0.95)';

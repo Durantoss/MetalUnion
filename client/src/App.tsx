@@ -17,7 +17,8 @@ import { EnhancedSocialHub } from './components/EnhancedSocialHub';
 import { EnhancedToursPage } from './components/EnhancedToursPage';
 import { UserProfile } from './components/UserProfile';
 import { NotificationCenter } from './components/NotificationCenter';
-// Messaging imports removed to force landing page
+// Re-enabling messaging components for full functionality
+import { BasicMessagingFallback } from './components/BasicMessagingFallback';
 import { ActivityFeed } from './components/ActivityFeed';
 import { GameficationDashboard } from './components/GameficationDashboard';
 // Events Discovery functionality has been migrated to Tours section
@@ -25,6 +26,7 @@ import { InteractivePolls } from './components/InteractivePolls';
 import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/auth/AuthModal';
 import { SharedSectionLayout } from './components/SharedSectionLayout';
+import { BandDiscovery } from './components/BandDiscovery';
 import { Band } from './types';
 
 
@@ -36,18 +38,32 @@ export default function App() {
   const [showComparison, setShowComparison] = useState(false);
   const [currentSection, setCurrentSection] = useState('landing');
   
-  // Debug function to track section changes
+  // Enhanced debugging for state changes
+  useEffect(() => {
+    console.log('🔄 APP STATE CHANGED - currentSection is now:', currentSection);
+  }, [currentSection]);
+  
+  // Enhanced section change handler with comprehensive debugging
   const debugSetCurrentSection = (newSection: string) => {
-    console.log('🔄 Section change requested:', currentSection, '->', newSection);
-    console.log('🔄 Setting section to:', newSection);
+    console.log('🔄 SECTION CHANGE START');
+    console.log('🔄 From:', currentSection, '(type:', typeof currentSection, ')');
+    console.log('🔄 To:', newSection, '(type:', typeof newSection, ')');
+    console.log('🔄 Valid sections: bands, social, tours, reviews, photos, messaging');
+    
+    if (!newSection || typeof newSection !== 'string') {
+      console.error('❌ Invalid section provided:', newSection);
+      return;
+    }
+    
+    console.log('✅ Calling setCurrentSection with:', newSection);
     setCurrentSection(newSection);
-    console.log('🔄 State update triggered for:', newSection);
+    console.log('🔄 SECTION CHANGE END');
   };
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   
-  console.log('App rendering... Current section:', currentSection);
+  console.log('🎸 MoshUnion App - Section:', currentSection, '| Bands:', bands.length);
   
   // Use useAuth hook for persistent authentication
   const { user: currentUser, isLoading: authLoading } = useAuth();
@@ -287,10 +303,18 @@ export default function App() {
       );
     }
     
-    console.log('🔍 SWITCH STATEMENT - Checking section:', currentSection);
+    console.log('🔄 Loading section:', currentSection);
     switch (currentSection) {
       case 'bands':
-        console.log('✅ BANDS CASE - Rendering band discovery');
+        console.log('🎸 Rendering Band Discovery');
+        return (
+          <SharedSectionLayout 
+            title="Band Discovery" 
+            subtitle="Discover your next favorite metal and rock bands"
+          >
+            <BandDiscovery bands={bands} />
+          </SharedSectionLayout>
+        );
         return (
           <SharedSectionLayout 
             title="DISCOVER BANDS" 
@@ -418,6 +442,7 @@ export default function App() {
           </SharedSectionLayout>
         );
       case 'social':
+        console.log('🔥 Rendering The Pit');
         return (
           <SharedSectionLayout title="THE PIT" subtitle="Connect with fellow metalheads and rock fans">
             <EnhancedSocialHub />
@@ -442,18 +467,21 @@ export default function App() {
           </SharedSectionLayout>
         );
       case 'tours':
+        console.log('🎫 Rendering Tours');
         return (
           <SharedSectionLayout title="TOUR DISCOVERY" subtitle="Find live shows and concerts near you">
             <EnhancedToursPage />
           </SharedSectionLayout>
         );
       case 'reviews':
+        console.log('⭐ Rendering Reviews');
         return (
           <SharedSectionLayout title="BAND REVIEWS" subtitle="Read and write reviews of your favorite bands">
             <ReviewsSection />
           </SharedSectionLayout>
         );
       case 'photos':
+        console.log('📷 Rendering Photos');
         return (
           <SharedSectionLayout title="CONCERT PHOTOS" subtitle="Share and explore amazing concert photography">
             <PhotosSection />
@@ -463,6 +491,16 @@ export default function App() {
       // Messaging cases with shared design
       case 'messaging-demo':
       case 'messaging':
+        console.log('💬 Rendering Messages');
+        return (
+          <SharedSectionLayout 
+            title="Messages" 
+            subtitle="Connect with fellow metalheads"
+          >
+            <BasicMessagingFallback />
+          </SharedSectionLayout>
+        );
+      case 'admin':
         return (
           <SharedSectionLayout title="PRIVATE MESSAGES" subtitle="Connect privately with other metalheads">
             <div style={{
@@ -476,16 +514,8 @@ export default function App() {
             </div>
           </SharedSectionLayout>
         );
-      case 'admin':
-        return (
-          <SharedSectionLayout title="ADMIN PANEL" subtitle="Manage the MoshUnion community">
-            <AdminPanel currentUserId={currentUser?.id} />
-          </SharedSectionLayout>
-        );
       default:
-        console.log('🚨 DEFAULT CASE - Unknown section:', currentSection, 'Type:', typeof currentSection);
-        console.log('🚨 Available cases: bands, social, tours, reviews, photos, messaging');
-        console.log('🚨 NOT redirecting to landing, showing error instead');
+        console.log('⚠️ Unknown section:', currentSection);
         return (
           <SharedSectionLayout 
             title="SECTION ERROR" 
