@@ -96,11 +96,11 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
 
   // Navigation sections as requested
   const navigationSections = [
-    { id: 'social', title: 'The Pit', icon: '🔥' },
-    { id: 'bands', title: 'Bands', icon: '🎸' },
-    { id: 'tours', title: 'Tours', icon: '🎤' },
-    { id: 'reviews', title: 'Reviews', icon: '⭐' },
-    { id: 'photos', title: 'Photos', icon: '📸' }
+    { id: 'social', title: 'The Pit', icon: '' },
+    { id: 'bands', title: 'Bands', icon: '' },
+    { id: 'tours', title: 'Tours', icon: '' },
+    { id: 'reviews', title: 'Reviews', icon: '' },
+    { id: 'photos', title: 'Photos', icon: '' }
   ];
   
   // Get latest data for scrolling panels
@@ -433,7 +433,6 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
             gap: '0.5rem',
             marginBottom: '1rem'
           }}>
-            <span style={{ fontSize: '1.5rem' }}>🔥</span>
             <h3 style={{
               color: '#ffffff',
               fontSize: '1.25rem',
@@ -533,7 +532,6 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
             gap: '0.5rem',
             marginBottom: '1rem'
           }}>
-            <span style={{ fontSize: '1.5rem' }}>🎸</span>
             <h3 style={{
               color: '#ffffff',
               fontSize: '1.25rem',
@@ -635,7 +633,6 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
             gap: '0.5rem',
             marginBottom: '1rem'
           }}>
-            <span style={{ fontSize: '1.5rem' }}>🎤</span>
             <h3 style={{
               color: '#ffffff',
               fontSize: '1.25rem',
@@ -741,7 +738,6 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
             gap: '0.5rem',
             marginBottom: '1rem'
           }}>
-            <span style={{ fontSize: '1.5rem' }}>⭐</span>
             <h3 style={{
               color: '#ffffff',
               fontSize: '1.25rem',
@@ -859,7 +855,6 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
             gap: '0.5rem',
             marginBottom: '1rem'
           }}>
-            <span style={{ fontSize: '1.5rem' }}>📸</span>
             <h3 style={{
               color: '#ffffff',
               fontSize: '1.25rem',
