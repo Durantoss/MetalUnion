@@ -38,8 +38,10 @@ export default function App() {
   
   // Debug function to track section changes
   const debugSetCurrentSection = (newSection: string) => {
-    console.log('Section change requested:', currentSection, '->', newSection);
+    console.log('🔄 Section change requested:', currentSection, '->', newSection);
+    console.log('🔄 Setting section to:', newSection);
     setCurrentSection(newSection);
+    console.log('🔄 State update triggered for:', newSection);
   };
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
@@ -268,17 +270,11 @@ export default function App() {
   };
 
   const renderContent = () => {
-    console.log('RENDER DEBUG - Current section:', currentSection, 'Bands:', bands.length);
+    console.log('🔍 RENDER DEBUG - Current section:', currentSection, 'Type:', typeof currentSection, 'Bands:', bands.length);
     
-    if (currentSection === 'landing' || !currentSection || currentSection === '' || currentSection === undefined) {
-      console.log('Rendering MobileFriendlyLanding component');
-      
-      // Use MobileFriendlyLanding for the redesigned landing page
-      console.log('Passing props to MobileFriendlyLanding:', {
-        hasCurrentUser: !!currentUser,
-        hasOnLogin: !!handleLogin,
-        hasOnLogout: !!handleLogout
-      });
+    // Only show landing page if explicitly set to 'landing' or initially undefined
+    if (currentSection === 'landing' || currentSection === null || currentSection === undefined) {
+      console.log('📱 Rendering MobileFriendlyLanding component');
       
       return (
         <MobileFriendlyLanding 

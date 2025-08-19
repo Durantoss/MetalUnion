@@ -253,7 +253,12 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
         {navigationSections.map((section) => (
           <button
             key={section.id}
-            onClick={() => onSectionChange(section.id)}
+            onClick={() => {
+              console.log('🔥 NAVIGATION BUTTON CLICKED:', section.id, section.title);
+              console.log('🔥 onSectionChange function exists:', !!onSectionChange);
+              onSectionChange(section.id);
+              console.log('🔥 onSectionChange called with:', section.id);
+            }}
             onTouchStart={(e) => {
               e.currentTarget.style.transform = 'scale(0.95)';
               e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.8)';
