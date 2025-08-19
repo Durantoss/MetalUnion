@@ -18,23 +18,33 @@ export async function performGoogleSearch(
   section: string
 ): Promise<GoogleSearchResponse | null> {
   try {
-    const apiKey = process.env.GOOGLE_API_KEY;
+    const primaryKey = process.env.GOOGLE_API_KEY;
+    const secondaryKey = process.env.GOOGLE_API_KEY_SECONDARY;
     const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID || process.env.GOOGLE_CSE_ID;
     
-    if (!apiKey || !searchEngineId) {
+    if ((!primaryKey && !secondaryKey) || !searchEngineId) {
       console.log(`Google search API keys not configured for "${query}" in section "${section}"`);
       return null; // Fallback to local search
     }
     
     console.log(`Google search requested for "${query}" in section "${section}"`);
     
-    const response = await fetch(
-      `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=${encodeURIComponent(query)}&num=10`
+    // Try primary key first
+    let response = await fetch(
+      `https://www.googleapis.com/customsearch/v1?key=${primaryKey}&cx=${searchEngineId}&q=${encodeURIComponent(query)}&num=10`
     );
+    
+    // If primary key fails with rate limit, try secondary key
+    if (!response.ok && response.status === 429 && secondaryKey) {
+      console.log('Primary Google API rate limit reached, trying secondary key');
+      response = await fetch(
+        `https://www.googleapis.com/customsearch/v1?key=${secondaryKey}&cx=${searchEngineId}&q=${encodeURIComponent(query)}&num=10`
+      );
+    }
     
     if (!response.ok) {
       if (response.status === 429) {
-        console.log('Google API rate limit reached, falling back to local search');
+        console.log('All Google API keys rate limited, falling back to local search');
       } else {
         console.error('Google Custom Search API error:', response.status, response.statusText);
       }
@@ -54,8 +64,11 @@ export async function searchConcerts(
   location: string = 'US'
 ): Promise<GoogleSearchResult[]> {
   try {
-    if (!process.env.GOOGLE_API_KEY) {
-      console.log('Google API key not available for concert search');
+    const primaryKey = process.env.GOOGLE_API_KEY;
+    const secondaryKey = process.env.GOOGLE_API_KEY_SECONDARY;
+    
+    if (!primaryKey && !secondaryKey) {
+      console.log('No Google API keys available for concert search');
       return [];
     }
 
@@ -66,13 +79,22 @@ export async function searchConcerts(
     
     console.log(`Searching Google for concerts: "${searchQuery}"`);
     
-    const response = await fetch(
-      `https://www.googleapis.com/customsearch/v1?key=${process.env.GOOGLE_API_KEY}&cx=${searchEngineId}&q=${encodeURIComponent(searchQuery)}&num=10`
+    // Try primary key first
+    let response = await fetch(
+      `https://www.googleapis.com/customsearch/v1?key=${primaryKey}&cx=${searchEngineId}&q=${encodeURIComponent(searchQuery)}&num=10`
     );
+    
+    // If primary key fails with rate limit, try secondary key
+    if (!response.ok && response.status === 429 && secondaryKey) {
+      console.log('Primary Google API rate limit reached, trying secondary key');
+      response = await fetch(
+        `https://www.googleapis.com/customsearch/v1?key=${secondaryKey}&cx=${searchEngineId}&q=${encodeURIComponent(searchQuery)}&num=10`
+      );
+    }
     
     if (!response.ok) {
       if (response.status === 429) {
-        console.log('Google API rate limit reached, will retry later');
+        console.log('All Google API keys rate limited, will retry later');
       } else {
         console.error('Google Custom Search API error:', response.status, response.statusText);
       }
