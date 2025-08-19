@@ -40,7 +40,7 @@ export default function App() {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   
-  console.log('App rendering...');
+  console.log('App rendering... Current section:', currentSection);
   
   // Use useAuth hook for persistent authentication
   const { user: currentUser, isLoading: authLoading } = useAuth();
@@ -256,9 +256,22 @@ export default function App() {
   };
 
   const renderContent = () => {
-    console.log('Rendering section:', currentSection, 'with', bands.length, 'bands');
+    console.log('RENDER DEBUG - Current section:', currentSection, 'Bands:', bands.length);
     
-    // Force landing page display for mobile debugging
+    // AGGRESSIVE FORCE TO LANDING PAGE FOR DEBUGGING
+    console.log('FORCING LANDING PAGE - Ignoring currentSection for now');
+    return (
+      <MobileFriendlyLanding 
+        onSectionChange={setCurrentSection}
+        bands={bands}
+        currentUser={currentUser}
+        onLogin={handleLogin}
+        onLogout={handleLogout}
+      />
+    );
+    
+    // Original logic (disabled for debugging)
+    /*
     if (currentSection === 'landing' || !currentSection || currentSection === '' || currentSection === undefined) {
       console.log('Rendering MobileFriendlyLanding component');
       
@@ -468,25 +481,35 @@ export default function App() {
         );
 
       case 'messaging-test':
-        return (
-          <div>
-            <MessagingTestPage />
-          </div>
-        );
       case 'advanced-messaging':
-        return <AdvancedMessagingInterface onNavigate={(section) => {
-          console.log('Navigation requested from messaging interface to:', section);
-          // Clear URL params to prevent the trap
-          window.history.replaceState({}, '', window.location.pathname);
-          setCurrentSection(section);
-        }} />;
       case 'messaging-demo':
-        return <MessagingDemo />;
+        console.log('MESSAGING SECTION REQUESTED - REDIRECTING TO LANDING');
+        setCurrentSection('landing');
+        return (
+          <MobileFriendlyLanding 
+            onSectionChange={setCurrentSection}
+            bands={bands}
+            currentUser={currentUser}
+            onLogin={handleLogin}
+            onLogout={handleLogout}
+          />
+        );
       case 'admin':
         return <AdminPanel currentUserId={currentUser?.id} />;
       default:
-        return null;
+        console.log('DEFAULT CASE - Unknown section:', currentSection, '- Redirecting to landing');
+        setCurrentSection('landing');
+        return (
+          <MobileFriendlyLanding 
+            onSectionChange={setCurrentSection}
+            bands={bands}
+            currentUser={currentUser}
+            onLogin={handleLogin}
+            onLogout={handleLogout}
+          />
+        );
     }
+    */
   };
 
   return (
