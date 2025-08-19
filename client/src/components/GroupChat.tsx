@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { ObjectUploader } from './ObjectUploader';
 import { 
@@ -380,7 +380,8 @@ export function GroupChat() {
                 </Button>
               </DialogTrigger>
               <DialogContent>
-                <DialogTitle>Create Group Chat</DialogTitle>
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold">Create Group Chat</h2>
                 <div className="space-y-4">
                   <Input
                     placeholder="Group name"
@@ -488,7 +489,8 @@ export function GroupChat() {
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
-                      <DialogTitle>Group Settings</DialogTitle>
+                      <div className="space-y-4">
+                        <h2 className="text-lg font-semibold">Group Settings</h2>
                       <div className="space-y-4">
                         <div>
                           <h4 className="font-medium mb-2">Members ({members.length})</h4>

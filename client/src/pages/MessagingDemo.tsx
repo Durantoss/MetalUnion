@@ -24,7 +24,7 @@ import {
   Activity,
   Zap
 } from 'lucide-react';
-import { GroupChat } from '@/components/GroupChat';
+import { GroupChatSimple } from '@/components/GroupChatSimple';
 
 interface Message {
   id: string;
@@ -493,7 +493,7 @@ export function MessagingDemo() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <GroupChat />
+              <GroupChatSimple />
             </CardContent>
           </Card>
         </TabsContent>
