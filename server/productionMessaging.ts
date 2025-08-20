@@ -359,7 +359,7 @@ export class ProductionMessagingServer {
       // Notify sender if online
       const message = await storage.getMessage(messageId);
       if (message) {
-        const senderUser = this.connectedUsers.get(message.authorId || message.senderId);
+        const senderUser = this.connectedUsers.get(message.authorId);
         if (senderUser && senderUser.socket.readyState === WebSocket.OPEN) {
           this.sendToSocket(senderUser.socket, {
             type: 'message_read',
