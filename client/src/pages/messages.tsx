@@ -453,6 +453,7 @@ export default function Messages() {
 
   // Handle conversation selection
   const selectConversation = (conversation: Conversation) => {
+    console.log('📱 Mobile Debug - Selecting conversation:', conversation.id);
     setSelectedConversation(conversation.id);
     setMessages([]); // Clear current messages
     joinConversation(conversation.id);
