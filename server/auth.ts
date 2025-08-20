@@ -31,9 +31,14 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
   // Check if we're in deployed/production environment with demo mode
   const host = req.get('host') || req.headers.host || '';
   const isDeployedApp = host.includes('.replit.app') || host.includes('band-blaze-durantoss');
-  const isDemoMode = process.env.DEMO_MODE === 'true' || isDeployedApp || process.env.NODE_ENV === 'production';
+  const isDemoMode = process.env.DEMO_MODE === 'true' || isDeployedApp;
   
   console.log('isAuthenticated middleware - Demo mode check:', { host, isDeployedApp, isDemoMode, nodeEnv: process.env.NODE_ENV });
+  
+  // Demo mode: Allow access without authentication
+  if (isDemoMode) {
+    return next();
+  }
   
   // Production authentication enabled - checking real session
   if (req.session && (req.session as any).userId) {
@@ -199,7 +204,44 @@ export async function setupAuth(app: Express) {
         });
       }
       
-      // Real authentication flow enabled
+      // Check if we're in demo mode
+      const host = req.get('host') || req.headers.host || '';
+      const isDeployedApp = host.includes('.replit.app') || host.includes('band-blaze-durantoss');
+      const isDemoMode = process.env.DEMO_MODE === 'true' || isDeployedApp;
+      
+      console.log('Login: Demo mode check:', { host, isDeployedApp, isDemoMode });
+      
+      // Demo mode: Accept any credentials
+      if (isDemoMode) {
+        console.log('Demo mode active - accepting any credentials');
+        const demoUser = {
+          id: 'demo-user-' + Date.now(),
+          stagename: stagename,
+          email: 'demo@moshunion.com',
+          role: stagename.toLowerCase() === 'durantoss' ? 'admin' : 'user',
+          isAdmin: stagename.toLowerCase() === 'durantoss',
+          permissions: stagename.toLowerCase() === 'durantoss' ? { full_admin: true } : {},
+          concertAttendanceCount: 5,
+          commentCount: 15,
+          reviewCount: 8,
+          isOnline: true,
+          loginStreak: 3,
+          totalReviews: 8,
+          totalPhotos: 12,
+          totalLikes: 45
+        };
+        
+        // Set session for demo mode
+        (req.session as any).userId = demoUser.id;
+        (req.session as any).stagename = demoUser.stagename;
+        
+        return res.json({ 
+          message: 'Demo login successful',
+          user: demoUser 
+        });
+      }
+      
+      // Real authentication flow for local development
       
       // Get user by stagename
       const user = await storage.getUserByStagename(stagename);
@@ -279,9 +321,35 @@ export async function setupAuth(app: Express) {
         cookies: req.headers.cookie
       });
       
+      // Check if we're in demo mode
+      const host = req.get('host') || req.headers.host || '';
+      const isDeployedApp = host.includes('.replit.app') || host.includes('band-blaze-durantoss');
+      const isDemoMode = process.env.DEMO_MODE === 'true' || isDeployedApp;
+      
       const userId = (req.session as any)?.userId;
       
       if (!userId) {
+        if (isDemoMode) {
+          console.log('Demo mode: Providing demo user for authentication check');
+          const demoUser = {
+            id: 'demo-guest-user',
+            stagename: 'Guest',
+            email: 'guest@moshunion.com',
+            role: 'user',
+            isAdmin: false,
+            permissions: {},
+            concertAttendanceCount: 0,
+            commentCount: 0,
+            reviewCount: 0,
+            isOnline: true,
+            loginStreak: 0,
+            totalReviews: 0,
+            totalPhotos: 0,
+            totalLikes: 0
+          };
+          return res.json(demoUser);
+        }
+        
         console.log('No userId in session, returning 401');
         return res.status(401).json({ error: 'Not authenticated' });
       }
