@@ -21,18 +21,26 @@ import { randomBytes } from 'crypto';
  * Provides high-level API for secure messaging with forward/future secrecy
  */
 export class DoubleRatchetService {
+  // Memory fallback for when database is unavailable
+  private static memoryKeyBundles = new Map<string, any>();
+  private static memoryMessages = new Map<string, any>();
+  private static memoryRatchetStates = new Map<string, any>();
   /**
    * Generate and store key bundle for new user
    */
   static async generateUserKeyBundle(userId: string, password: string): Promise<{
     publicKeyBundle: {
       identityKey: string;
+      identityKeyX25519: string;
       signedPreKey: string;  
       signedPreKeySignature: string;
       ephemeralKey: string;
     };
     keyBundleId: number;
   }> {
+    // Demo mode: Generate keys without database
+    console.log('Demo mode: Generating encryption keys for user:', userId);
+    
     // Generate complete key bundle
     const keyBundle = DoubleRatchetEncryption.generateKeyBundle();
     
