@@ -642,48 +642,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication check endpoint for persistent sessions
   app.get('/api/auth/user', async (req: any, res) => {
     try {
-      // Check for alpha tester first - USING SESSIONKEYS APPROACH
-      if (req.session && Object.keys(req.session).includes('alphaKey')) {
-        // Try different ways to access the alphaKey
-        const sessionData = req.session as any;
-        const alphaKey = sessionData.alphaKey || sessionData['alphaKey'];
-        
-        // If we have an admin session based on userId
-        if (req.session.userId === 'durantoss-admin-001') {
-          console.log('🔑 Admin identified by userId - returning admin profile');
-          return res.json({
-            id: 'durantoss-admin-001',
-            stagename: 'Durantoss-Alpha-001', 
-            email: 'admin@moshunion.com',
-            isAlphaTester: true,
-            accessKey: 'Durantoss-Alpha-001',
-            sessionsCount: 1,
-            featuresUsed: 0,
-            isAdmin: true,
-            canAccessDashboard: true,
-            hasDevAccess: true
-          });
-        }
-        
-        // Check if we can find any alpha tester by their ID
-        if (req.session.userId) {
-          const userId = req.session.userId;
-          // Check if this is a known alpha tester ID
-          const allTesters = Array.from(alphaTesters.values());
-          const testerById = allTesters.find(t => t.id === userId);
-          if (testerById) {
-            console.log('✅ Alpha tester found by ID:', testerById.name);
+      // 🎯 DIRECT ALPHA FIX - Check userId first
+      if (req.session?.userId === 'durantoss-admin-001') {
+        return res.json({
+          id: 'durantoss-admin-001',
+          stagename: 'Durantoss-Alpha-001',
+          email: 'admin@moshunion.com',
+          isAlphaTester: true,
+          accessKey: 'Durantoss-Alpha-001',
+          sessionsCount: 1,
+          featuresUsed: 0,
+          isAdmin: true,
+          canAccessDashboard: true,
+          hasDevAccess: true
+        });
+      }
+
+      // Check for any alpha tester by userId  
+      if (req.session?.userId) {
+        const userId = req.session.userId;
+        for (const [key, tester] of alphaTesters.entries()) {
+          if (tester.id === userId) {
             return res.json({
-              id: testerById.id,
-              stagename: testerById.name,
-              email: testerById.email,
+              id: tester.id,
+              stagename: tester.name,
+              email: tester.email,
               isAlphaTester: true,
-              accessKey: testerById.accessKey,
-              sessionsCount: testerById.sessionsCount,
-              featuresUsed: testerById.featuresUsed.length,
-              isAdmin: testerById.isAdmin || false,
-              canAccessDashboard: testerById.canAccessDashboard || false,
-              hasDevAccess: testerById.hasDevAccess || false
+              accessKey: tester.accessKey,
+              sessionsCount: tester.sessionsCount,
+              featuresUsed: tester.featuresUsed.length,
+              isAdmin: tester.isAdmin || false,
+              canAccessDashboard: tester.canAccessDashboard || false,
+              hasDevAccess: tester.hasDevAccess || false
             });
           }
         }
@@ -728,8 +718,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Not authenticated' });
       }
 
-      const userId = req.session.userId;
-      const user = await storage.getUser(userId);
+      const sessionUserId = req.session.userId;
+      const user = await storage.getUser(sessionUserId);
       
       if (!user) {
         console.log('User not found in database, returning 401');

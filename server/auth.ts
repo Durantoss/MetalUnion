@@ -328,6 +328,40 @@ export async function setupAuth(app: Express) {
       
       const userId = (req.session as any)?.userId;
       
+      // 🚀 ALPHA TESTER AUTHENTICATION - Check admin and regular alpha testers
+      if (userId === 'durantoss-admin-001') {
+        return res.json({
+          id: 'durantoss-admin-001',
+          stagename: 'Durantoss-Alpha-001',
+          email: 'admin@moshunion.com',
+          isAlphaTester: true,
+          accessKey: 'Durantoss-Alpha-001',
+          sessionsCount: 1,
+          featuresUsed: 0,
+          isAdmin: true,
+          canAccessDashboard: true,
+          hasDevAccess: true
+        });
+      }
+
+      // Check for regular alpha testers
+      const alphaTestersIds = ['alpha-001', 'alpha-002', 'alpha-003', 'alpha-004', 'alpha-005', 'alpha-006', 'alpha-007', 'alpha-008', 'alpha-009', 'alpha-010'];
+      if (userId && alphaTestersIds.includes(userId)) {
+        const testerNumber = userId.replace('alpha-', '');
+        return res.json({
+          id: userId,
+          stagename: `Alpha Tester ${testerNumber}`,
+          email: `tester${testerNumber}@example.com`,
+          isAlphaTester: true,
+          accessKey: `METAL-ALPHA-${testerNumber.padStart(3, '0')}`,
+          sessionsCount: 1,
+          featuresUsed: 0,
+          isAdmin: false,
+          canAccessDashboard: false,
+          hasDevAccess: false
+        });
+      }
+      
       console.log('Auth user endpoint - Demo check debug:', { 
         host, 
         isDeployedApp, 
