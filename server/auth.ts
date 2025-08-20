@@ -30,7 +30,7 @@ export function getSession() {
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   // Check if we're in deployed/production environment with demo mode
   const host = req.get('host') || req.headers.host || '';
-  const isDeployedApp = host.includes('.replit.app') || host.includes('band-blaze-durantoss');
+  const isDeployedApp = host.includes('replit.dev') || host.includes('replit.app') || host.includes('band-blaze-durantoss');
   const isDemoMode = process.env.DEMO_MODE === 'true' || isDeployedApp;
   
   console.log('isAuthenticated middleware - Demo mode check:', { host, isDeployedApp, isDemoMode, nodeEnv: process.env.NODE_ENV });
@@ -206,7 +206,7 @@ export async function setupAuth(app: Express) {
       
       // Check if we're in demo mode
       const host = req.get('host') || req.headers.host || '';
-      const isDeployedApp = host.includes('.replit.app') || host.includes('band-blaze-durantoss');
+      const isDeployedApp = host.includes('replit.dev') || host.includes('replit.app') || host.includes('band-blaze-durantoss');
       const isDemoMode = process.env.DEMO_MODE === 'true' || isDeployedApp;
       
       console.log('Login: Demo mode check:', { host, isDeployedApp, isDemoMode });
@@ -323,10 +323,18 @@ export async function setupAuth(app: Express) {
       
       // Check if we're in demo mode
       const host = req.get('host') || req.headers.host || '';
-      const isDeployedApp = host.includes('.replit.app') || host.includes('band-blaze-durantoss');
+      const isDeployedApp = host.includes('replit.dev') || host.includes('replit.app') || host.includes('band-blaze-durantoss');
       const isDemoMode = process.env.DEMO_MODE === 'true' || isDeployedApp;
       
       const userId = (req.session as any)?.userId;
+      
+      console.log('Auth user endpoint - Demo check debug:', { 
+        host, 
+        isDeployedApp, 
+        isDemoMode, 
+        userId,
+        fullUrl: req.protocol + '://' + req.get('host') + req.originalUrl 
+      });
       
       if (!userId) {
         if (isDemoMode) {
