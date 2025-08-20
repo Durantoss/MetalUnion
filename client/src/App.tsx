@@ -570,7 +570,7 @@ export default function App() {
         );
 
       case 'admin':
-        return <Messages />;
+        return <AdminPanel currentUserId={currentUser?.id} />;
       default:
         return (
           <SharedSectionLayout 
