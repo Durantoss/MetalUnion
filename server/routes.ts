@@ -642,48 +642,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication check endpoint for persistent sessions
   app.get('/api/auth/user', async (req: any, res) => {
     try {
+      // Check for alpha tester first - USING SESSIONKEYS APPROACH
+      if (req.session && Object.keys(req.session).includes('alphaKey')) {
+        // Try different ways to access the alphaKey
+        const sessionData = req.session as any;
+        const alphaKey = sessionData.alphaKey || sessionData['alphaKey'];
+        
+        // If we have an admin session based on userId
+        if (req.session.userId === 'durantoss-admin-001') {
+          console.log('🔑 Admin identified by userId - returning admin profile');
+          return res.json({
+            id: 'durantoss-admin-001',
+            stagename: 'Durantoss-Alpha-001', 
+            email: 'admin@moshunion.com',
+            isAlphaTester: true,
+            accessKey: 'Durantoss-Alpha-001',
+            sessionsCount: 1,
+            featuresUsed: 0,
+            isAdmin: true,
+            canAccessDashboard: true,
+            hasDevAccess: true
+          });
+        }
+        
+        // Check if we can find any alpha tester by their ID
+        if (req.session.userId) {
+          const userId = req.session.userId;
+          // Check if this is a known alpha tester ID
+          const allTesters = Array.from(alphaTesters.values());
+          const testerById = allTesters.find(t => t.id === userId);
+          if (testerById) {
+            console.log('✅ Alpha tester found by ID:', testerById.name);
+            return res.json({
+              id: testerById.id,
+              stagename: testerById.name,
+              email: testerById.email,
+              isAlphaTester: true,
+              accessKey: testerById.accessKey,
+              sessionsCount: testerById.sessionsCount,
+              featuresUsed: testerById.featuresUsed.length,
+              isAdmin: testerById.isAdmin || false,
+              canAccessDashboard: testerById.canAccessDashboard || false,
+              hasDevAccess: testerById.hasDevAccess || false
+            });
+          }
+        }
+      }
+
       console.log('Auth check - Session:', {
         hasSession: !!req.session,
         userId: req.session?.userId,
+        isAlphaTester: req.session?.isAlphaTester,
+        alphaKey: req.session?.alphaKey,
         sessionKeys: req.session ? Object.keys(req.session) : [],
         cookies: req.headers.cookie
       });
 
-      // Check for demo mode in deployed environment
+      // Check for demo mode in deployed environment (only if not alpha tester)
       const host = req.get('host') || req.headers.host || '';
       const isDeployedApp = host.includes('.replit.app') || host.includes('band-blaze-durantoss');
       const isDemoMode = process.env.DEMO_MODE === 'true' || isDeployedApp || process.env.NODE_ENV === 'production';
       
-      console.log('Auth user demo mode check:', { 
+      console.log('Auth user endpoint - Demo check debug:', { 
         host, 
         isDeployedApp, 
         isDemoMode, 
-        nodeEnv: process.env.NODE_ENV 
+        userId: req.session?.userId,
+        fullUrl: req.protocol + '://' + req.get('host') + req.originalUrl
       });
 
-      // Check for valid session (regular user or alpha tester)
+      // Provide demo user for non-alpha users in demo mode
+      if (isDemoMode && (!req.session || !req.session.userId)) {
+        console.log('Demo mode: Providing demo user for authentication check');
+        return res.json({
+          id: 'demo-guest-user',
+          stagename: 'Guest',
+          email: 'guest@demo.com',
+          isDemoUser: true
+        });
+      }
+
+      // Check for valid session (regular user)
       if (!req.session || !req.session.userId) {
         console.log('No userId in session, returning 401');
         return res.status(401).json({ error: 'Not authenticated' });
-      }
-
-      // Check if this is an alpha tester
-      if (req.session.isAlphaTester && req.session.alphaKey) {
-        const tester = alphaTesters.get(req.session.alphaKey);
-        if (tester) {
-          return res.json({
-            id: tester.id,
-            stagename: tester.name,
-            email: tester.email,
-            isAlphaTester: true,
-            accessKey: tester.accessKey,
-            sessionsCount: tester.sessionsCount,
-            featuresUsed: tester.featuresUsed.length,
-            isAdmin: tester.isAdmin || false,
-            canAccessDashboard: tester.canAccessDashboard || false,
-            hasDevAccess: tester.hasDevAccess || false
-          });
-        }
       }
 
       const userId = req.session.userId;
