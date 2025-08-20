@@ -696,6 +696,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reviews endpoints - CRITICAL MISSING ROUTES
+  app.get('/api/reviews', async (req, res) => {
+    try {
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-cache');
+      
+      const reviews = await storage.getReviews();
+      res.json(reviews);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+      res.status(500).json({ error: 'Failed to fetch reviews' });
+    }
+  });
+
+  app.get('/api/reviews/:id', async (req, res) => {
+    try {
+      res.setHeader('Content-Type', 'application/json');
+      const { id } = req.params;
+      const review = await storage.getReview(id);
+      if (!review) {
+        return res.status(404).json({ error: 'Review not found' });
+      }
+      res.json(review);
+    } catch (error) {
+      console.error('Error fetching review:', error);
+      res.status(500).json({ error: 'Failed to fetch review' });
+    }
+  });
+
+  // Photos endpoints - CRITICAL MISSING ROUTES
+  app.get('/api/photos', async (req, res) => {
+    try {
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-cache');
+      
+      const photos = await storage.getPhotos();
+      res.json(photos);
+    } catch (error) {
+      console.error('Error fetching photos:', error);
+      res.status(500).json({ error: 'Failed to fetch photos' });
+    }
+  });
+
+  app.get('/api/photos/:id', async (req, res) => {
+    try {
+      res.setHeader('Content-Type', 'application/json');
+      const { id } = req.params;
+      const photo = await storage.getPhoto(id);
+      if (!photo) {
+        return res.status(404).json({ error: 'Photo not found' });
+      }
+      res.json(photo);
+    } catch (error) {
+      console.error('Error fetching photo:', error);
+      res.status(500).json({ error: 'Failed to fetch photo' });
+    }
+  });
+
   // Stagename routes
   app.get('/api/stagename/check/:stagename', async (req, res) => {
     try {
@@ -1858,7 +1916,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { limit = 50, offset = 0 } = req.query;
-      const messages = await storage.getConversationMessages(id, parseInt(limit), parseInt(offset));
+      const messages = await storage.getMessages(id, parseInt(limit), parseInt(offset));
       res.json(messages);
     } catch (error) {
       console.error('Error fetching conversation messages:', error);
@@ -1884,7 +1942,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         keyType: 'rsa' as const
       };
       
-      const keys = await storage.createUserEncryptionKeys(keyData);
+      const keys = await storage.createEncryptionKey(keyData);
       
       // Return only public key and ID, never send private key
       res.status(201).json({
@@ -1904,7 +1962,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/messaging/encryption-keys', async (req: any, res) => {
     try {
       const userId = 'demo-user'; // Use demo user for testing
-      const keys = await storage.getUserEncryptionKeys(userId);
+      const keys = await storage.getEncryptionKeys(userId);
       
       if (!keys) {
         return res.status(404).json({ error: 'No encryption keys found' });
@@ -1928,7 +1986,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/messaging/users/:userId/public-key', async (req: any, res) => {
     try {
       const { userId } = req.params;
-      const keys = await storage.getUserEncryptionKeys(userId);
+      const keys = await storage.getEncryptionKeys(userId);
       
       if (!keys) {
         return res.status(404).json({ error: 'User encryption keys not found' });

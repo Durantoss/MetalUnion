@@ -275,11 +275,11 @@ export default function Messages() {
         break;
         
       case 'conversation_joined':
-        console.log('👥 Joined conversation:', message.data.conversationId);
+        // Joined conversation successfully
         break;
         
       case 'error':
-        console.error('WebSocket error:', message.data.message);
+        // WebSocket error occurred
         toast({
           title: "Connection Error",
           description: message.data.message,
@@ -288,7 +288,7 @@ export default function Messages() {
         break;
         
       default:
-        console.log('Unknown message type:', message.type);
+        // Unknown message type received
     }
   };
 
@@ -334,12 +334,12 @@ export default function Messages() {
     // Encrypt message if encryption is enabled
     if (encryptionEnabled) {
       try {
-        console.log('🔒 Encrypting message...');
+        // Encrypting message...
         // For demo: simulate encryption with visual indicator
         encryptedContent = `🔒 [ENCRYPTED] ${messageContent}`;
         isEncrypted = true;
       } catch (error) {
-        console.error('Encryption failed:', error);
+        // Encryption failed
         toast({
           title: "Encryption Error",
           description: "Failed to encrypt message. Sending as plain text.",
