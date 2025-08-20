@@ -381,18 +381,21 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
           </>
         ) : (
           <>
-            {/* Login Button */}
+            {/* Login Button - Debug Enhanced */}
             <button
               onClick={() => {
-                console.log('Enter The Pit clicked - triggering login');
+                console.log('🎸 Enter The Pit clicked - triggering login');
                 console.log('onLogin prop:', onLogin);
                 console.log('onLogin type:', typeof onLogin);
                 if (onLogin) {
-                  console.log('Calling onLogin function...');
+                  console.log('✅ Calling onLogin function...');
                   onLogin();
-                  console.log('onLogin function called');
+                  console.log('✅ onLogin function called successfully');
+                  // Additional confirmation
+                  alert('Login triggered! Check if modal appears.');
                 } else {
-                  console.warn('onLogin prop not provided');
+                  console.error('❌ onLogin prop not provided');
+                  alert('ERROR: Login function not available');
                 }
               }}
               style={{
