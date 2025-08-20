@@ -101,6 +101,22 @@ export default function App() {
   // Use useAuth hook for persistent authentication
   const { user: currentUser, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
+
+  // 🎯 ALPHA ACCESS SESSION PERSISTENCE - Check for existing alpha session
+  useEffect(() => {
+    if (currentUser && currentUser.isAlphaTester) {
+      // User already has valid alpha session - bypass alpha access screen
+      setAlphaTester(currentUser);
+      setShowAlphaAccess(false);
+    } else if (currentUser && !currentUser.isAlphaTester) {
+      // User is authenticated but not an alpha tester - hide alpha access
+      setShowAlphaAccess(false);
+    } else if (!currentUser && !authLoading) {
+      // No user session - show alpha access
+      setShowAlphaAccess(true);
+      setAlphaTester(null);
+    }
+  }, [currentUser, authLoading]);
   
   // Auth state tracking
   
@@ -315,6 +331,8 @@ export default function App() {
             onAccess={(testerData) => {
               setAlphaTester(testerData);
               setShowAlphaAccess(false);
+              // Force refresh user auth state to persist the session
+              queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
             }} 
             currentTester={alphaTester}
           />
