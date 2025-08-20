@@ -405,6 +405,7 @@ export function EncryptedChat({ currentUser }: EncryptedChatProps) {
                       onClick={handleSendMessage}
                       disabled={!messageInput.trim() || sendEncryptedMessageMutation.isPending}
                       size="icon"
+                      aria-label="Send encrypted message"
                       data-testid="button-send-encrypted"
                     >
                       <Send className="h-4 w-4" />

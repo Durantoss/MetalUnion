@@ -859,7 +859,7 @@ export default function Messages() {
                     <Shield className="w-3 h-3 mr-1" />
                     Encrypted
                   </Badge>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" aria-label="More options">
                     <MoreVertical className="w-4 h-4" />
                   </Button>
                 </div>
