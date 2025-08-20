@@ -3,7 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { registerHealthRoutes, performanceMiddleware } from "./healthCheck";
 import { registerEncryptionRoutes } from "./encryptionRoutes";
-import { registerWebSocketExamples } from "./websocketExamples";
+// Websocket examples import temporarily disabled for deployment
 import fs from 'fs';
 import path from 'path';
 
