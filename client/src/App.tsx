@@ -4,6 +4,10 @@ import { ModernNavigation } from './components/ModernNavigation';
 import { GlobalAuthHandler } from './components/auth/GlobalAuthHandler';
 import { useAuth } from './hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { MobileOptimized } from './components/MobileOptimized';
+import { performanceMonitor } from './lib/performance';
+import { databaseOptimizer } from './lib/database-optimization';
 
 import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
@@ -38,6 +42,21 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [showComparison, setShowComparison] = useState(false);
   const [currentSection, setCurrentSection] = useState('landing');
+  
+  // Initialize performance monitoring and optimization
+  useEffect(() => {
+    // Start background refresh for optimal performance
+    const cleanup = databaseOptimizer.startBackgroundRefresh();
+    
+    // Prefetch commonly accessed data
+    databaseOptimizer.prefetchData('bands');
+    databaseOptimizer.prefetchData('tours');
+    
+    // Track performance metrics
+    performanceMonitor.recordMetric('app-mount', performance.now(), 'mark');
+    
+    return cleanup;
+  }, []);
   
   // Track state changes
   useEffect(() => {
@@ -549,21 +568,23 @@ export default function App() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', color: '#ffffff' }}>
-      {currentSection !== 'landing' && (
-        <ModernNavigation
-          currentSection={currentSection}
-          onSectionChange={debugSetCurrentSection}
-          onShowComparison={() => setShowComparison(true)}
-          onShowLogin={handleLogin}
-          onReturnHome={handleReturnHome}
-        />
-      )}
-      
-      <main style={{ width: '100%' }}>
-        <div>
-          {renderContent()}
-        </div>
+    <ErrorBoundary>
+      <MobileOptimized>
+        <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', color: '#ffffff' }}>
+          {currentSection !== 'landing' && (
+            <ModernNavigation
+              currentSection={currentSection}
+              onSectionChange={debugSetCurrentSection}
+              onShowComparison={() => setShowComparison(true)}
+              onShowLogin={handleLogin}
+              onReturnHome={handleReturnHome}
+            />
+          )}
+          
+          <main style={{ width: '100%' }}>
+            <div>
+              {renderContent()}
+            </div>
         
         {showComparison && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 backdrop-blur-lg">
@@ -694,10 +715,12 @@ export default function App() {
         />
       )}
 
-      {/* Global Authentication Handler */}
-      <GlobalAuthHandler />
+          {/* Global Authentication Handler */}
+          <GlobalAuthHandler />
 
-    </div>
+        </div>
+      </MobileOptimized>
+    </ErrorBoundary>
   );
 };
 

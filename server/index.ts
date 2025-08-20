@@ -1,6 +1,9 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { registerHealthRoutes, performanceMiddleware } from "./healthCheck";
+import { registerEncryptionRoutes } from "./encryptionRoutes";
+import { registerWebSocketExamples } from "./websocketExamples";
 import fs from 'fs';
 import path from 'path';
 
@@ -31,6 +34,9 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Add performance monitoring middleware
+app.use(performanceMiddleware);
 
 app.use((req, res, next) => {
   const start = Date.now();

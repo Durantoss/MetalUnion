@@ -1,15 +1,19 @@
 import { QueryClient } from '@tanstack/react-query';
+import { enhancedCache, cachedApiRequest } from './cache';
+import { optimizedQueryConfig } from './database-optimization';
 
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: 1,
-    },
-  },
-});
+export const queryClient = new QueryClient(optimizedQueryConfig);
 
 export async function apiRequest(url: string, options?: RequestInit) {
+  // Use enhanced caching for GET requests
+  if (!options?.method || options.method === 'GET') {
+    return cachedApiRequest(url, options, {
+      ttl: 5 * 60 * 1000, // 5 minutes cache
+      bypassCache: options?.headers?.['cache-control'] === 'no-cache'
+    });
+  }
+
+  // Direct fetch for non-GET requests
   const response = await fetch(url, {
     credentials: 'include',
     mode: 'cors',
