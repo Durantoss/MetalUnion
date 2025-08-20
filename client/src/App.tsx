@@ -19,6 +19,7 @@ import { UserProfile } from './components/UserProfile';
 import { NotificationCenter } from './components/NotificationCenter';
 import { AIChatbot } from './components/AIChatbot';
 import { EncryptedChat } from './components/EncryptedChat';
+import { BasicMessagingFallback } from './components/BasicMessagingFallback';
 import { ActivityFeed } from './components/ActivityFeed';
 import { GameficationDashboard } from './components/GameficationDashboard';
 // Events Discovery functionality has been migrated to Tours section
@@ -458,9 +459,23 @@ export default function App() {
           </SharedSectionLayout>
         );
 
-      // Messaging cases with shared design
+      // Messaging cases with mobile-friendly fallback
       case 'messaging-demo':
       case 'messaging':
+        // Detect mobile or use fallback for compatibility
+        const isMobilePreview = window.innerWidth < 768 || navigator.userAgent.includes('Mobile');
+        
+        if (isMobilePreview) {
+          return (
+            <SharedSectionLayout 
+              title="SECURE MESSAGING" 
+              subtitle="Mobile-Optimized Messaging Interface"
+            >
+              <BasicMessagingFallback />
+            </SharedSectionLayout>
+          );
+        }
+        
         return (
           <SharedSectionLayout 
             title="SECURE MESSAGING" 
