@@ -58,6 +58,7 @@ export function ModernNavigation({
             cursor: 'pointer',
             padding: 0
           }}
+          aria-label="Go to home page"
           data-testid="logo-button"
         >
           <div style={{

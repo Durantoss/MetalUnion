@@ -174,6 +174,7 @@ body: JSON.stringify({ content })
           <Button
             onClick={() => setShowConversationList(!showConversationList)}
             className="p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+            aria-label="Toggle conversation list"
             data-testid="toggle-conversations"
           >
             <MessageCircle className="h-4 w-4" />
@@ -189,6 +190,7 @@ body: JSON.stringify({ content })
           onClick={() => createConversationMutation.mutate('New AI Chat')}
           disabled={createConversationMutation.isPending}
           className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+          aria-label="Create new conversation"
           data-testid="button-new-conversation"
         >
           <Plus className="h-4 w-4" />
@@ -244,6 +246,7 @@ body: JSON.stringify({ content })
                         className="p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         variant="ghost"
                         size="sm"
+                        aria-label="Delete conversation"
                         data-testid={`delete-conversation-${conversation.id}`}
                       >
                         <Trash2 className="h-3 w-3" />
@@ -391,6 +394,7 @@ body: JSON.stringify({ content })
                   onClick={handleSendMessage}
                   disabled={!messageInput.trim() || sendMessageMutation.isPending}
                   className="bg-red-600 hover:bg-red-700 text-white px-4"
+                  aria-label="Send message to AI"
                   data-testid="button-send-message"
                 >
                   {sendMessageMutation.isPending ? (
