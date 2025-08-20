@@ -723,8 +723,8 @@ export default function App() {
         }
       `}} />
       
-      {/* Authentication Modal - Disabled for testing */}
-      {false && showAuthModal && (
+      {/* Authentication Modal - Enabled for real authentication */}
+      {showAuthModal && (
         <AuthModal 
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}

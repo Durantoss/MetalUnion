@@ -7,14 +7,10 @@ export function GlobalAuthHandler() {
   const [authAction, setAuthAction] = React.useState('');
   const queryClient = useQueryClient();
   
-  // Testing mode - disable all auth modals for testers
-  const isTestingMode = true;
+  // Production mode - enable real authentication
+  const isTestingMode = false;
 
   React.useEffect(() => {
-    if (isTestingMode) {
-      // In testing mode, don't show any auth modals
-      return;
-    }
     
     const handleAuthRequired = (event: CustomEvent) => {
       setAuthAction(event.detail.action || 'access this feature');
@@ -26,7 +22,7 @@ export function GlobalAuthHandler() {
     return () => {
       window.removeEventListener('auth-required', handleAuthRequired as EventListener);
     };
-  }, [isTestingMode]);
+  }, []);
 
   const handleAuthSuccess = (user: any) => {
     // Update the query cache with the authenticated user - no need to invalidate since we're setting fresh data
@@ -35,10 +31,7 @@ export function GlobalAuthHandler() {
     console.log('Global auth success:', user);
   };
 
-  // Don't render auth modal in testing mode
-  if (isTestingMode) {
-    return null;
-  }
+  // Render auth modal for real authentication
 
   return (
     <AuthModal

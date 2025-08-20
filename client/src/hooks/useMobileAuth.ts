@@ -19,13 +19,12 @@ export function useMobileAuth() {
   };
 
   const shouldUseMobileAuth = () => {
-    return isMobileDevice() || isDeployedEnvironment();
+    return false; // Disabled - use real authentication
   };
 
   const mobileLogin = async (stagename: string, safeword: string) => {
-    if (!shouldUseMobileAuth()) {
-      return false; // Let normal auth handle it
-    }
+    // Mobile auth bypass disabled - always use real authentication
+    return false;
 
     setIsLoading(true);
     console.log('Mobile Auth: Activating mobile-specific authentication bypass');

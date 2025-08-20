@@ -25,26 +25,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
     mutationFn: async (data: { stagename: string; safeword: string; rememberMe: boolean }) => {
       console.log('Frontend: Starting login with credentials:', { stagename: data.stagename, hasPassword: !!data.safeword });
       
-      // Check if we're in deployed environment
-      const isDeployedApp = window.location.hostname.includes('.replit.app');
-      
-      if (isDeployedApp) {
-        // Demo mode for deployed environment
-        console.log('Demo mode: Simulating login for deployed environment');
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-        
-        // Return demo user data
-        return {
-          user: {
-            id: 'demo-user',
-            email: 'demo@moshunion.com',
-            stagename: data.stagename || 'Demo User',
-            isAdmin: data.stagename.toLowerCase() === 'durantoss',
-            permissions: data.stagename.toLowerCase() === 'durantoss' ? { full_admin: true } : {},
-            theme: 'dark'
-          }
-        };
-      }
+      // Real authentication enabled - no demo mode bypass
       
       try {
         const response = await fetch('/api/auth/login', {
