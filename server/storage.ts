@@ -1258,8 +1258,15 @@ export class MemStorage implements IStorage {
   }
 
   private seedData() {
-    // Seed some initial bands
-    const metallica: Band = {
+    // Check if we already have a sufficient number of bands to avoid re-seeding
+    if (this.bands.size >= 120) {
+      return;
+    }
+
+    const bands: Band[] = [];
+    
+    // Original core bands
+    bands.push({
       id: randomUUID(),
       name: "METALLICA",
       genre: "Thrash Metal",
@@ -1275,9 +1282,9 @@ export class MemStorage implements IStorage {
       submittedAt: null,
       approvedAt: null,
       createdAt: new Date(),
-    };
+    });
 
-    const ironMaiden: Band = {
+    bands.push({
       id: randomUUID(),
       name: "IRON MAIDEN",
       genre: "Heavy Metal",
@@ -1293,9 +1300,9 @@ export class MemStorage implements IStorage {
       submittedAt: null,
       approvedAt: null,
       createdAt: new Date(),
-    };
+    });
 
-    const blackSabbath: Band = {
+    bands.push({
       id: randomUUID(),
       name: "BLACK SABBATH",
       genre: "Doom Metal",
@@ -1311,11 +1318,268 @@ export class MemStorage implements IStorage {
       submittedAt: null,
       approvedAt: null,
       createdAt: new Date(),
-    };
+    });
 
-    this.bands.set(metallica.id, metallica);
-    this.bands.set(ironMaiden.id, ironMaiden);
-    this.bands.set(blackSabbath.id, blackSabbath);
+    // Death Metal bands
+    const deathMetalBands = [
+      { name: "DEATH", genre: "Death Metal", description: "Pioneers of death metal led by Chuck Schuldiner, known as the 'father of death metal'.", founded: 1984 },
+      { name: "MORBID ANGEL", genre: "Death Metal", description: "Florida death metal legends with brutal technical precision and occult themes.", founded: 1984 },
+      { name: "CANNIBAL CORPSE", genre: "Death Metal", description: "The highest-selling death metal band of all time with extreme imagery and brutal sound.", founded: 1988 },
+      { name: "OBITUARY", genre: "Death Metal", description: "Florida pioneers with distinctive groove-based riffs and John Tardy's unique vocals.", founded: 1984 },
+      { name: "DEICIDE", genre: "Death Metal", description: "Extreme anti-religious death metal with Glen Benton's signature shrieking vocals.", founded: 1987 },
+      { name: "ENTOMBED", genre: "Death Metal", description: "Swedish death metal pioneers who invented the buzzsaw guitar tone.", founded: 1987 },
+      { name: "DISMEMBER", genre: "Death Metal", description: "Part of Sweden's death metal scene with crushing riffs and memorable hooks.", founded: 1988 },
+      { name: "AT THE GATES", genre: "Melodic Death Metal", description: "Gothenburg melodic death metal pioneers who influenced countless bands.", founded: 1990 },
+      { name: "CARCASS", genre: "Death Metal", description: "British grindcore/death metal innovators who helped create melodic death metal.", founded: 1985 },
+      { name: "POSSESSED", genre: "Death Metal", description: "Thrash/death metal pioneers whose 'Seven Churches' defined early death metal.", founded: 1983 },
+      { name: "SUFFOCATION", genre: "Technical Death Metal", description: "New York technical death metal masters with complex song structures.", founded: 1988 },
+      { name: "GOJIRA", genre: "Progressive Death Metal", description: "French progressive death metal with environmental themes and massive sound.", founded: 1996 },
+      { name: "AMON AMARTH", genre: "Melodic Death Metal", description: "Swedish Viking-themed melodic death metal with epic storytelling.", founded: 1992 },
+      { name: "ARCH ENEMY", genre: "Melodic Death Metal", description: "Swedish melodic death metal with powerful female vocals and technical guitar work.", founded: 1995 },
+      { name: "BOLT THROWER", genre: "Death Metal", description: "British war-themed death metal with consistent crushing sound throughout their career.", founded: 1986 },
+      { name: "NAPALM DEATH", genre: "Grindcore/Death Metal", description: "Extreme metal pioneers who evolved from grindcore into death metal territory.", founded: 1981 }
+    ];
+
+    // Black Metal bands
+    const blackMetalBands = [
+      { name: "MAYHEM", genre: "Black Metal", description: "Norwegian black metal founders who almost single-handedly created the scene.", founded: 1984 },
+      { name: "EMPEROR", genre: "Symphonic Black Metal", description: "Masters of complex symphonic black metal with orchestral arrangements.", founded: 1991 },
+      { name: "BURZUM", genre: "Atmospheric Black Metal", description: "One-man atmospheric black metal project that pioneered ambient black metal.", founded: 1991 },
+      { name: "DARKTHRONE", genre: "Black Metal", description: "Pure Norwegian black metal with raw, uncompromising lo-fi aesthetic.", founded: 1986 },
+      { name: "IMMORTAL", genre: "Black Metal", description: "Melodic yet ferocious black metal with iconic corpsepaint and winter themes.", founded: 1990 },
+      { name: "GORGOROTH", genre: "Black Metal", description: "Extreme Norwegian black metal named after Tolkien's dark realm.", founded: 1992 },
+      { name: "SATYRICON", genre: "Black Metal", description: "Long-running Norwegian duo who helped define the genre's core sound.", founded: 1991 },
+      { name: "ENSLAVED", genre: "Progressive Black Metal", description: "Progressive innovators who incorporated Viking themes and complex songwriting.", founded: 1991 }
+    ];
+
+    // Thrash Metal bands
+    const thrashMetalBands = [
+      { name: "SLAYER", genre: "Thrash Metal", description: "The most extreme and brutal of the Big Four thrash metal bands.", founded: 1981 },
+      { name: "MEGADETH", genre: "Thrash Metal", description: "Technical thrash metal masters with virtuosic guitar work and political lyrics.", founded: 1983 },
+      { name: "ANTHRAX", genre: "Thrash Metal", description: "New York thrash metal pioneers who brought humor and experimentation to the genre.", founded: 1981 },
+      { name: "EXODUS", genre: "Thrash Metal", description: "Bay Area thrash metal legends who influenced the entire scene.", founded: 1980 },
+      { name: "TESTAMENT", genre: "Thrash Metal", description: "San Francisco Bay Area thrash metal stalwarts with consistent quality output.", founded: 1983 },
+      { name: "KREATOR", genre: "Thrash Metal", description: "German thrash metal pioneers known for their aggressive speed and precision.", founded: 1982 },
+      { name: "DESTRUCTION", genre: "Thrash Metal", description: "Part of Germany's Big Three thrash metal bands with relentless energy.", founded: 1982 },
+      { name: "SODOM", genre: "Thrash Metal", description: "German thrash metal veterans known for their raw, aggressive approach.", founded: 1981 },
+      { name: "OVERKILL", genre: "Thrash Metal", description: "East Coast thrash metal legends with Bobby 'Blitz' Ellsworth's distinctive vocals.", founded: 1980 }
+    ];
+
+    // Power Metal bands
+    const powerMetalBands = [
+      { name: "HELLOWEEN", genre: "Power Metal", description: "The fathers of power metal who set the standard with Keeper of the Seven Keys.", founded: 1984 },
+      { name: "BLIND GUARDIAN", genre: "Power Metal", description: "German power metal storytellers known as 'The Bards' for their fantasy themes.", founded: 1984 },
+      { name: "DRAGONFORCE", genre: "Power Metal", description: "Extreme power metal known as the fastest band in the world with video game influences.", founded: 1999 },
+      { name: "SABATON", genre: "Power Metal", description: "Swedish power metal with historical and military themes.", founded: 1999 },
+      { name: "STRATOVARIUS", genre: "Power Metal", description: "Finnish power metal beacon known for fast-paced, melodic sound since 1984.", founded: 1984 },
+      { name: "SONATA ARCTICA", genre: "Power Metal", description: "Finnish power metal with progressive elements and emotional depth.", founded: 1996 },
+      { name: "RHAPSODY OF FIRE", genre: "Symphonic Power Metal", description: "Italian symphonic power metal with epic orchestral arrangements.", founded: 1993 },
+      { name: "ICED EARTH", genre: "Power Metal", description: "American power metal with darker themes and heavy guitar work.", founded: 1984 },
+      { name: "SYMPHONY X", genre: "Progressive Power Metal", description: "Technical progressive power metal with neoclassical influences.", founded: 1994 },
+      { name: "QUEENSRŸCHE", genre: "Progressive Metal", description: "Progressive metal pioneers who bridged classic metal and modern prog.", founded: 1982 },
+      { name: "HAMMERFALL", genre: "Power Metal", description: "Swedish traditional power metal carrying the torch since 1993.", founded: 1993 }
+    ];
+
+    // Progressive Metal bands
+    const progressiveMetalBands = [
+      { name: "DREAM THEATER", genre: "Progressive Metal", description: "Technical virtuosity masters who defined modern progressive metal.", founded: 1985 },
+      { name: "TOOL", genre: "Progressive Metal", description: "Complex atmospheric progressive metal with philosophical themes and elaborate visuals.", founded: 1990 },
+      { name: "OPETH", genre: "Progressive Death Metal", description: "Swedish progressive death metal pioneers who later transitioned to prog rock.", founded: 1989 },
+      { name: "BETWEEN THE BURIED AND ME", genre: "Progressive Metal", description: "Avant-garde technical death metal with progressive and experimental elements.", founded: 2000 },
+      { name: "MESHUGGAH", genre: "Extreme Progressive Metal", description: "Swedish extreme progressive metal pioneers of complex polyrhythms.", founded: 1987 }
+    ];
+
+    // Symphonic Metal bands
+    const symphonicMetalBands = [
+      { name: "NIGHTWISH", genre: "Symphonic Metal", description: "Finnish symphonic metal pioneers who won Symphonic Metal Band of 2024.", founded: 1996 },
+      { name: "WITHIN TEMPTATION", genre: "Symphonic Metal", description: "Dutch symphonic metal legends who helped popularize female-fronted metal.", founded: 1996 },
+      { name: "EPICA", genre: "Symphonic Metal", description: "Dutch symphonic metal with death metal elements and classically trained vocals.", founded: 2002 }
+    ];
+
+    // Doom Metal bands
+    const doomMetalBands = [
+      { name: "CANDLEMASS", genre: "Epic Doom Metal", description: "Swedish pioneers of epic doom metal with operatic vocals.", founded: 1984 },
+      { name: "ELECTRIC WIZARD", genre: "Stoner Doom Metal", description: "English stoner/doom metal known for the heaviest music around.", founded: 1993 },
+      { name: "PENTAGRAM", genre: "Doom Metal", description: "American doom metal pioneers, part of the Big Four of Doom Metal.", founded: 1971 },
+      { name: "SAINT VITUS", genre: "Doom Metal", description: "American doom metal legends with distinctive slow, heavy sound.", founded: 1978 },
+      { name: "TROUBLE", genre: "Doom Metal", description: "American doom metal with Christian themes and psychedelic influences.", founded: 1979 },
+      { name: "CATHEDRAL", genre: "Doom Metal", description: "British doom metal with stoner and psychedelic elements.", founded: 1989 },
+      { name: "SLEEP", genre: "Stoner Doom Metal", description: "American stoner doom metal with hypnotic, repetitive compositions.", founded: 1990 }
+    ];
+
+    // Folk Metal bands
+    const folkMetalBands = [
+      { name: "FINNTROLL", genre: "Folk Metal", description: "Finnish folk metal combining black metal with humppa polka rhythms.", founded: 1997 },
+      { name: "KORPIKLAANI", genre: "Folk Metal", description: "Finnish 'Backwoods Clan' known for alcohol-themed party folk metal.", founded: 2003 },
+      { name: "ELUVEITIE", genre: "Celtic Folk Metal", description: "Swiss Celtic folk metal with authentic ancient instruments and Gaulish language.", founded: 2002 },
+      { name: "ENSIFERUM", genre: "Folk Metal", description: "Finnish folk metal with heroic and anthemic atmosphere.", founded: 1995 },
+      { name: "MOONSORROW", genre: "Folk Metal", description: "Finnish atmospheric folk metal with epic song structures.", founded: 1995 },
+      { name: "WINTERSUN", genre: "Melodic Folk Metal", description: "Finnish melodic folk metal known for complex orchestrations.", founded: 2004 }
+    ];
+
+    // Industrial Metal bands
+    const industrialMetalBands = [
+      { name: "MINISTRY", genre: "Industrial Metal", description: "American industrial metal pioneers founded by Al Jourgensen.", founded: 1981 },
+      { name: "NINE INCH NAILS", genre: "Industrial Metal", description: "Trent Reznor's most commercially successful industrial project.", founded: 1988 },
+      { name: "RAMMSTEIN", genre: "Industrial Metal", description: "German Neue Deutsche Härte with theatrical pyrotechnic performances.", founded: 1994 },
+      { name: "FEAR FACTORY", genre: "Industrial Metal", description: "American cyber-metal pioneers with man vs. machine themes.", founded: 1989 }
+    ];
+
+    // Modern Billboard/Alternative bands
+    const modernBands = [
+      { name: "SLEEP TOKEN", genre: "Progressive Metal", description: "Mysterious masked progressive metal band with ambient influences.", founded: 2016 },
+      { name: "FALLING IN REVERSE", genre: "Post-Hardcore", description: "American rock band with electronic and metal influences.", founded: 2008 },
+      { name: "BAD OMENS", genre: "Metalcore", description: "American metalcore with progressive and alternative metal elements.", founded: 2015 },
+      { name: "BRING ME THE HORIZON", genre: "Alternative Metal", description: "British band evolved from deathcore to mainstream alternative metal.", founded: 2004 },
+      { name: "BLINK-182", genre: "Pop Punk", description: "American pop punk legends who influenced a generation of rock fans.", founded: 1992 },
+      { name: "PEARL JAM", genre: "Grunge", description: "Seattle grunge icons who defined alternative rock in the 90s.", founded: 1990 },
+      { name: "THE ROLLING STONES", genre: "Rock", description: "British rock legends who influenced generations of musicians worldwide.", founded: 1962 }
+    ];
+
+    // Heavy Metal Classics
+    const classicHeavyMetalBands = [
+      { name: "JUDAS PRIEST", genre: "Heavy Metal", description: "British heavy metal gods who defined the genre's sound and aesthetics.", founded: 1969 },
+      { name: "DIO", genre: "Heavy Metal", description: "Ronnie James Dio's legendary heavy metal with fantasy themes.", founded: 1982 },
+      { name: "MOTORHEAD", genre: "Speed Metal", description: "British speed metal legends led by Lemmy Kilmister.", founded: 1975 },
+      { name: "ACCEPT", genre: "Heavy Metal", description: "German heavy metal pioneers with powerful vocals and driving rhythms.", founded: 1976 },
+      { name: "SAXON", genre: "Heavy Metal", description: "British heavy metal veterans of the New Wave of British Heavy Metal.", founded: 1977 }
+    ];
+
+    // Alternative/Nu Metal
+    const alternativeMetalBands = [
+      { name: "LINKIN PARK", genre: "Nu Metal", description: "American nu metal pioneers who blended rap, metal, and electronic elements.", founded: 1996 },
+      { name: "KORN", genre: "Nu Metal", description: "American nu metal innovators who created a unique down-tuned sound.", founded: 1993 },
+      { name: "SYSTEM OF A DOWN", genre: "Alternative Metal", description: "Armenian-American alternative metal with political themes and unique vocals.", founded: 1994 },
+      { name: "DISTURBED", genre: "Alternative Metal", description: "American alternative metal with powerful vocals and mainstream appeal.", founded: 1994 }
+    ];
+
+    // Metalcore/Modern Metal
+    const metalcoreBands = [
+      { name: "KILLSWITCH ENGAGE", genre: "Metalcore", description: "American metalcore pioneers who popularized clean/harsh vocal combinations.", founded: 1999 },
+      { name: "AS I LAY DYING", genre: "Metalcore", description: "American metalcore with melodic elements and powerful breakdowns.", founded: 2000 },
+      { name: "PARKWAY DRIVE", genre: "Metalcore", description: "Australian metalcore legends with massive live performances.", founded: 2003 },
+      { name: "ARCHITECTS", genre: "Metalcore", description: "British metalcore with progressive elements and emotional depth.", founded: 2004 }
+    ];
+
+    // Melodic Death Metal
+    const melodicDeathMetalBands = [
+      { name: "IN FLAMES", genre: "Melodic Death Metal", description: "Swedish melodic death metal pioneers of the Gothenburg sound.", founded: 1990 },
+      { name: "DARK TRANQUILLITY", genre: "Melodic Death Metal", description: "Swedish melodic death metal founders with keyboard integration.", founded: 1989 },
+      { name: "CHILDREN OF BODOM", genre: "Melodic Death Metal", description: "Finnish melodic death metal with neoclassical keyboard elements.", founded: 1993 }
+    ];
+
+    // Gothic Metal
+    const gothicMetalBands = [
+      { name: "TYPE O NEGATIVE", genre: "Gothic Metal", description: "American gothic metal pioneers with deep bass vocals and dark humor.", founded: 1989 },
+      { name: "THEATRE OF TRAGEDY", genre: "Gothic Metal", description: "Norwegian gothic metal with beauty and beast vocal contrasts.", founded: 1993 },
+      { name: "LACUNA COIL", genre: "Gothic Metal", description: "Italian gothic metal with dual male/female vocals.", founded: 1994 },
+      { name: "PARADISE LOST", genre: "Gothic Metal", description: "British gothic metal pioneers who evolved from doom metal.", founded: 1988 },
+      { name: "MY DYING BRIDE", genre: "Gothic Doom Metal", description: "British doom/death metal with violin and gothic atmosphere.", founded: 1990 }
+    ];
+
+    // Sludge/Stoner Metal
+    const sludgeMetalBands = [
+      { name: "MASTODON", genre: "Progressive Sludge Metal", description: "American progressive sludge metal with complex narratives.", founded: 2000 },
+      { name: "HIGH ON FIRE", genre: "Sludge Metal", description: "American sludge metal with relentless energy and speed.", founded: 1998 },
+      { name: "RED FANG", genre: "Stoner Metal", description: "American stoner rock/metal with humorous music videos.", founded: 2005 },
+      { name: "KYUSS", genre: "Stoner Rock", description: "American desert rock pioneers who invented stoner rock.", founded: 1987 },
+      { name: "FU MANCHU", genre: "Stoner Rock", description: "American stoner rock with surf and punk influences.", founded: 1985 }
+    ];
+
+    // Post-Metal/Atmospheric
+    const postMetalBands = [
+      { name: "ISIS", genre: "Post-Metal", description: "American post-metal pioneers with atmospheric soundscapes.", founded: 1997 },
+      { name: "NEUROSIS", genre: "Post-Metal", description: "American post-metal innovators who created the atmospheric metal template.", founded: 1985 },
+      { name: "CULT OF LUNA", genre: "Post-Metal", description: "Swedish post-metal with cinematic and atmospheric qualities.", founded: 1998 },
+      { name: "MONO", genre: "Post-Rock/Metal", description: "Japanese post-rock collective with orchestral metal elements.", founded: 1999 }
+    ];
+
+    // Deathcore/Modern Extreme
+    const deathcoreBands = [
+      { name: "WHITECHAPEL", genre: "Deathcore", description: "American deathcore with technical precision and brutal breakdowns.", founded: 2006 },
+      { name: "SUICIDE SILENCE", genre: "Deathcore", description: "American deathcore pioneers who popularized the genre.", founded: 2002 },
+      { name: "THY ART IS MURDER", genre: "Deathcore", description: "Australian deathcore with anti-religious and political themes.", founded: 2006 },
+      { name: "LORNA SHORE", genre: "Symphonic Deathcore", description: "American symphonic deathcore with orchestral arrangements.", founded: 2009 }
+    ];
+
+    // Blackgaze/Atmospheric Black Metal
+    const blackgazeBands = [
+      { name: "DEAFHEAVEN", genre: "Blackgaze", description: "American blackgaze pioneers blending black metal with shoegaze.", founded: 2010 },
+      { name: "ALCEST", genre: "Blackgaze", description: "French blackgaze founders with dreamy, atmospheric soundscapes.", founded: 2000 },
+      { name: "AGALLOCH", genre: "Atmospheric Black Metal", description: "American atmospheric black metal with folk and post-rock elements.", founded: 1995 }
+    ];
+
+    // More Classic Rock/Metal
+    const moreClassicBands = [
+      { name: "DEEP PURPLE", genre: "Hard Rock", description: "British hard rock pioneers who influenced heavy metal's development.", founded: 1968 },
+      { name: "RAINBOW", genre: "Hard Rock", description: "Ritchie Blackmore's hard rock band with Ronnie James Dio vocals.", founded: 1975 },
+      { name: "URIAH HEEP", genre: "Hard Rock", description: "British hard rock with progressive and heavy metal influences.", founded: 1969 },
+      { name: "THIN LIZZY", genre: "Hard Rock", description: "Irish hard rock with twin guitar harmonies and Phil Lynott's vocals.", founded: 1969 },
+      { name: "UFO", genre: "Hard Rock", description: "British hard rock with influential guitar work by Michael Schenker.", founded: 1969 },
+      { name: "SCORPIONS", genre: "Hard Rock", description: "German hard rock legends with anthemic songs and guitar solos.", founded: 1965 }
+    ];
+
+    // More Modern Metal
+    const moreModernBands = [
+      { name: "GHOST", genre: "Theatrical Metal", description: "Swedish theatrical metal with horror themes and catchy melodies.", founded: 2006 },
+      { name: "AVATAR", genre: "Alternative Metal", description: "Swedish alternative metal with theatrical performances and diverse sounds.", founded: 2001 },
+      { name: "JINJER", genre: "Progressive Metal", description: "Ukrainian progressive metal with Tatiana Shmayluk's versatile vocals.", founded: 2008 },
+      { name: "SPIRITBOX", genre: "Metalcore", description: "Canadian metalcore with electronic elements and dynamic vocals.", founded: 2017 },
+      { name: "POLYPHIA", genre: "Progressive Instrumental", description: "American instrumental progressive metal with technical guitar work.", founded: 2010 },
+      { name: "ANIMALS AS LEADERS", genre: "Progressive Instrumental", description: "American instrumental progressive metal with 8-string guitars.", founded: 2007 },
+      { name: "PERIPHERY", genre: "Djent", description: "American djent pioneers with complex rhythms and melodies.", founded: 2005 },
+      { name: "TESSERACT", genre: "Djent", description: "British djent/progressive metal with atmospheric elements.", founded: 2003 }
+    ];
+
+    // Groove Metal/Pantera-style
+    const grooveMetalBands = [
+      { name: "PANTERA", genre: "Groove Metal", description: "American groove metal pioneers who redefined heavy metal in the 90s.", founded: 1981 },
+      { name: "LAMB OF GOD", genre: "Groove Metal", description: "American groove metal with New Wave of American Heavy Metal influences.", founded: 1994 },
+      { name: "MACHINE HEAD", genre: "Groove Metal", description: "American groove metal with thrash and nu-metal influences.", founded: 1991 },
+      { name: "SEPULTURA", genre: "Groove Metal", description: "Brazilian metal pioneers who evolved from thrash to groove metal.", founded: 1984 }
+    ];
+
+    // Speed Metal
+    const speedMetalBands = [
+      { name: "VENOM", genre: "Speed Metal", description: "British speed metal pioneers who influenced black and thrash metal.", founded: 1979 },
+      { name: "EXCITER", genre: "Speed Metal", description: "Canadian speed metal pioneers with raw energy and aggression.", founded: 1978 },
+      { name: "RAZOR", genre: "Speed/Thrash Metal", description: "Canadian speed/thrash metal with punk influences.", founded: 1984 }
+    ];
+
+    // Add bands from all categories
+    const allGenreBands = [
+      ...deathMetalBands, ...blackMetalBands, ...thrashMetalBands, ...powerMetalBands, 
+      ...progressiveMetalBands, ...symphonicMetalBands, ...doomMetalBands, ...folkMetalBands,
+      ...industrialMetalBands, ...modernBands, ...classicHeavyMetalBands, ...alternativeMetalBands,
+      ...metalcoreBands, ...melodicDeathMetalBands, ...gothicMetalBands, ...sludgeMetalBands,
+      ...postMetalBands, ...deathcoreBands, ...blackgazeBands, ...moreClassicBands,
+      ...moreModernBands, ...grooveMetalBands, ...speedMetalBands
+    ];
+
+    allGenreBands.forEach(bandData => {
+      bands.push({
+        id: randomUUID(),
+        name: bandData.name,
+        genre: bandData.genre,
+        description: bandData.description,
+        imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+        founded: bandData.founded,
+        members: null,
+        albums: null,
+        website: null,
+        instagram: null,
+        ownerId: null,
+        status: "approved",
+        submittedAt: null,
+        approvedAt: null,
+        createdAt: new Date(),
+      });
+    });
+
+    // Store all bands
+    bands.forEach(band => {
+      this.bands.set(band.id, band);
+    });
   }
 
   // Bands
@@ -1325,7 +1589,7 @@ export class MemStorage implements IStorage {
     // Deduplicate by band name, keeping the most recent entry
     const uniqueBands = new Map<string, Band>();
     bands.forEach(band => {
-      const key = band.name.toLowerCase();
+      const key = band.name.toLowerCase().replace(/[^a-z0-9]/g, '');
       const existing = uniqueBands.get(key);
       if (!existing || (band.createdAt && existing.createdAt && band.createdAt > existing.createdAt)) {
         uniqueBands.set(key, band);
