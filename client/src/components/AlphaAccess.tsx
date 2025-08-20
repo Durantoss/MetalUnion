@@ -224,7 +224,14 @@ export function AlphaAccess({ onAccess, currentTester }: AlphaAccessProps) {
         <div className="mt-6 p-4 bg-gray-800/50 rounded-lg">
           <h4 className="text-sm font-medium text-yellow-400 mb-2">For Alpha Testers:</h4>
           <p className="text-xs text-gray-400 leading-relaxed">
-            To provide feedback of any kind please e-mail durantoss.moshunion@gmail.com . Please state in the subject line the level of urgency and then provide as much detail as possible. Thanks everyone! Let's melt some faces off!
+            To provide feedback of any kind please e-mail{' '}
+            <a 
+              href="mailto:durantoss.moshunion@gmail.com" 
+              className="text-yellow-400 hover:text-yellow-300 underline"
+            >
+              durantoss.moshunion@gmail.com
+            </a>
+            {' '}. Please state in the subject line the level of urgency and then provide as much detail as possible. Thanks everyone! Let's melt some faces off!
           </p>
         </div>
       </CardContent>
