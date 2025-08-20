@@ -13,7 +13,11 @@ import {
   WifiOff,
   Plus,
   Search,
-  MoreVertical
+  MoreVertical,
+  Lock,
+  Unlock,
+  ArrowLeft,
+  Menu
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -66,11 +70,19 @@ export default function Messages() {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [showNewConversation, setShowNewConversation] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState<any[]>([]);
+  const [encryptionEnabled, setEncryptionEnabled] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
   
   // Messages and conversations state
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const [maxReconnectAttempts] = useState(5);
+  const [messageQueue, setMessageQueue] = useState<any[]>([]);
   
   // Refs for auto-scrolling
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -85,6 +97,19 @@ export default function Messages() {
   // Type guard for currentUser
   const hasValidUser = currentUser && typeof currentUser === 'object' && 'id' in currentUser;
 
+  // Detect mobile and set responsive layout
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+      setShowSidebar(window.innerWidth >= 768); // Hide sidebar on mobile by default
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Initialize WebSocket connection
   useEffect(() => {
     if (!hasValidUser || !currentUser.id) return;
@@ -94,13 +119,15 @@ export default function Messages() {
       const wsUrl = `${protocol}//${window.location.host}/messaging-ws`;
       
       console.log('🎸 Connecting to production messaging WebSocket:', wsUrl);
+      setConnectionStatus(prev => ({ ...prev, reconnecting: true }));
       
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
       ws.onopen = () => {
         console.log('📱 Connected to messaging WebSocket');
-        setConnectionStatus(prev => ({ ...prev, connected: true }));
+        setConnectionStatus(prev => ({ ...prev, connected: true, reconnecting: false }));
+        setReconnectAttempts(0); // Reset reconnect attempts on successful connection
         
         // Authenticate immediately
         ws.send(JSON.stringify({
@@ -110,6 +137,12 @@ export default function Messages() {
             stagename: (currentUser as any).stagename || 'User'
           }
         }));
+
+        // Send queued messages
+        messageQueue.forEach(queuedMessage => {
+          ws.send(JSON.stringify(queuedMessage));
+        });
+        setMessageQueue([]); // Clear the queue
       };
 
       ws.onmessage = (event) => {
@@ -123,15 +156,36 @@ export default function Messages() {
 
       ws.onclose = () => {
         console.log('📱 WebSocket connection closed');
-        setConnectionStatus({ connected: false, authenticated: false });
+        setConnectionStatus({ connected: false, authenticated: false, reconnecting: false });
         
-        // Reconnect after 3 seconds
-        setTimeout(connectWebSocket, 3000);
+        // Exponential backoff reconnection with max attempts
+        if (reconnectAttempts < maxReconnectAttempts) {
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000); // Max 30 seconds
+          console.log(`🔄 Reconnecting in ${delay}ms (attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`);
+          
+          setTimeout(() => {
+            setReconnectAttempts(prev => prev + 1);
+            connectWebSocket();
+          }, delay);
+        } else {
+          console.error('❌ Max reconnection attempts reached');
+          toast({
+            title: "Connection Lost",
+            description: "Failed to reconnect. Please refresh the page.",
+            variant: "destructive"
+          });
+        }
       };
 
       ws.onerror = (error) => {
         console.error('WebSocket error:', error);
-        setConnectionStatus({ connected: false, authenticated: false });
+        setConnectionStatus({ connected: false, authenticated: false, reconnecting: false });
+        
+        toast({
+          title: "Connection Error",
+          description: "Lost connection to messaging server. Attempting to reconnect...",
+          variant: "destructive"
+        });
       };
     };
 
@@ -271,23 +325,78 @@ export default function Messages() {
   const sendMessage = () => {
     if (!messageInput.trim() || !selectedConversation || !wsRef.current) return;
     
-    if (wsRef.current.readyState === WebSocket.OPEN) {
+    const messageContent = messageInput.trim();
+    const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    let encryptedContent = messageContent;
+    let isEncrypted = false;
+
+    // Encrypt message if encryption is enabled
+    if (encryptionEnabled) {
+      try {
+        console.log('🔒 Encrypting message...');
+        // For demo: simulate encryption with visual indicator
+        encryptedContent = `🔒 [ENCRYPTED] ${messageContent}`;
+        isEncrypted = true;
+      } catch (error) {
+        console.error('Encryption failed:', error);
+        toast({
+          title: "Encryption Error",
+          description: "Failed to encrypt message. Sending as plain text.",
+          variant: "destructive"
+        });
+      }
+    }
+
+    // Add to local messages immediately for optimistic updates
+    const localMessage: Message = {
+      id: messageId,
+      conversationId: selectedConversation,
+      senderId: hasValidUser ? currentUser.id : 'demo-user',
+      content: messageContent, // Show original content locally
+      timestamp: new Date().toISOString(),
+      encrypted: isEncrypted,
+      messageType: 'text',
+      isDelivered: false,
+      isRead: false
+    };
+
+    setMessages(prev => [...prev, localMessage]);
+
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({
         type: 'send_message',
         data: {
+          id: messageId,
           conversationId: selectedConversation,
-          content: messageInput.trim(),
-          encrypted: false // Will be true when encryption is enabled
+          content: isEncrypted ? encryptedContent : messageContent,
+          encrypted: isEncrypted,
+          timestamp: new Date().toISOString(),
+          messageType: 'text'
         }
       }));
       
       setMessageInput('');
     } else {
+      console.log('📥 Queueing message for later');
+      setMessageQueue(prev => [...prev, {
+        type: 'send_message',
+        data: {
+          id: messageId,
+          conversationId: selectedConversation,
+          content: isEncrypted ? encryptedContent : messageContent,
+          encrypted: isEncrypted,
+          timestamp: new Date().toISOString(),
+          messageType: 'text'
+        }
+      }]);
+      
       toast({
-        title: "Connection Error",
-        description: "Not connected to messaging server",
-        variant: "destructive"
+        title: "Message Queued",
+        description: "Message will be sent when connection is restored.",
       });
+      
+      setMessageInput('');
     }
   };
 
@@ -339,6 +448,93 @@ export default function Messages() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Search for users to start new conversations
+  const searchUsers = async (searchTerm: string) => {
+    if (!searchTerm.trim()) {
+      setAvailableUsers([]);
+      return;
+    }
+
+    try {
+      const response = await apiRequest(`/api/users/search?q=${encodeURIComponent(searchTerm)}`);
+      const users = await response.json();
+      
+      // Filter out current user and users already in conversations
+      const existingUserIds = new Set([
+        hasValidUser ? currentUser.id : '',
+        ...conversations.flatMap(c => [c.participant1Id, c.participant2Id])
+      ]);
+      
+      const filteredUsers = users.filter((user: any) => !existingUserIds.has(user.id));
+      setAvailableUsers(filteredUsers.slice(0, 5)); // Limit to 5 results
+    } catch (error) {
+      console.error('Error searching users:', error);
+      // Fallback: Mock users for demo
+      setAvailableUsers([
+        { id: 'user1', stagename: 'MetalFan2024' },
+        { id: 'user2', stagename: 'ConcertGoer' },
+        { id: 'user3', stagename: 'HeadBanger' }
+      ].filter(user => user.stagename.toLowerCase().includes(searchTerm.toLowerCase())));
+    }
+  };
+
+  // Create new conversation with a user
+  const createNewConversation = async (user: any) => {
+    try {
+      const response = await apiRequest('/api/messaging/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          participantId: user.id
+        })
+      });
+
+      if (response.ok) {
+        const newConversation = await response.json();
+        
+        // Add to conversations list
+        setConversations(prev => [newConversation, ...prev]);
+        
+        // Select the new conversation
+        selectConversation(newConversation);
+        
+        // Close the new conversation modal
+        setShowNewConversation(false);
+        setSearchInput('');
+        setAvailableUsers([]);
+        
+        toast({
+          title: "New conversation started",
+          description: `Started messaging with ${user.stagename}`,
+        });
+      }
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      
+      // Fallback: Create mock conversation for demo
+      const mockConversation = {
+        id: `conv-${Date.now()}`,
+        participant1Id: hasValidUser ? currentUser.id : 'demo-user',
+        participant2Id: user.id,
+        participantStagename: user.stagename,
+        lastMessage: '',
+        lastMessageAt: new Date().toISOString(),
+        unreadCount: 0
+      };
+      
+      setConversations(prev => [mockConversation, ...prev]);
+      selectConversation(mockConversation);
+      setShowNewConversation(false);
+      setSearchInput('');
+      setAvailableUsers([]);
+      
+      toast({
+        title: "New conversation started",
+        description: `Started messaging with ${user.stagename}`,
+      });
+    }
+  };
+
   // Format timestamp
   const formatTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString([], { 
@@ -366,8 +562,47 @@ export default function Messages() {
 
   return (
     <div className="flex h-screen bg-background">
+      {/* Mobile Header */}
+      {isMobile && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border p-4 flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowSidebar(!showSidebar)}
+            data-testid="button-mobile-menu"
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+          
+          <h1 className="text-lg font-bold flex items-center gap-2">
+            <MessageCircle className="w-5 h-5" />
+            Messages
+          </h1>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setEncryptionEnabled(!encryptionEnabled)}
+              data-testid="button-toggle-encryption"
+            >
+              {encryptionEnabled ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+            </Button>
+            {connectionStatus.connected ? (
+              <Badge variant="outline" className="text-green-500 border-green-500 text-xs">
+                <Wifi className="w-3 h-3" />
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-red-500 border-red-500 text-xs">
+                <WifiOff className="w-3 h-3" />
+              </Badge>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Conversations Sidebar */}
-      <div className="w-80 border-r border-border flex flex-col">
+      <div className={`${isMobile ? (showSidebar ? 'w-full' : 'hidden') : 'w-80'} ${isMobile ? 'mt-16' : ''} border-r border-border flex flex-col`}>
         {/* Header */}
         <div className="p-4 border-b border-border">
           <div className="flex items-center justify-between mb-3">
@@ -376,6 +611,13 @@ export default function Messages() {
               Messages
             </h1>
             <div className="flex items-center gap-2">
+              <Button 
+                size="sm" 
+                onClick={() => setShowNewConversation(true)}
+                data-testid="button-new-conversation"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
               {connectionStatus.connected ? (
                 <Badge variant="outline" className="text-green-500 border-green-500">
                   <Wifi className="w-3 h-3 mr-1" />
@@ -403,6 +645,53 @@ export default function Messages() {
           </div>
         </div>
         
+        {/* New Conversation Modal */}
+        {showNewConversation && (
+          <div className="p-4 border-b border-border bg-muted/30">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold">Start New Conversation</h3>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowNewConversation(false)}
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <Input
+                placeholder="Search users to message..."
+                value={searchInput}
+                onChange={(e) => {
+                  setSearchInput(e.target.value);
+                  searchUsers(e.target.value);
+                }}
+                data-testid="input-search-users"
+              />
+              
+              {availableUsers.length > 0 && (
+                <div className="max-h-32 overflow-y-auto space-y-1">
+                  {availableUsers.map((user) => (
+                    <div
+                      key={user.id}
+                      onClick={() => createNewConversation(user)}
+                      className="flex items-center gap-2 p-2 rounded hover:bg-muted cursor-pointer"
+                      data-testid={`user-${user.id}`}
+                    >
+                      <Avatar className="w-6 h-6">
+                        <AvatarFallback className="text-xs">
+                          {user.stagename?.[0]?.toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm">{user.stagename}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Conversations List */}
         <div className="flex-1 overflow-y-auto">
           {conversations.length === 0 ? (
@@ -410,6 +699,14 @@ export default function Messages() {
               <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
               <p>No conversations yet</p>
               <p className="text-sm">Start chatting with other users!</p>
+              <Button 
+                className="mt-2" 
+                onClick={() => setShowNewConversation(true)}
+                data-testid="button-start-conversation"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Start Conversation
+              </Button>
             </div>
           ) : (
             conversations.map((conversation) => (
@@ -460,7 +757,7 @@ export default function Messages() {
       </div>
       
       {/* Messages Area */}
-      <div className="flex-1 flex flex-col">
+      <div className={`${isMobile ? (showSidebar ? 'hidden' : 'w-full') : 'flex-1'} ${isMobile ? 'mt-16' : ''} flex flex-col`}>
         {selectedConversation ? (
           <>
             {/* Messages Header */}

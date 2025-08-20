@@ -1945,6 +1945,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search users endpoint for conversation creation
+  app.get('/api/users/search', async (req, res) => {
+    try {
+      const { q } = req.query;
+      
+      if (!q || typeof q !== 'string' || q.trim().length < 2) {
+        return res.json([]);
+      }
+
+      const searchTerm = q.toLowerCase().trim();
+      
+      // Demo mode: Return mock users for alpha testing
+      const mockUsers = [
+        { id: 'user1', stagename: 'MetalFan2024', email: 'metal@example.com' },
+        { id: 'user2', stagename: 'ConcertGoer', email: 'concert@example.com' },
+        { id: 'user3', stagename: 'HeadBanger', email: 'headbanger@example.com' },
+        { id: 'user4', stagename: 'RockStar', email: 'rock@example.com' },
+        { id: 'user5', stagename: 'MetalHead88', email: 'metalhead@example.com' },
+        { id: 'user6', stagename: 'ThrashMaster', email: 'thrash@example.com' },
+        { id: 'user7', stagename: 'BlackMetalDemon', email: 'blackmetal@example.com' },
+        { id: 'user8', stagename: 'DeathMetalFan', email: 'death@example.com' }
+      ];
+
+      const filteredUsers = mockUsers.filter(user => 
+        user.stagename.toLowerCase().includes(searchTerm)
+      ).slice(0, 8); // Limit to 8 results
+
+      res.json(filteredUsers);
+    } catch (error) {
+      console.error('Error searching users:', error);
+      res.status(500).json({ error: 'Failed to search users' });
+    }
+  });
+
   app.post('/api/messaging/test-encryption', async (req: any, res) => {
     try {
       const { message, recipientUserId } = req.body;
