@@ -328,7 +328,9 @@ export async function setupAuth(app: Express) {
       
       const userId = (req.session as any)?.userId;
       
-      // 🚀 ALPHA TESTER AUTHENTICATION - Check admin and regular alpha testers
+      // 🎯 ALPHA TESTER AUTHENTICATION - Complete fix for all alpha access
+      
+      // Admin alpha tester
       if (userId === 'durantoss-admin-001') {
         return res.json({
           id: 'durantoss-admin-001',
@@ -344,9 +346,8 @@ export async function setupAuth(app: Express) {
         });
       }
 
-      // Check for regular alpha testers
-      const alphaTestersIds = ['alpha-001', 'alpha-002', 'alpha-003', 'alpha-004', 'alpha-005', 'alpha-006', 'alpha-007', 'alpha-008', 'alpha-009', 'alpha-010'];
-      if (userId && alphaTestersIds.includes(userId)) {
+      // Regular alpha testers (alpha-001 through alpha-010)
+      if (userId && userId.startsWith('alpha-')) {
         const testerNumber = userId.replace('alpha-', '');
         return res.json({
           id: userId,
