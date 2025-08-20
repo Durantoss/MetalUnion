@@ -98,11 +98,11 @@ export function MobileLoadingFallback() {
 
           <button
             onClick={testLogin}
-            className="w-full bg-green-600 hover:bg-green-700 px-4 py-3 rounded-lg flex items-center justify-center gap-2"
+            className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 px-4 py-3 rounded-lg flex items-center justify-center gap-2 font-bold text-lg shadow-lg"
             data-testid="button-test-alpha-login"
           >
-            <Wifi className="w-4 h-4" />
-            Test Alpha Login
+            <Wifi className="w-5 h-5" />
+            🔑 Test Alpha Login Now!
           </button>
 
           <button
@@ -114,9 +114,20 @@ export function MobileLoadingFallback() {
           </button>
         </div>
 
-        <div className="mt-4 text-xs text-gray-400 text-center">
-          <p>Alpha Testing Mode</p>
-          <p>Use: alpha-001, alpha-002, etc. with any password</p>
+        <div className="mt-4 p-3 bg-gradient-to-r from-red-600/20 to-yellow-600/20 rounded-lg border border-red-500/30">
+          <div className="text-center">
+            <h3 className="text-yellow-400 font-bold text-sm mb-2">🎸 ALPHA TESTING ACCESS 🎸</h3>
+            <div className="bg-black/50 p-3 rounded text-xs font-mono">
+              <div className="text-green-400 mb-1">Username: <span className="text-white">alpha-001</span></div>
+              <div className="text-green-400 mb-1">Username: <span className="text-white">alpha-002</span></div>
+              <div className="text-green-400 mb-1">Username: <span className="text-white">alpha-003</span></div>
+              <div className="text-gray-400 text-center mt-2">...through alpha-010</div>
+              <div className="text-yellow-400 mt-2 text-center">Password: <span className="text-white">Any password works!</span></div>
+            </div>
+            <div className="mt-2 text-xs text-gray-300">
+              Admin Access: <span className="text-red-400">durantoss-alpha-001</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
