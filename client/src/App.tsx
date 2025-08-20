@@ -279,7 +279,9 @@ export default function App() {
   }
 
   const handleLogin = () => {
+    console.log('handleLogin called - setting showAuthModal to true');
     setShowAuthModal(true);
+    console.log('showAuthModal state should now be true');
   };
 
   const handleAuthSuccess = (user: any) => {

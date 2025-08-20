@@ -152,7 +152,12 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
     resetForm();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    console.log('AuthModal: isOpen is false, not rendering modal');
+    return null;
+  }
+  
+  console.log('AuthModal: isOpen is true, rendering modal');
 
   return (
     <div style={{
