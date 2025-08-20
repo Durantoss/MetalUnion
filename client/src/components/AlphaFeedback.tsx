@@ -53,7 +53,10 @@ export function AlphaFeedback({ currentUser, isOpen, onClose }: AlphaFeedbackPro
 
   const sendFeedbackMutation = useMutation({
     mutationFn: async (feedback: FeedbackMessage) => {
+      console.log('🔄 Starting feedback submission for:', feedback.title);
+      
       // First, create or get existing conversation with admin
+      console.log('📞 Creating conversation with admin...');
       const conversationResponse = await apiRequest('/api/messaging/feedback-conversation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -64,10 +67,13 @@ export function AlphaFeedback({ currentUser, isOpen, onClose }: AlphaFeedbackPro
       });
 
       if (!conversationResponse.ok) {
-        throw new Error('Failed to create feedback conversation');
+        const errorText = await conversationResponse.text();
+        console.error('❌ Conversation creation failed:', errorText);
+        throw new Error(`Failed to create feedback conversation: ${errorText}`);
       }
 
       const conversation = await conversationResponse.json();
+      console.log('✅ Conversation created:', conversation.id);
 
       // Format the feedback message with metadata
       const feedbackMessage = {
@@ -87,6 +93,7 @@ export function AlphaFeedback({ currentUser, isOpen, onClose }: AlphaFeedbackPro
         }
       };
 
+      console.log('📨 Sending feedback message...');
       // Send the message through the encrypted messaging system
       const messageResponse = await apiRequest('/api/messaging/feedback', {
         method: 'POST',
@@ -95,12 +102,17 @@ export function AlphaFeedback({ currentUser, isOpen, onClose }: AlphaFeedbackPro
       });
 
       if (!messageResponse.ok) {
-        throw new Error('Failed to send feedback');
+        const errorText = await messageResponse.text();
+        console.error('❌ Message sending failed:', errorText);
+        throw new Error(`Failed to send feedback: ${errorText}`);
       }
 
-      return await messageResponse.json();
+      const result = await messageResponse.json();
+      console.log('✅ Feedback sent successfully:', result);
+      return result;
     },
     onSuccess: () => {
+      setIsSubmitting(false);
       toast({
         title: "Feedback Sent! 🎸",
         description: "Your feedback has been encrypted and sent directly to the developer. Thank you for helping improve MoshUnion!",
@@ -114,6 +126,7 @@ export function AlphaFeedback({ currentUser, isOpen, onClose }: AlphaFeedbackPro
       onClose();
     },
     onError: (error) => {
+      setIsSubmitting(false);
       console.error('Feedback error:', error);
       toast({
         title: "Failed to Send Feedback",
