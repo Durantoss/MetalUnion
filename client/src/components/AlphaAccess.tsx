@@ -13,19 +13,37 @@ interface AlphaAccessProps {
 
 export function AlphaAccess({ onAccess, currentTester }: AlphaAccessProps) {
   const [accessKey, setAccessKey] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginMode, setLoginMode] = useState<'key' | 'admin'>('key');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!accessKey.trim()) {
-      toast({
-        title: "Access Key Required",
-        description: "Please enter your alpha testing access key",
-        variant: "destructive"
-      });
-      return;
+    let requestBody: any = {};
+    
+    if (loginMode === 'admin') {
+      if (!username.trim() || !password.trim()) {
+        toast({
+          title: "Credentials Required",
+          description: "Please enter both username and password",
+          variant: "destructive"
+        });
+        return;
+      }
+      requestBody = { username: username.trim(), password: password.trim() };
+    } else {
+      if (!accessKey.trim()) {
+        toast({
+          title: "Access Key Required",
+          description: "Please enter your alpha testing access key",
+          variant: "destructive"
+        });
+        return;
+      }
+      requestBody = { accessKey: accessKey.trim() };
     }
 
     setLoading(true);
@@ -36,21 +54,31 @@ export function AlphaAccess({ onAccess, currentTester }: AlphaAccessProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ accessKey: accessKey.trim() })
+        body: JSON.stringify(requestBody)
       });
 
       const data = await response.json();
 
       if (response.ok) {
+        const welcomeTitle = data.tester.isAdmin ? "Welcome Admin! 👑" : "Welcome Alpha Tester! 🤘";
+        const welcomeDesc = data.tester.isAdmin 
+          ? `Hello ${data.tester.name}! You have full admin access to MoshUnion Alpha.`
+          : `Hello ${data.tester.name}! You now have access to MoshUnion Alpha.`;
+        
         toast({
-          title: "Welcome Alpha Tester! 🤘",
-          description: `Hello ${data.tester.name}! You now have access to MoshUnion Alpha.`,
+          title: welcomeTitle,
+          description: welcomeDesc,
         });
         onAccess(data.tester);
       } else {
+        const errorTitle = loginMode === 'admin' ? "Invalid Admin Credentials" : "Invalid Access Key";
+        const errorDesc = loginMode === 'admin' 
+          ? "Please check your username and password."
+          : "Please check your alpha testing key and try again.";
+        
         toast({
-          title: "Invalid Access Key",
-          description: data.error || "Please check your alpha testing key and try again.",
+          title: errorTitle,
+          description: data.error || errorDesc,
           variant: "destructive"
         });
       }
@@ -71,8 +99,11 @@ export function AlphaAccess({ onAccess, currentTester }: AlphaAccessProps) {
         <CardHeader className="text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Shield className="h-5 w-5 text-red-400" />
-            <Badge variant="outline" className="bg-red-500/20 text-red-300 border-red-500/50">
-              ALPHA TESTER
+            <Badge variant="outline" className={currentTester.isAdmin 
+              ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/50" 
+              : "bg-red-500/20 text-red-300 border-red-500/50"
+            }>
+              {currentTester.isAdmin ? "ADMIN" : "ALPHA TESTER"}
             </Badge>
           </div>
           <CardTitle className="text-red-300">Alpha Access Active</CardTitle>
@@ -114,25 +145,79 @@ export function AlphaAccess({ onAccess, currentTester }: AlphaAccessProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Input
-              data-testid="input-alpha-access-key"
-              type="text"
-              placeholder="METAL-ALPHA-XXX"
-              value={accessKey}
-              onChange={(e) => setAccessKey(e.target.value.toUpperCase())}
-              className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
-              disabled={loading}
-            />
+        <div className="flex justify-center mb-4">
+          <div className="flex bg-gray-800 rounded-lg p-1">
+            <button
+              type="button"
+              onClick={() => setLoginMode('key')}
+              className={`px-3 py-1 rounded text-sm transition-colors ${
+                loginMode === 'key' 
+                  ? 'bg-red-600 text-white' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Access Key
+            </button>
+            <button
+              type="button"
+              onClick={() => setLoginMode('admin')}
+              className={`px-3 py-1 rounded text-sm transition-colors ${
+                loginMode === 'admin' 
+                  ? 'bg-yellow-600 text-white' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Admin Login
+            </button>
           </div>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {loginMode === 'key' ? (
+            <div className="space-y-2">
+              <Input
+                data-testid="input-alpha-access-key"
+                type="text"
+                placeholder="METAL-ALPHA-XXX"
+                value={accessKey}
+                onChange={(e) => setAccessKey(e.target.value.toUpperCase())}
+                className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
+                disabled={loading}
+              />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Input
+                data-testid="input-admin-username"
+                type="text"
+                placeholder="Admin Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
+                disabled={loading}
+              />
+              <Input
+                data-testid="input-admin-password"
+                type="password"
+                placeholder="Admin Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
+                disabled={loading}
+              />
+            </div>
+          )}
           <Button 
             data-testid="button-submit-alpha-key"
             type="submit" 
-            className="w-full bg-red-600 hover:bg-red-700 text-white"
+            className={`w-full text-white ${
+              loginMode === 'admin'
+                ? 'bg-yellow-600 hover:bg-yellow-700'
+                : 'bg-red-600 hover:bg-red-700'
+            }`}
             disabled={loading}
           >
-            {loading ? 'Validating...' : 'Access Alpha Testing'}
+            {loading ? 'Validating...' : (loginMode === 'admin' ? 'Admin Login' : 'Access Alpha Testing')}
           </Button>
         </form>
         

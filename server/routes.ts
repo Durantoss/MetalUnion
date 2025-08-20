@@ -436,11 +436,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     name: string;
     email: string;
     accessKey: string;
+    password?: string;
     joinedAt: string;
     lastActive: string;
     sessionsCount: number;
     featuresUsed: string[];
     feedbackSubmitted: boolean;
+    isAdmin?: boolean;
+    canAccessDashboard?: boolean;
+    hasDevAccess?: boolean;
   }>();
 
   // Initialize alpha testers with unique keys
@@ -458,6 +462,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       { id: 'alpha-010', name: 'Alpha Tester 10', email: 'tester10@example.com', accessKey: 'METAL-ALPHA-010' }
     ];
 
+    // Add special admin account for Durantoss
+    const adminAccount = { 
+      id: 'durantoss-admin-001', 
+      name: 'Durantoss-Alpha-001', 
+      email: 'admin@moshunion.com', 
+      accessKey: 'Durantoss-Alpha-001',
+      password: 'GeigerBomba8',
+      isAdmin: true,
+      canAccessDashboard: true,
+      hasDevAccess: true
+    };
+
+    // Add regular testers
     testers.forEach(tester => {
       alphaTesters.set(tester.accessKey, {
         ...tester,
@@ -465,36 +482,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastActive: new Date().toISOString(),
         sessionsCount: 0,
         featuresUsed: [],
-        feedbackSubmitted: false
+        feedbackSubmitted: false,
+        isAdmin: false,
+        canAccessDashboard: false,
+        hasDevAccess: false
       });
+    });
+
+    // Add admin account
+    alphaTesters.set(adminAccount.accessKey, {
+      ...adminAccount,
+      joinedAt: new Date().toISOString(),
+      lastActive: new Date().toISOString(),
+      sessionsCount: 0,
+      featuresUsed: [],
+      feedbackSubmitted: false
     });
   };
 
   // Initialize alpha testers
   initializeAlphaTesters();
 
-  // Alpha access validation endpoint
+  // Alpha access validation endpoint (supports both access keys and username/password)
   app.post('/api/alpha/access', async (req, res) => {
     try {
-      const { accessKey } = req.body;
+      const { accessKey, username, password } = req.body;
       
-      if (!accessKey) {
-        return res.status(400).json({ error: 'Access key required' });
+      let tester = null;
+
+      // Check for admin login with username/password
+      if (username && password) {
+        const adminTester = Array.from(alphaTesters.values()).find(t => 
+          t.name === username && t.password === password && t.isAdmin
+        );
+        if (adminTester) {
+          tester = adminTester;
+        }
+      }
+      // Check for access key (regular alpha testers or admin with key)
+      else if (accessKey) {
+        tester = alphaTesters.get(accessKey);
       }
 
-      const tester = alphaTesters.get(accessKey);
       if (!tester) {
-        return res.status(401).json({ error: 'Invalid alpha access key' });
+        return res.status(401).json({ error: 'Invalid alpha credentials' });
       }
 
       // Update tester activity
       tester.lastActive = new Date().toISOString();
       tester.sessionsCount += 1;
 
-      // Set session
+      // Set session with admin privileges
       (req as any).session.userId = tester.id;
-      (req as any).session.alphaKey = accessKey;
+      (req as any).session.alphaKey = tester.accessKey;
       (req as any).session.isAlphaTester = true;
+      (req as any).session.isAdmin = tester.isAdmin || false;
+      (req as any).session.canAccessDashboard = tester.canAccessDashboard || false;
+      (req as any).session.hasDevAccess = tester.hasDevAccess || false;
 
       res.json({
         success: true,
@@ -504,7 +548,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: tester.email,
           accessKey: tester.accessKey,
           sessionsCount: tester.sessionsCount,
-          isAlphaTester: true
+          isAlphaTester: true,
+          isAdmin: tester.isAdmin || false,
+          canAccessDashboard: tester.canAccessDashboard || false,
+          hasDevAccess: tester.hasDevAccess || false
         }
       });
     } catch (error) {
@@ -513,9 +560,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Alpha tester dashboard for admin
-  app.get('/api/alpha/dashboard', async (req, res) => {
+  // Alpha tester dashboard for admin (restricted to admin users)
+  app.get('/api/alpha/dashboard', async (req: any, res) => {
     try {
+      // Check if user has admin access
+      if (!req.session?.isAdmin && !req.session?.canAccessDashboard) {
+        return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+      }
+
       const testingStats = Array.from(alphaTesters.values()).map(tester => ({
         id: tester.id,
         name: tester.name,
@@ -525,7 +577,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastActive: tester.lastActive,
         sessionsCount: tester.sessionsCount,
         featuresUsed: tester.featuresUsed,
-        feedbackSubmitted: tester.feedbackSubmitted
+        feedbackSubmitted: tester.feedbackSubmitted,
+        isAdmin: tester.isAdmin || false,
+        canAccessDashboard: tester.canAccessDashboard || false,
+        hasDevAccess: tester.hasDevAccess || false
       }));
 
       const summary = {
@@ -533,6 +588,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         activeTesters: testingStats.filter(t => t.sessionsCount > 0).length,
         totalSessions: testingStats.reduce((sum, t) => sum + t.sessionsCount, 0),
         feedbackCount: testingStats.filter(t => t.feedbackSubmitted).length,
+        adminUsers: testingStats.filter(t => t.isAdmin).length,
         mostActiveFeatures: getMostUsedFeatures(testingStats)
       };
 
@@ -622,7 +678,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             isAlphaTester: true,
             accessKey: tester.accessKey,
             sessionsCount: tester.sessionsCount,
-            featuresUsed: tester.featuresUsed.length
+            featuresUsed: tester.featuresUsed.length,
+            isAdmin: tester.isAdmin || false,
+            canAccessDashboard: tester.canAccessDashboard || false,
+            hasDevAccess: tester.hasDevAccess || false
           });
         }
       }
