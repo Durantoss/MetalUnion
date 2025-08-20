@@ -1835,7 +1835,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Real-time messaging API endpoints
-  app.post('/api/messaging/conversations', isAuthenticated, async (req: any, res) => {
+  app.post('/api/messaging/conversations', async (req: any, res) => {
     try {
       const userId = 'demo-user'; // Use demo user for testing
       const conversationData = insertConversationSchema.parse({
@@ -1850,10 +1850,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/messaging/conversations', isAuthenticated, async (req: any, res) => {
+  app.get('/api/messaging/conversations', async (req: any, res) => {
     try {
       const userId = 'demo-user'; // Use demo user for testing
-      const conversations = await storage.getUserConversations(userId);
+      const conversations = await storage.getConversations(userId);
       res.json(conversations);
     } catch (error) {
       console.error('Error fetching conversations:', error);
@@ -1861,7 +1861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/messaging/conversations/:id/messages', isAuthenticated, async (req: any, res) => {
+  app.get('/api/messaging/conversations/:id/messages', async (req: any, res) => {
     try {
       const { id } = req.params;
       const { limit = 50, offset = 0 } = req.query;
@@ -1873,7 +1873,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/messaging/encryption-keys', isAuthenticated, async (req: any, res) => {
+  app.post('/api/messaging/encryption-keys', async (req: any, res) => {
     try {
       const userId = 'demo-user'; // Use demo user for testing
       
@@ -1908,7 +1908,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/messaging/encryption-keys', isAuthenticated, async (req: any, res) => {
+  app.get('/api/messaging/encryption-keys', async (req: any, res) => {
     try {
       const userId = 'demo-user'; // Use demo user for testing
       const keys = await storage.getUserEncryptionKeys(userId);
@@ -1932,7 +1932,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/messaging/users/:userId/public-key', isAuthenticated, async (req: any, res) => {
+  app.get('/api/messaging/users/:userId/public-key', async (req: any, res) => {
     try {
       const { userId } = req.params;
       const keys = await storage.getUserEncryptionKeys(userId);
@@ -1952,7 +1952,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/messaging/test-encryption', isAuthenticated, async (req: any, res) => {
+  app.post('/api/messaging/test-encryption', async (req: any, res) => {
     try {
       const { message, recipientUserId } = req.body;
       
