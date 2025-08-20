@@ -38,7 +38,7 @@ export function registerEncryptionRoutes(app: Express) {
       const keys = await MessageEncryption.generateKeyPair();
       
       // Store keys in database
-      const encryptionKeys = await storage.createUserEncryptionKeys({
+      const encryptionKeys = await storage.createEncryptionKey({
         userId,
         publicKey: keys.publicKey,
         privateKeyEncrypted: keys.privateKey, // In production, encrypt this with user password
@@ -69,7 +69,7 @@ export function registerEncryptionRoutes(app: Express) {
       const senderId = req.user?.claims?.sub || req.session?.userId;
       
       // Get recipient's public key
-      const recipientKeys = await storage.getUserEncryptionKeys(recipientUserId);
+      const recipientKeys = await storage.getEncryptionKeys(recipientUserId);
       if (!recipientKeys) {
         return res.status(404).json({ error: "Recipient encryption keys not found" });
       }
@@ -78,7 +78,7 @@ export function registerEncryptionRoutes(app: Express) {
       const encryptedMessage = MessageEncryption.encryptMessage(message, recipientKeys.publicKey);
       
       // Get sender's private key for decryption test
-      const senderKeys = await storage.getUserEncryptionKeys(senderId);
+      const senderKeys = await storage.getEncryptionKeys(senderId);
       let decryptedMessage = null;
       
       if (senderKeys) {
@@ -113,7 +113,7 @@ export function registerEncryptionRoutes(app: Express) {
     try {
       // Handle both demo mode and real authentication
       const userId = req.user?.claims?.sub || req.session?.userId;
-      const keys = await storage.getUserEncryptionKeys(userId);
+      const keys = await storage.getEncryptionKeys(userId);
       
       if (!keys) {
         return res.status(404).json({ error: "No encryption keys found" });
@@ -138,14 +138,11 @@ export function registerEncryptionRoutes(app: Express) {
     try {
       const userId = req.user?.claims?.sub || req.session?.userId;
       
-      // Mark old keys as inactive
-      await storage.updateUserEncryptionKeys(userId, { isActive: false });
-      
       // Generate new keys
       const newKeys = await MessageEncryption.generateKeyPair();
       
-      // Store new keys
-      const encryptionKeys = await storage.createUserEncryptionKeys({
+      // Store new keys (for demo, just create new ones)
+      const encryptionKeys = await storage.createEncryptionKey({
         userId,
         publicKey: newKeys.publicKey,
         privateKeyEncrypted: newKeys.privateKey,
