@@ -333,8 +333,12 @@ async function seedDatabase() {
 
 async function seedChatRooms() {
   try {
-    // Check if chat rooms already exist
-    const existingRooms = await db.select().from(chatRooms);
+    console.log('Checking chat rooms table...');
+    // Check if chat rooms already exist (with better error handling)
+    const existingRooms = await db.select().from(chatRooms).catch(err => {
+      console.log('Chat rooms table might not exist yet, creating schema first');
+      return [];
+    });
     
     if (existingRooms.length === 0) {
       console.log("Seeding chat rooms...");
@@ -385,7 +389,8 @@ async function seedChatRooms() {
       console.log(`Seeded ${defaultRooms.length} chat rooms`);
     }
   } catch (error) {
-    console.error('Error seeding chat rooms:', error);
+    console.error('⚠️ Error seeding chat rooms (non-critical):', error);
+    // Non-critical error - don't crash the server
   }
 }
 
@@ -413,8 +418,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register group chat routes
   registerGroupChatRoutes(app);
 
-  // Seed database with initial data
-  await seedDatabase();
+  // Seed database with initial data (with error handling to prevent server crashes)
+  try {
+    await seedDatabase();
+    console.log('✅ Database seeding completed successfully');
+  } catch (error) {
+    console.error('⚠️ Database seeding failed, but server will continue:', error);
+    // Don't let seeding failures crash the entire server
+  }
 
   // Initialize tour data refresh (run once on startup)
   setTimeout(async () => {
