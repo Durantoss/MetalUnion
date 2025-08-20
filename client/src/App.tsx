@@ -569,19 +569,7 @@ export default function App() {
         );
 
       case 'admin':
-        return (
-          <SharedSectionLayout title="PRIVATE MESSAGES" subtitle="Connect privately with other metalheads">
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              minHeight: '300px',
-              color: '#9ca3af'
-            }}>
-              <p>Private messaging feature coming soon...</p>
-            </div>
-          </SharedSectionLayout>
-        );
+        return <Messages />;
       default:
         return (
           <SharedSectionLayout 
