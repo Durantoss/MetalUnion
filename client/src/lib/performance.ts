@@ -27,7 +27,6 @@ class PerformanceMonitor {
         if (lcpEntry) {
           this.recordMetric('LCP', lcpEntry.startTime, 'measure');
           if (lcpEntry.startTime > 2500) {
-            console.warn('⚠️ LCP is slow:', lcpEntry.startTime);
           }
         }
       });

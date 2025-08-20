@@ -246,15 +246,11 @@ export function monitorLCP() {
       
       if (lastEntry) {
         const lcp = lastEntry.startTime;
-        console.log(`📊 LCP: ${Math.round(lcp)}ms`);
         
         if (lcp > 2500) {
-          console.warn(`🐌 Poor LCP: ${Math.round(lcp)}ms`);
           // Could trigger additional optimizations here
         } else if (lcp > 1000) {
-          console.warn(`🐌 Slow LCP: ${Math.round(lcp)}ms`);
         } else {
-          console.log(`✅ Good LCP: ${Math.round(lcp)}ms`);
         }
         
         // Report to analytics

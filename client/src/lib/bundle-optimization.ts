@@ -118,7 +118,6 @@ export class ResourcePreloader {
         performanceMonitor.recordMetric(`preload-${name}`, loadTime, 'measure');
         this.preloadedResources.add(name);
         
-        console.log(`✅ Preloaded ${name} in ${loadTime}ms`);
       } catch (error) {
         () => {};
       }

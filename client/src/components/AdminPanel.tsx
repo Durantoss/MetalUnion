@@ -35,6 +35,8 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
   const [showGrantAdmin, setShowGrantAdmin] = useState(false);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
+  const [alphaTesters, setAlphaTesters] = useState<any[]>([]);
+  const [alphaTesterMetrics, setAlphaTesterMetrics] = useState<any>({});
 
   // Grant admin access with special code
   const grantAdminAccess = async () => {
@@ -53,7 +55,6 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
           alert('Failed to grant admin access');
         }
       } catch (error) {
-        console.error('Error granting admin:', error);
         alert('Error granting admin access');
       }
     } else {
@@ -89,7 +90,6 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
         loadUsers(); // Refresh data
       }
     } catch (error) {
-      console.error('Error updating user role:', error);
     }
   };
 
@@ -106,7 +106,6 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
         loadUsers(); // Refresh data
       }
     } catch (error) {
-      console.error('Error updating admin status:', error);
     }
   };
 
@@ -129,7 +128,6 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
         alert(`Failed to grant permissions: ${error.error}`);
       }
     } catch (error) {
-      console.error('Error granting permissions:', error);
       alert('Error granting permissions');
     }
   };
@@ -140,12 +138,32 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
     setShowPermissionModal(true);
   };
 
+  // Load alpha testers data
+  const loadAlphaTesters = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/admin/alpha-testers');
+      if (response.ok) {
+        const data = await response.json();
+        setAlphaTesters(data.testers);
+        setAlphaTesterMetrics(data.metrics);
+      }
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadUsers();
-  }, []);
+    if (activeTab === 'alpha') {
+      loadAlphaTesters();
+    }
+  }, [activeTab]);
 
   const tabs = [
     { id: 'users', name: 'User Management', icon: Users },
+    { id: 'alpha', name: 'Alpha Testers', icon: Crown },
     { id: 'admin', name: 'Grant Admin', icon: Crown },
     { id: 'settings', name: 'App Settings', icon: Settings },
     { id: 'database', name: 'Database', icon: Database },
@@ -354,6 +372,217 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'alpha' && (
+          <div>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#dc2626' }}>
+              Alpha Testers Dashboard
+            </h2>
+            
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '2rem' }}>Loading alpha testers...</div>
+            ) : (
+              <div>
+                {/* Metrics Overview */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '1rem',
+                  marginBottom: '2rem'
+                }}>
+                  <div style={{
+                    backgroundColor: '#111827',
+                    padding: '1.5rem',
+                    borderRadius: '8px',
+                    border: '1px solid #374151',
+                    textAlign: 'center'
+                  }}>
+                    <h3 style={{ color: '#dc2626', fontSize: '2rem', margin: '0 0 0.5rem 0' }}>
+                      {alphaTesterMetrics.totalTesters || 0}
+                    </h3>
+                    <p style={{ color: '#9ca3af', margin: 0 }}>Total Alpha Testers</p>
+                  </div>
+                  <div style={{
+                    backgroundColor: '#111827',
+                    padding: '1.5rem',
+                    borderRadius: '8px',
+                    border: '1px solid #374151',
+                    textAlign: 'center'
+                  }}>
+                    <h3 style={{ color: '#facc15', fontSize: '2rem', margin: '0 0 0.5rem 0' }}>
+                      {alphaTesterMetrics.activeSessions || 0}
+                    </h3>
+                    <p style={{ color: '#9ca3af', margin: 0 }}>Active Sessions</p>
+                  </div>
+                  <div style={{
+                    backgroundColor: '#111827',
+                    padding: '1.5rem',
+                    borderRadius: '8px',
+                    border: '1px solid #374151',
+                    textAlign: 'center'
+                  }}>
+                    <h3 style={{ color: '#10b981', fontSize: '2rem', margin: '0 0 0.5rem 0' }}>
+                      {alphaTesterMetrics.totalFeatureUsage || 0}
+                    </h3>
+                    <p style={{ color: '#9ca3af', margin: 0 }}>Total Feature Usage</p>
+                  </div>
+                  <div style={{
+                    backgroundColor: '#111827',
+                    padding: '1.5rem',
+                    borderRadius: '8px',
+                    border: '1px solid #374151',
+                    textAlign: 'center'
+                  }}>
+                    <h3 style={{ color: '#8b5cf6', fontSize: '2rem', margin: '0 0 0.5rem 0' }}>
+                      {alphaTesterMetrics.averageFeatureUsage || 0}
+                    </h3>
+                    <p style={{ color: '#9ca3af', margin: 0 }}>Avg Features/Tester</p>
+                  </div>
+                </div>
+
+                {/* Alpha Testers Table */}
+                <div style={{
+                  backgroundColor: '#111827',
+                  borderRadius: '8px',
+                  border: '1px solid #374151',
+                  overflow: 'hidden',
+                  marginBottom: '2rem'
+                }}>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 2fr',
+                    gap: '1rem',
+                    padding: '1rem',
+                    backgroundColor: '#1f2937',
+                    fontWeight: 'bold',
+                    color: '#facc15'
+                  }}>
+                    <div>Tester</div>
+                    <div>Access Key</div>
+                    <div>Sessions</div>
+                    <div>Features Used</div>
+                    <div>Admin</div>
+                    <div>Last Active</div>
+                  </div>
+                  
+                  {alphaTesters.map((tester) => (
+                    <div
+                      key={tester.id}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 2fr',
+                        gap: '1rem',
+                        padding: '1rem',
+                        borderTop: '1px solid #374151',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 'bold', color: tester.isAdmin ? '#dc2626' : '#ffffff' }}>
+                          {tester.name}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{tester.email}</div>
+                      </div>
+                      
+                      <div style={{ 
+                        fontFamily: 'monospace', 
+                        fontSize: '0.8rem',
+                        color: '#10b981'
+                      }}>
+                        {tester.accessKey}
+                      </div>
+                      
+                      <div style={{ color: '#facc15', fontWeight: 'bold' }}>
+                        {tester.sessionsCount}
+                      </div>
+                      
+                      <div style={{ color: '#8b5cf6' }}>
+                        {tester.featuresUsed.length}
+                      </div>
+                      
+                      <div style={{
+                        color: tester.isAdmin ? '#dc2626' : '#9ca3af',
+                        fontWeight: tester.isAdmin ? 'bold' : 'normal'
+                      }}>
+                        {tester.isAdmin ? '👑 Admin' : 'Tester'}
+                      </div>
+                      
+                      <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>
+                        {tester.lastActive ? new Date(tester.lastActive).toLocaleDateString() : 'Never'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Most Used Features */}
+                {alphaTesterMetrics.mostUsedFeatures && alphaTesterMetrics.mostUsedFeatures.length > 0 && (
+                  <div style={{
+                    backgroundColor: '#111827',
+                    borderRadius: '8px',
+                    border: '1px solid #374151',
+                    padding: '1.5rem',
+                    marginBottom: '2rem'
+                  }}>
+                    <h3 style={{ color: '#dc2626', marginBottom: '1rem' }}>Most Used Features</h3>
+                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                      {alphaTesterMetrics.mostUsedFeatures.map((feature: any, index: number) => (
+                        <div key={feature.feature} style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '0.5rem',
+                          backgroundColor: '#1f2937',
+                          borderRadius: '4px'
+                        }}>
+                          <span style={{ color: '#ffffff' }}>{feature.feature}</span>
+                          <span style={{ 
+                            color: '#facc15',
+                            fontWeight: 'bold',
+                            backgroundColor: '#dc2626',
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '12px',
+                            fontSize: '0.8rem'
+                          }}>
+                            {feature.count} uses
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recent Activity */}
+                {alphaTesterMetrics.recentActivity && alphaTesterMetrics.recentActivity.length > 0 && (
+                  <div style={{
+                    backgroundColor: '#111827',
+                    borderRadius: '8px',
+                    border: '1px solid #374151',
+                    padding: '1.5rem'
+                  }}>
+                    <h3 style={{ color: '#dc2626', marginBottom: '1rem' }}>Recent Activity</h3>
+                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                      {alphaTesterMetrics.recentActivity.map((tester: any, index: number) => (
+                        <div key={tester.id} style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '0.5rem',
+                          backgroundColor: '#1f2937',
+                          borderRadius: '4px'
+                        }}>
+                          <span style={{ color: '#ffffff' }}>{tester.name}</span>
+                          <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
+                            {tester.lastActive ? new Date(tester.lastActive).toLocaleString() : 'Never active'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

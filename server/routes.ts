@@ -649,6 +649,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .map(([feature, count]) => ({ feature, count }));
   }
 
+  // Admin endpoint to get alpha testers and metrics
+  app.get('/api/admin/alpha-testers', async (req: any, res) => {
+    try {
+      // Check if user is Durantoss admin
+      if (req.session?.userId !== 'durantoss-admin-001') {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      // Get all alpha testers
+      const testersData = Array.from(alphaTesters.entries()).map(([key, tester]) => ({
+        id: tester.id,
+        name: tester.name,
+        email: tester.email,
+        accessKey: tester.accessKey,
+        isAdmin: tester.isAdmin || false,
+        sessionsCount: tester.sessionsCount,
+        featuresUsed: tester.featuresUsed,
+        lastActive: tester.lastActive,
+        canAccessDashboard: tester.canAccessDashboard || false,
+        hasDevAccess: tester.hasDevAccess || false
+      }));
+
+      // Calculate metrics
+      const totalTesters = testersData.length;
+      const activeSessions = testersData.reduce((sum, tester) => sum + tester.sessionsCount, 0);
+      const totalFeatureUsage = testersData.reduce((sum, tester) => sum + tester.featuresUsed.length, 0);
+      const adminTesters = testersData.filter(tester => tester.isAdmin).length;
+      const mostUsedFeatures = getMostUsedFeatures(testersData);
+      
+      // Recent activity
+      const recentActivity = testersData
+        .filter(tester => tester.lastActive)
+        .sort((a, b) => new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime())
+        .slice(0, 5);
+
+      const metrics = {
+        totalTesters,
+        activeSessions,
+        totalFeatureUsage,
+        adminTesters,
+        averageFeatureUsage: totalTesters > 0 ? (totalFeatureUsage / totalTesters).toFixed(2) : 0,
+        mostUsedFeatures,
+        recentActivity
+      };
+
+      res.json({ testers: testersData, metrics });
+    } catch (error) {
+      console.error('Alpha testers fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch alpha testers data' });
+    }
+  });
+
   // Authentication check endpoint for persistent sessions
   app.get('/api/auth/user', async (req: any, res) => {
     try {
