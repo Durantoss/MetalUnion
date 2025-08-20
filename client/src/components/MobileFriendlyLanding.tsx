@@ -74,6 +74,7 @@ interface MobileFriendlyLandingProps {
 }
 
 export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onLogin, onLogout }: MobileFriendlyLandingProps) {
+  console.log('🎸 MobileFriendlyLanding render - currentUser:', currentUser);
   const [refreshInterval] = useState(5000); // 5 seconds
   
   // Real-time data queries that refresh every 5 seconds

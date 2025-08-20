@@ -279,9 +279,14 @@ export default function App() {
   }
 
   const handleLogin = () => {
-    console.log('handleLogin called - setting showAuthModal to true');
+    console.log('🔥 HANDLELOGIN CALLED - setting showAuthModal to true');
+    console.log('Current showAuthModal state:', showAuthModal);
     setShowAuthModal(true);
-    console.log('showAuthModal state should now be true');
+    console.log('✅ showAuthModal state should now be true');
+    // Force immediate re-render check
+    setTimeout(() => {
+      console.log('✅ Delayed check - showAuthModal should be:', showAuthModal);
+    }, 100);
   };
 
   const handleAuthSuccess = (user: any) => {
@@ -727,11 +732,28 @@ export default function App() {
       
       {/* Authentication Modal - Enabled for real authentication */}
       {showAuthModal && (
-        <AuthModal 
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-          onAuthSuccess={handleAuthSuccess}
-        />
+        <>
+          {console.log('🎯 RENDERING AuthModal - showAuthModal is:', showAuthModal)}
+          <AuthModal 
+            isOpen={showAuthModal}
+            onClose={() => setShowAuthModal(false)}
+            onAuthSuccess={handleAuthSuccess}
+          />
+        </>
+      )}
+      {/* Debug info - remove after testing */}
+      {showAuthModal && (
+        <div style={{
+          position: 'fixed', 
+          top: '10px', 
+          right: '10px', 
+          background: 'red', 
+          color: 'white', 
+          padding: '5px', 
+          zIndex: 9999
+        }}>
+          MODAL SHOULD BE OPEN: {showAuthModal.toString()}
+        </div>
       )}
 
           {/* Global Authentication Handler */}
