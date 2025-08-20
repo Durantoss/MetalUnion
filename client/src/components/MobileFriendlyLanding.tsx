@@ -385,8 +385,12 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
             <button
               onClick={() => {
                 console.log('Enter The Pit clicked - triggering login');
+                console.log('onLogin prop:', onLogin);
+                console.log('onLogin type:', typeof onLogin);
                 if (onLogin) {
+                  console.log('Calling onLogin function...');
                   onLogin();
+                  console.log('onLogin function called');
                 } else {
                   console.warn('onLogin prop not provided');
                 }
