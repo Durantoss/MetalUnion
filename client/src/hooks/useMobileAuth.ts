@@ -77,24 +77,15 @@ export function useMobileAuth() {
   };
 
   const checkMobileAuth = () => {
-    if (!shouldUseMobileAuth()) {
-      return;
-    }
-
+    // Mobile auth disabled - clear any stored demo data
     const storedAuth = localStorage.getItem('moshunion_mobile_auth');
     const storedUser = localStorage.getItem('moshunion_mobile_user');
 
-    if (storedAuth === 'true' && storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-        setIsAuthenticated(true);
-        queryClient.setQueryData(['/api/auth/user'], userData);
-        console.log('Mobile Auth: Restored mobile authentication from localStorage');
-      } catch (error) {
-        console.error('Mobile Auth: Error parsing stored user data:', error);
-        mobileLogout();
-      }
+    if (storedAuth || storedUser) {
+      console.log('Mobile Auth: Clearing stored demo authentication data');
+      localStorage.removeItem('moshunion_mobile_auth');
+      localStorage.removeItem('moshunion_mobile_user');
+      queryClient.removeQueries({ queryKey: ['/api/auth/user'] });
     }
   };
 
