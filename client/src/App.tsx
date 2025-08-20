@@ -17,7 +17,7 @@ import { EnhancedSocialHub } from './components/EnhancedSocialHub';
 import { EnhancedToursPage } from './components/EnhancedToursPage';
 import { UserProfile } from './components/UserProfile';
 import { NotificationCenter } from './components/NotificationCenter';
-import { BasicMessagingFallback } from './components/BasicMessagingFallback';
+import { AIChatbot } from './components/AIChatbot';
 import { ActivityFeed } from './components/ActivityFeed';
 import { GameficationDashboard } from './components/GameficationDashboard';
 // Events Discovery functionality has been migrated to Tours section
@@ -465,7 +465,7 @@ export default function App() {
             title="Messages" 
             subtitle="Connect with fellow metalheads"
           >
-            <BasicMessagingFallback />
+            <AIChatbot currentUser={currentUser} />
           </SharedSectionLayout>
         );
       case 'admin':

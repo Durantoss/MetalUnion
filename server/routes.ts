@@ -74,6 +74,7 @@ import { registerEncryptionRoutes } from "./encryptionRoutes";
 import { WebSocketExamples } from "./websocketExamples";
 import { registerDatabaseExamples } from "./databaseExamples";
 import { getRealtimeVenueData, simulateRealtimeUpdates, type VenueRealtimeData } from "./venueCapacityService";
+import { aiChatRoutes } from "./aiChatRoutes";
 import multer from "multer";
 import path from "path";
 
@@ -2343,6 +2344,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register complete database examples and operations
   registerDatabaseExamples(app);
   console.log('Database examples and operations initialized');
+  
+  // Register AI chat routes
+  app.use('/api/ai-chat', aiChatRoutes);
+  console.log('AI chat routes initialized');
   
   return httpServer;
 }
