@@ -145,7 +145,8 @@ export default function Messages() {
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log('📱 Connected to messaging WebSocket');
+        console.log('📱 Mobile Debug - Connected to messaging WebSocket');
+        console.log('📱 Mobile Debug - Setting connection status to connected');
         setConnectionStatus(prev => ({ ...prev, connected: true, reconnecting: false }));
         setReconnectAttempts(0); // Reset reconnect attempts on successful connection
         
