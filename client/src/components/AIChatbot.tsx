@@ -100,7 +100,7 @@ body: JSON.stringify({ content })
 
   // Auto-select first conversation if none selected
   useEffect(() => {
-    if (conversations.length > 0 && !selectedConversation) {
+    if (conversations && conversations.length > 0 && !selectedConversation) {
       setSelectedConversation(conversations[0].id);
       setShowConversationList(false);
     }
@@ -176,7 +176,7 @@ body: JSON.stringify({ content })
               <h2 className="text-lg font-bold text-white">MoshBot AI</h2>
             </div>
             <Button
-              onClick={() => createConversationMutation.mutate()}
+              onClick={() => createConversationMutation.mutate('New AI Chat')}
               disabled={createConversationMutation.isPending}
               className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
               data-testid="button-new-conversation"
@@ -195,7 +195,7 @@ body: JSON.stringify({ content })
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-yellow-400" />
             </div>
-          ) : conversations.length === 0 ? (
+          ) : !conversations || conversations.length === 0 ? (
             <div className="text-center py-8 text-gray-400">
               <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="text-sm">No conversations yet</p>
@@ -225,9 +225,9 @@ body: JSON.stringify({ content })
                       <p className="text-xs opacity-70 mt-1">
                         {formatTime(conversation.updatedAt)}
                       </p>
-                      {conversation.messages.length > 0 && (
+                      {conversation.messages && conversation.messages.length > 0 && (
                         <p className="text-xs opacity-60 truncate mt-1">
-                          {conversation.messages[conversation.messages.length - 1].content}
+                          {conversation.messages && conversation.messages.length > 0 && conversation.messages[conversation.messages.length - 1].content}
                         </p>
                       )}
                     </div>
@@ -262,7 +262,7 @@ body: JSON.stringify({ content })
                 Your AI assistant for metal & rock music discovery
               </p>
               <Button
-                onClick={() => createConversationMutation.mutate()}
+                onClick={() => createConversationMutation.mutate('New AI Chat')}
                 disabled={createConversationMutation.isPending}
                 className="bg-red-600 hover:bg-red-700 text-white font-medium"
                 data-testid="button-start-conversation"
@@ -315,7 +315,7 @@ body: JSON.stringify({ content })
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-yellow-400" />
                 </div>
-              ) : currentConversation?.messages.length === 0 ? (
+              ) : !currentConversation?.messages || currentConversation?.messages.length === 0 ? (
                 <div className="text-center py-8">
                   <Bot className="h-12 w-12 mx-auto mb-4 text-yellow-400 opacity-50" />
                   <p className="text-gray-400">
@@ -323,7 +323,7 @@ body: JSON.stringify({ content })
                   </p>
                 </div>
               ) : (
-                currentConversation?.messages.map((message) => (
+                currentConversation?.messages?.map((message) => (
                   <div
                     key={message.id}
                     className={`flex items-start gap-3 ${
