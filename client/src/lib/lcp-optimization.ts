@@ -295,5 +295,4 @@ export function initializeLCPOptimizations() {
     monitorLCP();
   }
   
-  console.log('🚀 LCP optimizations initialized');
 }

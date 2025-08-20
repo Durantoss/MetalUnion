@@ -133,7 +133,6 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
         await registerMutation.mutateAsync({ stagename, safeword, email: email || undefined });
       }
     } catch (error) {
-      console.error('Auth error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -153,11 +152,9 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
   };
 
   if (!isOpen) {
-    console.log('AuthModal: isOpen is false, not rendering modal');
     return null;
   }
   
-  console.log('AuthModal: isOpen is true, rendering modal');
 
   return (
     <div style={{

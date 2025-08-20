@@ -330,18 +330,14 @@ export async function setupAuth(app: Express) {
   // Logout endpoint
   app.post('/api/auth/logout', (req: Request, res: Response) => {
     try {
-      console.log('Logout request received from:', req.headers.origin);
       req.session.destroy((err) => {
         if (err) {
-          console.error('Session destruction error:', err);
           return res.status(500).json({ error: 'Logout failed' });
         }
         res.clearCookie('connect.sid');
-        console.log('User logged out successfully');
         res.json({ message: 'Logout successful' });
       });
     } catch (error) {
-      console.error('Logout error:', error);
       res.status(500).json({ error: 'Logout failed' });
     }
   });
@@ -349,18 +345,11 @@ export async function setupAuth(app: Express) {
   // Current user endpoint
   app.get('/api/auth/user', optionalAuth, async (req: Request, res: Response) => {
     try {
-      console.log('Auth check - Session:', { 
-        hasSession: !!req.session,
-        userId: (req.session as any)?.userId,
-        sessionKeys: req.session ? Object.keys(req.session) : [],
-        cookies: req.headers.cookie
-      });
       
       // Alpha mode active - only demo mode when explicitly enabled
       const isDemoMode = process.env.DEMO_MODE === 'true';
       const userId = (req.session as any)?.userId;
       
-      console.log('🎯 Alpha mode - user auth check:', { isDemoMode, userId });
       
       // 🎯 ALPHA TESTER AUTHENTICATION
       
@@ -397,11 +386,6 @@ export async function setupAuth(app: Express) {
         });
       }
       
-      console.log('🎯 Alpha mode - authentication status:', { 
-        isDemoMode, 
-        userId,
-        hasValidSession: !!userId
-      });
       
       if (!userId) {
         if (isDemoMode) {

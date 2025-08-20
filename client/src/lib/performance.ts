@@ -55,7 +55,7 @@ class PerformanceMonitor {
         
         this.observers.push(lcpObserver, fidObserver, clsObserver);
       } catch (e) {
-        console.log('Performance Observer not fully supported');
+        // Performance Observer not supported
       }
     }
   }
@@ -78,10 +78,6 @@ class PerformanceMonitor {
       this.metrics.shift();
     }
     
-    // Log slow operations
-    if (type === 'measure' && value > 1000) {
-      console.warn(`🐌 Slow ${name}:`, value + 'ms');
-    }
   }
 
   /**

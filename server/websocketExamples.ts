@@ -177,7 +177,7 @@ export class WebSocketExamples {
       if (encrypt) {
         try {
           // Get recipient's encryption keys
-          const recipientKeys = await storage.getUserEncryptionKeys(recipientId);
+          const recipientKeys = await storage.getEncryptionKeys();
           if (recipientKeys) {
             const encrypted = MessageEncryption.encryptMessage(content, recipientKeys.publicKey);
             finalContent = encrypted.encryptedData;

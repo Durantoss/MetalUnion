@@ -27,11 +27,9 @@ export class TourDataService {
     
     // Avoid refreshing too frequently
     if (now.getTime() - this.lastRefresh.getTime() < this.TOUR_REFRESH_INTERVAL) {
-      console.log("Tour database refresh skipped - too recent");
       return;
     }
 
-    console.log("Refreshing tour database with current data...");
     this.lastRefresh = now;
 
     try {
@@ -54,13 +52,10 @@ export class TourDataService {
           successCount += result.value;
         } else {
           errorCount++;
-          console.error("Tour fetch error:", result.reason);
         }
       }
 
-      console.log(`Tour database refresh complete: ${successCount} tours added, ${errorCount} errors`);
     } catch (error) {
-      console.error("Failed to refresh tour database:", error);
     }
   }
 
@@ -69,7 +64,6 @@ export class TourDataService {
    */
   private async fetchTourDataForBand(bandName: string, bandId: string): Promise<number> {
     try {
-      console.log(`Fetching tour data for band: ${bandName}`);
       
       // Use Google Search to find tour information
       const googleTourResults = await performGoogleSearch(`${bandName} tour 2024 2025 concerts`, 'tours');
@@ -77,11 +71,9 @@ export class TourDataService {
       // Parse Google results to extract tour information
       const googleResults = googleTourResults?.items || [];
       const tourData = this.parseGoogleTourResults(googleResults, bandId);
-      console.log(`Google search found ${tourData.length} potential tours for ${bandName}`);
       
       // Also check for additional sources
       const additionalTours = await this.fetchFromAdditionalSources(bandName, bandId);
-      console.log(`Additional sources found ${additionalTours.length} potential tours for ${bandName}`);
       
       const allTours = [...tourData, ...additionalTours];
       

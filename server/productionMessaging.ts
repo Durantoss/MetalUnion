@@ -423,11 +423,7 @@ export class ProductionMessagingServer {
   }
 
   private logStats() {
-    console.log('📊 Messaging Stats:', {
-      ...this.stats,
-      activeUsers: this.connectedUsers.size,
-      activeConversations: this.conversationSubscriptions.size
-    });
+    // Stats logging disabled for production
   }
 
   // Public method to get server stats

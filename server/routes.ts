@@ -566,7 +566,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error) {
-      console.error('Alpha access error:', error);
       res.status(500).json({ error: 'Failed to validate alpha access' });
     }
   });
@@ -690,31 +689,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      console.log('Auth check - Session:', {
-        hasSession: !!req.session,
-        userId: req.session?.userId,
-        isAlphaTester: req.session?.isAlphaTester,
-        alphaKey: req.session?.alphaKey,
-        sessionKeys: req.session ? Object.keys(req.session) : [],
-        cookies: req.headers.cookie
-      });
 
       // Check for demo mode in deployed environment (only if not alpha tester)
       const host = req.get('host') || req.headers.host || '';
       const isDeployedApp = host.includes('.replit.app') || host.includes('band-blaze-durantoss');
       const isDemoMode = process.env.DEMO_MODE === 'true' || isDeployedApp || process.env.NODE_ENV === 'production';
       
-      console.log('Auth user endpoint - Demo check debug:', { 
-        host, 
-        isDeployedApp, 
-        isDemoMode, 
-        userId: req.session?.userId,
-        fullUrl: req.protocol + '://' + req.get('host') + req.originalUrl
-      });
 
       // Provide demo user for non-alpha users in demo mode
       if (isDemoMode && (!req.session || !req.session.userId)) {
-        console.log('Demo mode: Providing demo user for authentication check');
         return res.json({
           id: 'demo-guest-user',
           stagename: 'Guest',
@@ -725,7 +708,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check for valid session (regular user)
       if (!req.session || !req.session.userId) {
-        console.log('No userId in session, returning 401');
         return res.status(401).json({ error: 'Not authenticated' });
       }
 

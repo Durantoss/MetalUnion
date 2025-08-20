@@ -21,16 +21,10 @@ export async function importWithRetry<T>(
       const loadTime = performance.now() - startTime;
       performanceMonitor.recordMetric(`bundle-load-${name}`, loadTime, 'measure');
       
-      if (loadTime > 1000) {
-        console.warn(`🐌 Slow bundle load: ${name} took ${loadTime}ms`);
-      }
       
       return module;
     } catch (error) {
-      console.warn(`Bundle load attempt ${attempt} failed for ${name}:`, error);
-      
       if (attempt === retries) {
-        console.error(`Failed to load ${name} after ${retries} attempts`);
         throw error;
       }
       
@@ -65,15 +59,11 @@ export function createOptimizedLazyComponent<P = {}>(
   if (preload) {
     if (priority === 'high') {
       // Preload immediately
-      importFn().catch(error => 
-        console.warn(`Failed to preload ${name}:`, error)
-      );
+      importFn().catch(() => {});
     } else {
       // Preload after initial load
       setTimeout(() => {
-        importFn().catch(error => 
-          console.warn(`Failed to preload ${name}:`, error)
-        );
+        importFn().catch(() => {});
       }, 2000);
     }
   }
@@ -130,7 +120,7 @@ export class ResourcePreloader {
         
         console.log(`✅ Preloaded ${name} in ${loadTime}ms`);
       } catch (error) {
-        console.warn(`Failed to preload ${name}:`, error);
+        () => {};
       }
     };
 
@@ -271,5 +261,4 @@ export function initializeBundleOptimizations() {
     }
   });
 
-  console.log('🚀 Bundle optimizations initialized');
 }

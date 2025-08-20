@@ -8,14 +8,11 @@ export function MobileLoadingFallback() {
 
   const checkHealth = async () => {
     try {
-      console.log('🔍 Checking mobile health endpoint...');
       const response = await fetch('/api/mobile-health');
       const data = await response.json();
-      console.log('✅ Health check response:', data);
       setHealthCheck(data);
       return true;
     } catch (error) {
-      console.error('❌ Health check failed:', error);
       setHealthCheck({ error: error.toString() });
       return false;
     }
@@ -23,7 +20,6 @@ export function MobileLoadingFallback() {
 
   const testLogin = async () => {
     try {
-      console.log('🔍 Testing alpha login...');
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -34,7 +30,6 @@ export function MobileLoadingFallback() {
         })
       });
       const data = await response.json();
-      console.log('🔐 Login test result:', data);
       
       if (response.ok) {
         alert('✅ Alpha login successful! Refreshing page...');
@@ -43,7 +38,6 @@ export function MobileLoadingFallback() {
         alert(`❌ Login failed: ${data.error}`);
       }
     } catch (error) {
-      console.error('❌ Login test failed:', error);
       alert(`❌ Login test failed: ${error}`);
     }
   };
@@ -77,14 +71,6 @@ export function MobileLoadingFallback() {
           </p>
         </div>
 
-        {healthCheck && (
-          <div className="mb-4 p-3 bg-gray-800 rounded text-xs">
-            <strong>Debug Info:</strong>
-            <pre className="whitespace-pre-wrap mt-1">
-              {JSON.stringify(healthCheck, null, 2)}
-            </pre>
-          </div>
-        )}
 
         <div className="space-y-3">
           <button
