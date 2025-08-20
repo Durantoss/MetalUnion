@@ -47,7 +47,7 @@ export function AlphaFeedback({ currentUser, isOpen, onClose }: AlphaFeedbackPro
   // Detect current section and device info
   const currentSection = window.location.pathname.includes('messaging') ? 'Messaging' : 
                         window.location.search.includes('section=') ? 
-                        new URLSearchParams(window.location.search).get('section') : 'Main App';
+                        new URLSearchParams(window.location.search).get('section') || 'Main App' : 'Main App';
 
   const deviceInfo = `${navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'} | ${navigator.userAgent.split(' ')[0]}`;
 

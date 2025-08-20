@@ -1089,9 +1089,41 @@ export class DatabaseStorage implements IStorage {
 }
 
 export class MemStorage implements IStorage {
-  // Memory stores for feedback system
-  private feedbackConversations: any[] = [];
-  private feedbackMessages: any[] = [];
+  // File-based persistence for feedback system
+  private feedbackDataFile = './feedback-data.json';
+  
+  private loadFeedbackData(): { conversations: any[], messages: any[] } {
+    try {
+      import('fs').then(fs => {
+        if (fs.existsSync(this.feedbackDataFile)) {
+          const data = fs.readFileSync(this.feedbackDataFile, 'utf8');
+          return JSON.parse(data);
+        }
+      });
+    } catch (error) {
+      console.log('📝 Creating new feedback data file');
+    }
+    return { conversations: [], messages: [] };
+  }
+  
+  private saveFeedbackData(conversations: any[], messages: any[]): void {
+    try {
+      import('fs').then(fs => {
+        const data = { conversations, messages };
+        fs.writeFileSync(this.feedbackDataFile, JSON.stringify(data, null, 2));
+      });
+    } catch (error) {
+      console.error('❌ Failed to save feedback data:', error);
+    }
+  }
+  
+  private get feedbackConversations(): any[] {
+    return this.loadFeedbackData().conversations;
+  }
+  
+  private get feedbackMessages(): any[] {
+    return this.loadFeedbackData().messages;
+  }
   private users: Map<string, User> = new Map();
   private bands: Map<string, Band> = new Map();
   private reviews: Map<string, Review> = new Map();
@@ -2442,8 +2474,11 @@ export class MemStorage implements IStorage {
       unreadCount: 0
     };
     
-    // Store in memory for retrieval
-    this.feedbackConversations.push(newConversation);
+    // Store persistently
+    const data = this.loadFeedbackData();
+    data.conversations.push(newConversation);
+    this.saveFeedbackData(data.conversations, data.messages);
+    
     console.log(`💬 Created conversation: ${newConversation.id} between ${newConversation.participant1Id} and ${newConversation.participant2Id}`);
     
     return newConversation;
@@ -2551,16 +2586,19 @@ export class MemStorage implements IStorage {
       encrypted: true
     };
     
-    // Store in memory
-    this.feedbackMessages.push(newMessage);
+    // Store persistently
+    const data = this.loadFeedbackData();
+    data.messages.push(newMessage);
     
     // Update conversation's last message
-    const conversation = this.feedbackConversations.find(conv => conv.id === message.conversationId);
+    const conversation = data.conversations.find(conv => conv.id === message.conversationId);
     if (conversation) {
       conversation.lastMessage = message.content?.substring(0, 50) + '...';
       conversation.lastMessageAt = new Date();
       conversation.unreadCount = (conversation.unreadCount || 0) + 1;
     }
+    
+    this.saveFeedbackData(data.conversations, data.messages);
     
     console.log(`✉️ Created message: ${newMessage.id} in conversation ${message.conversationId}`);
     
