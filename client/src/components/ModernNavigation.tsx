@@ -28,7 +28,8 @@ export function ModernNavigation({
     { id: 'messaging', label: 'MESSAGES' },
     { id: 'tours', label: 'TOURS' },
     { id: 'reviews', label: 'REVIEWS' },
-    { id: 'photos', label: 'PHOTOS' }
+    { id: 'photos', label: 'PHOTOS' },
+    { id: 'admin', label: '🛡️ ADMIN' }
   ];
 
   return (
