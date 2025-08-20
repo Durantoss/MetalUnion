@@ -85,7 +85,7 @@ export class MessageEncryption {
       const iv = Buffer.from(encryptedMessage.iv, 'base64');
 
       // Decrypt message with AES-256-GCM
-      const decipher = createDecipheriv('aes-256-gcm', aesKey, iv);
+      const decipher = createDecipheriv('aes-256-gcm', aesKey, iv, { authTagLength: 16 });
       decipher.setAuthTag(authTag);
       
       let decryptedData = decipher.update(encryptedData, 'base64', 'utf8');
