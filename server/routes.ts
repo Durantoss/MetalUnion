@@ -653,9 +653,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/alpha-testers', async (req: any, res) => {
     try {
       // Check if user is Durantoss admin
-      if (req.session?.userId !== 'durantoss-admin-001') {
+      const userId = (req.session as any)?.userId;
+      console.log('Alpha testers API - User ID:', userId);
+      
+      if (userId !== 'durantoss-admin-001') {
+        console.log('Alpha testers API - Access denied for user:', userId);
         return res.status(403).json({ error: 'Admin access required' });
       }
+      
+      console.log('Alpha testers API - Admin access granted');
 
       // Get all alpha testers
       const testersData = Array.from(alphaTesters.entries()).map(([key, tester]) => ({
