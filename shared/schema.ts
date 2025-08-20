@@ -829,6 +829,10 @@ export const userKeyBundles = pgTable("user_key_bundles", {
   identityPublicKey: text("identity_public_key").notNull(),
   identityPrivateKeyEncrypted: text("identity_private_key_encrypted").notNull(), // Encrypted with user password
   
+  // X25519 Identity Key (for ECDH operations)
+  identityPublicKeyX25519: text("identity_public_key_x25519").notNull(),
+  identityPrivateKeyX25519Encrypted: text("identity_private_key_x25519_encrypted").notNull(),
+  
   // X25519 Signed Pre-Key (for key exchange)
   signedPreKeyPublic: text("signed_pre_key_public").notNull(),
   signedPreKeyPrivateEncrypted: text("signed_pre_key_private_encrypted").notNull(),

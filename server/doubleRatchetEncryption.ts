@@ -10,7 +10,13 @@ import { sha256 } from '@noble/hashes/sha256';
  */
 
 export interface DoubleRatchetKeys {
+  // Ed25519 for signatures only
   identityKey: {
+    privateKey: Uint8Array;
+    publicKey: Uint8Array;
+  };
+  // X25519 for key exchange
+  identityKeyX25519: {
     privateKey: Uint8Array;
     publicKey: Uint8Array;
   };
@@ -96,10 +102,13 @@ export class DoubleRatchetEncryption {
     // Identity key (Ed25519 for signatures)
     const identityKey = this.generateIdentityKeyPair();
     
+    // Identity key for X25519 operations (separate key)
+    const identityKeyX25519 = this.generateX25519KeyPair();
+    
     // Signed pre-key (X25519 for key exchange)
     const signedPreKeyPair = this.generateX25519KeyPair();
     
-    // Sign the pre-key with identity key
+    // Sign the pre-key with Ed25519 identity key
     const signature = ed25519.sign(signedPreKeyPair.publicKey, identityKey.privateKey);
     
     // Ephemeral key (X25519 for initial key exchange)
@@ -107,6 +116,7 @@ export class DoubleRatchetEncryption {
     
     return {
       identityKey,
+      identityKeyX25519,
       signedPreKey: {
         privateKey: signedPreKeyPair.privateKey,
         publicKey: signedPreKeyPair.publicKey,
@@ -122,31 +132,34 @@ export class DoubleRatchetEncryption {
   static initializeSenderRatchet(
     senderKeys: DoubleRatchetKeys,
     receiverPublicKeys: {
-      identityKey: Uint8Array;
+      identityKeyX25519: Uint8Array;
       signedPreKey: Uint8Array;
       ephemeralKey: Uint8Array;
     }
   ): RatchetState {
-    // Verify receiver's signed pre-key signature (skip verification for demo)
-    // In production, verify the signature with the receiver's identity key
-    const isValidSignature = true; // ed25519.verify(signature, message, publicKey)
-    
-    if (!isValidSignature) {
-      throw new Error('Invalid signed pre-key signature');
-    }
-
-    // Perform triple DH key exchange
-    const dh1 = x25519.getSharedSecret(senderKeys.identityKey.privateKey, receiverPublicKeys.signedPreKey);
-    const dh2 = x25519.getSharedSecret(senderKeys.ephemeralKey.privateKey, receiverPublicKeys.identityKey);
+    // Perform X3DH key exchange (3 Diffie-Hellman operations)
+    const dh1 = x25519.getSharedSecret(senderKeys.identityKeyX25519.privateKey, receiverPublicKeys.signedPreKey);
+    const dh2 = x25519.getSharedSecret(senderKeys.ephemeralKey.privateKey, receiverPublicKeys.identityKeyX25519);
     const dh3 = x25519.getSharedSecret(senderKeys.ephemeralKey.privateKey, receiverPublicKeys.signedPreKey);
-    const dh4 = x25519.getSharedSecret(senderKeys.ephemeralKey.privateKey, receiverPublicKeys.ephemeralKey);
+    let dh4: Uint8Array | null = null;
+    
+    // Optional 4th DH if ephemeral key available
+    if (receiverPublicKeys.ephemeralKey) {
+      dh4 = x25519.getSharedSecret(senderKeys.ephemeralKey.privateKey, receiverPublicKeys.ephemeralKey);
+    }
     
     // Derive master secret using HKDF
-    const keyMaterial = new Uint8Array(dh1.length + dh2.length + dh3.length + dh4.length);
-    keyMaterial.set(dh1, 0);
-    keyMaterial.set(dh2, dh1.length);
-    keyMaterial.set(dh3, dh1.length + dh2.length);
-    keyMaterial.set(dh4, dh1.length + dh2.length + dh3.length);
+    const dhResults = [dh1, dh2, dh3];
+    if (dh4) dhResults.push(dh4);
+    
+    const totalLength = dhResults.reduce((sum, dh) => sum + dh.length, 0);
+    const keyMaterial = new Uint8Array(totalLength);
+    let offset = 0;
+    
+    for (const dh of dhResults) {
+      keyMaterial.set(dh, offset);
+      offset += dh.length;
+    }
     const masterSecret = hkdf(sha256, keyMaterial, new Uint8Array(32), new Uint8Array(), 64);
     
     // Split master secret into root key and chain key
@@ -167,7 +180,7 @@ export class DoubleRatchetEncryption {
       receivingChainKey: new Uint8Array(32),
       receivingMessageNumber: 0,
       dhRatchetKey,
-      remotePublicKey: receiverPublicKeys.signedPreKey,
+      remotePublicKey: receiverPublicKeys.identityKeyX25519,
       headerKey,
       nextHeaderKey,
       skippedMessageKeys: new Map()
@@ -382,12 +395,14 @@ export class DoubleRatchetEncryption {
    */
   static exportPublicKeyBundle(keys: DoubleRatchetKeys): {
     identityKey: string;
+    identityKeyX25519: string;
     signedPreKey: string;
     signedPreKeySignature: string;
     ephemeralKey: string;
   } {
     return {
       identityKey: Buffer.from(keys.identityKey.publicKey).toString('base64'),
+      identityKeyX25519: Buffer.from(keys.identityKeyX25519.publicKey).toString('base64'),
       signedPreKey: Buffer.from(keys.signedPreKey.publicKey).toString('base64'), 
       signedPreKeySignature: Buffer.from(keys.signedPreKey.signature).toString('base64'),
       ephemeralKey: Buffer.from(keys.ephemeralKey.publicKey).toString('base64')

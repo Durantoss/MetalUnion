@@ -1,4 +1,10 @@
-import { storage } from './storage';
+import { db } from './db';
+import { eq } from 'drizzle-orm';
+import { 
+  userKeyBundles, 
+  conversationRatchetStates, 
+  doubleRatchetMessages 
+} from '@shared/schema';
 import { DoubleRatchetEncryption, DoubleRatchetKeys, RatchetState, EncryptedDoubleRatchetMessage } from './doubleRatchetEncryption';
 import { 
   InsertUserKeyBundle, 
@@ -48,10 +54,18 @@ export class DoubleRatchetService {
     const keyBundleId = Math.floor(Math.random() * 1000000);
     
     // Store in database
+    // Also encrypt the X25519 identity key
+    const identityX25519PrivateEncrypted = this.encryptWithPassword(
+      Buffer.from(keyBundle.identityKeyX25519.privateKey).toString('base64'),
+      password
+    );
+    
     const insertData: InsertUserKeyBundle = {
       userId,
       identityPublicKey: Buffer.from(keyBundle.identityKey.publicKey).toString('base64'),
       identityPrivateKeyEncrypted: identityPrivateEncrypted,
+      identityPublicKeyX25519: Buffer.from(keyBundle.identityKeyX25519.publicKey).toString('base64'),
+      identityPrivateKeyX25519Encrypted: identityX25519PrivateEncrypted,
       signedPreKeyPublic: Buffer.from(keyBundle.signedPreKey.publicKey).toString('base64'),
       signedPreKeyPrivateEncrypted: signedPreKeyPrivateEncrypted,
       signedPreKeySignature: Buffer.from(keyBundle.signedPreKey.signature).toString('base64'),
@@ -63,8 +77,10 @@ export class DoubleRatchetService {
     
     await this.insertUserKeyBundle(insertData);
     
+    const publicKeyBundle = DoubleRatchetEncryption.exportPublicKeyBundle(keyBundle);
+    
     return {
-      publicKeyBundle: DoubleRatchetEncryption.exportPublicKeyBundle(keyBundle),
+      publicKeyBundle,
       keyBundleId
     };
   }
@@ -94,7 +110,7 @@ export class DoubleRatchetService {
     const senderRatchetState = DoubleRatchetEncryption.initializeSenderRatchet(
       senderKeys,
       {
-        identityKey: Buffer.from(receiverPublicKeys.identityPublicKey, 'base64'),
+        identityKeyX25519: Buffer.from(receiverPublicKeys.identityPublicKeyX25519, 'base64'),
         signedPreKey: Buffer.from(receiverPublicKeys.signedPreKeyPublic, 'base64'),
         ephemeralKey: Buffer.from(receiverPublicKeys.ephemeralKeyPublic, 'base64')
       }
@@ -208,6 +224,7 @@ export class DoubleRatchetService {
     try {
       // Decrypt private keys
       const identityPrivateKey = this.decryptWithPassword(keyBundle.identityPrivateKeyEncrypted, password);
+      const identityX25519PrivateKey = this.decryptWithPassword(keyBundle.identityPrivateKeyX25519Encrypted, password);
       const signedPreKeyPrivate = this.decryptWithPassword(keyBundle.signedPreKeyPrivateEncrypted, password);
       const ephemeralPrivate = this.decryptWithPassword(keyBundle.ephemeralKeyPrivateEncrypted, password);
       
@@ -215,6 +232,10 @@ export class DoubleRatchetService {
         identityKey: {
           privateKey: new Uint8Array(Buffer.from(identityPrivateKey, 'base64')),
           publicKey: new Uint8Array(Buffer.from(keyBundle.identityPublicKey, 'base64'))
+        },
+        identityKeyX25519: {
+          privateKey: new Uint8Array(Buffer.from(identityX25519PrivateKey, 'base64')),
+          publicKey: new Uint8Array(Buffer.from(keyBundle.identityPublicKeyX25519, 'base64'))
         },
         signedPreKey: {
           privateKey: new Uint8Array(Buffer.from(signedPreKeyPrivate, 'base64')),
@@ -314,34 +335,66 @@ export class DoubleRatchetService {
     return decrypted;
   }
   
-  // Database operation stubs - these would integrate with your storage layer
+  // Database operations - integrated with storage layer
   private static async insertUserKeyBundle(data: InsertUserKeyBundle): Promise<UserKeyBundle> {
-    // TODO: Implement database insertion
-    throw new Error('Database integration pending');
+    const result = await db.insert(userKeyBundles).values(data).returning();
+    return result[0];
   }
   
   private static async getUserKeyBundleFromDB(userId: string): Promise<UserKeyBundle | null> {
-    // TODO: Implement database query
-    throw new Error('Database integration pending');
+    const result = await db.select()
+      .from(userKeyBundles)
+      .where(eq(userKeyBundles.userId, userId))
+      .where(eq(userKeyBundles.isActive, true))
+      .limit(1);
+    
+    return result[0] || null;
   }
   
   private static async insertDoubleRatchetMessage(data: InsertDoubleRatchetMessage): Promise<DoubleRatchetMessage> {
-    // TODO: Implement database insertion  
-    throw new Error('Database integration pending');
+    const result = await db.insert(doubleRatchetMessages).values(data).returning();
+    return result[0];
   }
   
   private static async getDoubleRatchetMessage(messageId: string): Promise<DoubleRatchetMessage | null> {
-    // TODO: Implement database query
-    throw new Error('Database integration pending');
+    const result = await db.select()
+      .from(doubleRatchetMessages)
+      .where(eq(doubleRatchetMessages.id, messageId))
+      .where(eq(doubleRatchetMessages.isDeleted, false))
+      .limit(1);
+      
+    return result[0] || null;
   }
   
   private static async upsertConversationRatchetState(data: InsertConversationRatchetState): Promise<void> {
-    // TODO: Implement database upsert
-    throw new Error('Database integration pending');
+    // Try to update existing state first
+    const existing = await db.select()
+      .from(conversationRatchetStates)
+      .where(eq(conversationRatchetStates.conversationId, data.conversationId))
+      .where(eq(conversationRatchetStates.userId, data.userId))
+      .limit(1);
+    
+    if (existing.length > 0) {
+      await db.update(conversationRatchetStates)
+        .set({
+          ratchetStateEncrypted: data.ratchetStateEncrypted,
+          sendingMessageNumber: data.sendingMessageNumber,
+          receivingMessageNumber: data.receivingMessageNumber,
+          lastUpdated: new Date()
+        })
+        .where(eq(conversationRatchetStates.id, existing[0].id));
+    } else {
+      await db.insert(conversationRatchetStates).values(data);
+    }
   }
   
   private static async getConversationRatchetState(conversationId: string, userId: string): Promise<ConversationRatchetState | null> {
-    // TODO: Implement database query
-    throw new Error('Database integration pending');
+    const result = await db.select()
+      .from(conversationRatchetStates)
+      .where(eq(conversationRatchetStates.conversationId, conversationId))
+      .where(eq(conversationRatchetStates.userId, userId))
+      .limit(1);
+      
+    return result[0] || null;
   }
 }
