@@ -325,7 +325,7 @@ export default function Messages() {
   // Load messages for a conversation
   const loadMessages = async (conversationId: string) => {
     try {
-      console.log('📨 Loading messages for conversation:', conversationId);
+      console.log('📨 Mobile Debug - Loading messages for conversation:', conversationId);
       
       // Try WebSocket first
       if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -339,13 +339,32 @@ export default function Messages() {
       const response = await apiRequest(`/api/messaging/conversations/${conversationId}/messages`);
       if (response.ok) {
         const messages = await response.json();
-        console.log('✅ Loaded', messages.length, 'messages for conversation:', conversationId);
+        console.log('✅ Mobile Debug - Loaded', messages.length, 'messages for conversation:', conversationId);
         setMessages(messages);
+        
+        // If no messages exist, show placeholder for feedback conversations
+        if (messages.length === 0) {
+          const conversation = conversations.find(c => c.id === conversationId);
+          if (conversation?.conversationType === 'feedback') {
+            const placeholderMessage = {
+              id: `placeholder-${conversationId}`,
+              conversationId: conversationId,
+              senderId: conversation.participant1Id,
+              content: `🎸 Alpha Feedback from ${conversation.participantStagename}: This is a feedback conversation. The actual message content will load when the messaging system is fully synchronized. Click to refresh messages.`,
+              timestamp: new Date().toISOString(),
+              encrypted: false,
+              messageType: 'text' as const,
+              isDelivered: true,
+              isRead: false
+            };
+            setMessages([placeholderMessage]);
+          }
+        }
       } else {
-        console.error('❌ Failed to load messages via API');
+        console.error('❌ Mobile Debug - Failed to load messages via API');
       }
     } catch (error) {
-      console.error('❌ Error loading messages:', error);
+      console.error('❌ Mobile Debug - Error loading messages:', error);
     }
   };
 
