@@ -20,6 +20,17 @@ class EnhancedCache {
    */
   set<T>(key: string, data: T, ttl = 5 * 60 * 1000): void {
     try {
+      // Validate inputs
+      if (!key || key.trim() === '') {
+        console.warn('Cache set failed: Invalid key');
+        return;
+      }
+
+      if (data === null || data === undefined) {
+        // Allow null/undefined but don't warn, just skip
+        return;
+      }
+
       // Auto-cleanup if cache is too large
       if (this.cache.size >= this.maxSize) {
         this.cleanup();
@@ -31,10 +42,17 @@ class EnhancedCache {
         ttl,
       };
 
-      // Compress large objects
+      // Compress large objects with better error handling
       if (this.shouldCompress(data)) {
-        item.data = this.compress(data);
-        item.compressed = true;
+        try {
+          item.data = this.compress(data);
+          item.compressed = true;
+        } catch (compressionError) {
+          // Fall back to uncompressed if compression fails
+          console.warn('Compression failed, storing uncompressed:', compressionError);
+          item.data = data;
+          item.compressed = false;
+        }
       }
 
       this.cache.set(key, item);
@@ -92,18 +110,35 @@ class EnhancedCache {
 
   private shouldCompress<T>(data: T): boolean {
     try {
-      return JSON.stringify(data).length > this.compressionThreshold;
+      // Avoid compressing primitive types and null values
+      if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean' || data === null) {
+        return false;
+      }
+      
+      const stringified = JSON.stringify(data);
+      return stringified && stringified.length > this.compressionThreshold;
     } catch {
       return false;
     }
   }
 
   private compress<T>(data: T): T {
-    return btoa(JSON.stringify(data)) as unknown as T;
+    try {
+      const jsonString = JSON.stringify(data);
+      const compressed = btoa(encodeURIComponent(jsonString));
+      return compressed as unknown as T;
+    } catch (error) {
+      throw new Error(`Compression failed: ${error}`);
+    }
   }
 
   private decompress<T>(compressed: unknown): T {
-    return JSON.parse(atob(compressed as string));
+    try {
+      const decompressed = decodeURIComponent(atob(compressed as string));
+      return JSON.parse(decompressed);
+    } catch (error) {
+      throw new Error(`Decompression failed: ${error}`);
+    }
   }
 
   /**

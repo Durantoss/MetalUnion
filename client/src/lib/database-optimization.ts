@@ -82,44 +82,78 @@ class DatabaseOptimizer {
     filters: Record<string, any> = {},
     options: QueryOptions = {}
   ): Promise<T[]> {
+    // Early return for empty queries
+    if (!query || query.trim().length === 0) {
+      return [];
+    }
+
     // Normalize query for caching
     const normalizedQuery = query.toLowerCase().trim();
+    
+    // Skip very short queries to prevent excessive API calls
+    if (normalizedQuery.length < 2) {
+      return [];
+    }
+
     const filterString = JSON.stringify(filters);
     const cacheKey = options.cacheKey || `search:${normalizedQuery}:${filterString}`;
 
     // Check cache first
-    if (!options.forceRefresh && normalizedQuery) {
+    if (!options.forceRefresh) {
       const cached = enhancedCache.get<T[]>(cacheKey);
       if (cached) {
         return cached;
       }
     }
 
-    // Perform search
+    // Build optimized search params
     const searchParams = new URLSearchParams({
       q: normalizedQuery,
+      limit: '20', // Limit results for better performance
       ...Object.entries(filters).reduce((acc, [key, value]) => {
-        acc[key] = String(value);
+        if (value !== null && value !== undefined && value !== '') {
+          acc[key] = String(value);
+        }
         return acc;
       }, {} as Record<string, string>),
     });
 
-    const response = await fetch(`/api/search?${searchParams}`, {
-      credentials: 'include',
-    });
+    const startTime = performance.now();
 
-    if (!response.ok) {
-      throw new Error(`Search failed: ${response.status}`);
+    try {
+      const response = await fetch(`/api/search?${searchParams}`, {
+        credentials: 'include',
+        signal: AbortSignal.timeout(5000), // 5 second timeout
+      });
+
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.status}`);
+      }
+
+      const results = await response.json();
+      const duration = performance.now() - startTime;
+      
+      // Log slow searches
+      if (duration > 1000) {
+        console.warn(`🐌 Slow search: "${normalizedQuery}" took ${duration}ms`);
+      }
+      
+      // Cache successful results with shorter TTL for searches
+      enhancedCache.set(cacheKey, results, options.ttl || 60 * 1000); // 1 minute
+      
+      return results;
+    } catch (error) {
+      console.error('Search failed:', error);
+      
+      // Return cached results if available during error
+      const cached = enhancedCache.get<T[]>(cacheKey);
+      if (cached) {
+        console.log('Returning cached results due to search error');
+        return cached;
+      }
+      
+      return [];
     }
-
-    const results = await response.json();
-    
-    // Cache successful results
-    if (normalizedQuery) {
-      enhancedCache.set(cacheKey, results, options.ttl || 2 * 60 * 1000); // 2 minutes
-    }
-
-    return results;
   }
 
   /**

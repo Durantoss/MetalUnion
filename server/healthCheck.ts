@@ -171,17 +171,46 @@ function getMemoryInfo() {
 }
 
 /**
- * Performance monitoring middleware
+ * Performance monitoring middleware with optimization hints
  */
 export function performanceMiddleware(req: Request, res: Response, next: Function) {
   const startTime = Date.now();
   
+  // Add cache headers for optimization
+  if (req.method === 'GET') {
+    // Static assets
+    if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|svg|woff2?|ttf|eot)$/)) {
+      res.set('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+    // API responses
+    else if (req.path.startsWith('/api/')) {
+      if (req.path.match(/\/(bands|tours|reviews|photos)$/)) {
+        res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
+      }
+    }
+  }
+  
   res.on('finish', () => {
     const duration = Date.now() - startTime;
     
-    // Log slow requests
+    // Log slow requests with more detail
     if (duration > 1000) {
       console.warn(`🐌 Slow request: ${req.method} ${req.path} took ${duration}ms`);
+      
+      // Provide optimization hints for common slow endpoints
+      if (req.path.includes('/api/ai-chat/')) {
+        console.log('💡 Hint: Consider implementing streaming responses for AI chat');
+      } else if (req.path.includes('/api/search')) {
+        console.log('💡 Hint: Consider implementing search result pagination');
+      } else if (req.path.includes('/api/tours')) {
+        console.log('💡 Hint: Consider adding database indexes for tour queries');
+      }
+    }
+    
+    // Track performance metrics
+    if (duration > 500) {
+      // Could send to monitoring service here
+      console.log(`📊 Performance: ${req.method} ${req.path} - ${duration}ms`);
     }
   });
   

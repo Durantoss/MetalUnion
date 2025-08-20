@@ -8,6 +8,9 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { MobileOptimized } from './components/MobileOptimized';
 import { performanceMonitor } from './lib/performance';
 import { databaseOptimizer } from './lib/database-optimization';
+import { mobileOptimizer } from './lib/mobile-optimizations';
+import { initializeBundleOptimizations } from './lib/bundle-optimization';
+import { initializeLCPOptimizations } from './lib/lcp-optimization';
 
 import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
@@ -48,12 +51,26 @@ export default function App() {
     // Start background refresh for optimal performance
     const cleanup = databaseOptimizer.startBackgroundRefresh();
     
+    // Initialize mobile optimizations
+    mobileOptimizer.getConfig(); // This triggers initialization
+    
+    // Initialize bundle optimizations
+    initializeBundleOptimizations();
+    
+    // Initialize LCP optimizations for better performance
+    initializeLCPOptimizations();
+    
     // Prefetch commonly accessed data
     databaseOptimizer.prefetchData('bands');
     databaseOptimizer.prefetchData('tours');
     
     // Track performance metrics
     performanceMonitor.recordMetric('app-mount', performance.now(), 'mark');
+    
+    // Monitor Core Web Vitals
+    if ('web-vital' in window) {
+      console.log('📊 Core Web Vitals monitoring active');
+    }
     
     return cleanup;
   }, []);
