@@ -9,14 +9,18 @@ import path from 'path';
 
 const app = express();
 
-// Add security and CORS headers for mobile compatibility
+// Add security and CORS headers optimized for mobile compatibility
 app.use((req, res, next) => {
-  // Allow credentials with specific origin
-  const origin = req.headers.origin || 'http://localhost:5000';
-  res.header('Access-Control-Allow-Origin', origin);
+  // More permissive CORS for mobile during alpha
+  const origin = req.headers.origin;
+  if (origin) {
+    res.header('Access-Control-Allow-Origin', origin);
+  } else {
+    res.header('Access-Control-Allow-Origin', '*');
+  }
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie, User-Agent');
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
@@ -24,10 +28,15 @@ app.use((req, res, next) => {
     return;
   }
   
-  // Mobile-specific headers
+  // Mobile-friendly security headers
   res.header('X-Content-Type-Options', 'nosniff');
-  res.header('X-Frame-Options', 'DENY');
-  res.header('X-XSS-Protection', '1; mode=block');
+  res.header('X-Frame-Options', 'SAMEORIGIN'); // Less restrictive for mobile
+  // Remove X-XSS-Protection as it can cause issues on mobile
+  
+  // Mobile viewport and compatibility
+  if (req.path === '/' || req.path.endsWith('.html')) {
+    res.header('X-UA-Compatible', 'IE=edge');
+  }
   
   next();
 });

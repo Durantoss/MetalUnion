@@ -19,9 +19,9 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // True in production with HTTPS
+      secure: false, // Disabled for mobile compatibility during alpha
       maxAge: sessionTtl,
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // Strict CSRF protection in production
+      sameSite: 'lax', // More permissive for mobile browsers
     },
   });
 }
@@ -68,23 +68,25 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 
 // Setup authentication routes and middleware
 export async function setupAuth(app: Express) {
-  // Add security headers
+  // Add mobile-friendly security headers
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-        imgSrc: ["'self'", "data:", "https:"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        connectSrc: ["'self'", "ws:", "wss:", "http:", "https:"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https:"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https:"],
+        imgSrc: ["'self'", "data:", "https:", "blob:"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com", "https:", "data:"],
+        connectSrc: ["'self'", "ws:", "wss:", "http:", "https:", "*"],
+        frameSrc: ["'self'", "https:"],
+        objectSrc: ["'none'"],
+        manifestSrc: ["'self'"]
       },
     },
-    hsts: {
-      maxAge: 31536000,
-      includeSubDomains: true,
-      preload: true
-    }
+    // Disable HSTS for mobile compatibility during alpha
+    hsts: false,
+    // Allow cross-origin for mobile apps
+    crossOriginEmbedderPolicy: false
   }));
   
   // Rate limiting for auth endpoints
