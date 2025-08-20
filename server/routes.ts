@@ -458,20 +458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nodeEnv: process.env.NODE_ENV 
       });
 
-      // UNIVERSAL DEMO MODE - Always return demo user regardless of environment
-      console.log('🚀 UNIVERSAL DEMO MODE: returning demo user data for ALL requests');
-      const demoUser = {
-        id: 'demo-user-deployed',
-        email: 'demo@moshunion.com',
-        stagename: 'Demo User',
-        isAdmin: false,
-        permissions: {},
-        theme: 'dark',
-        role: 'user'
-      };
-      return res.json(demoUser);
-
-      // Original authentication check for development
+      // Check for valid session
       if (!req.session || !req.session.userId) {
         console.log('No userId in session, returning 401');
         return res.status(401).json({ error: 'Not authenticated' });
@@ -486,7 +473,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log('Auth check successful for user:', user.stagename);
-      res.json(user);
+      // Return user data (without password)
+      const { safeword, ...userResponse } = user;
+      return res.json(userResponse);
     } catch (error) {
       console.error('Error checking auth status:', error);
       res.status(500).json({ error: 'Internal server error' });
