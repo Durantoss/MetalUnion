@@ -302,12 +302,29 @@ export default function Messages() {
   };
 
   // Load messages for a conversation
-  const loadMessages = (conversationId: string) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        type: 'get_messages',
-        data: { conversationId }
-      }));
+  const loadMessages = async (conversationId: string) => {
+    try {
+      console.log('📨 Loading messages for conversation:', conversationId);
+      
+      // Try WebSocket first
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({
+          type: 'get_messages',
+          data: { conversationId }
+        }));
+      }
+      
+      // Fallback to direct API call to ensure messages load
+      const response = await apiRequest(`/api/messaging/conversations/${conversationId}/messages`);
+      if (response.ok) {
+        const messages = await response.json();
+        console.log('✅ Loaded', messages.length, 'messages for conversation:', conversationId);
+        setMessages(messages);
+      } else {
+        console.error('❌ Failed to load messages via API');
+      }
+    } catch (error) {
+      console.error('❌ Error loading messages:', error);
     }
   };
 
