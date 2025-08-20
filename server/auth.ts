@@ -7,20 +7,14 @@ import connectPgSimple from 'connect-pg-simple';
 import { storage } from './storage';
 import type { CreateUser, LoginRequest } from '@shared/schema';
 
-// Configure session middleware
+// Configure session middleware (using memory store due to database issues)
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const pgStore = connectPgSimple(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
-    ttl: sessionTtl,
-    tableName: "sessions",
-  });
   
+  // Use default memory session store (temporary fix for database connection issues)
   return session({
     secret: process.env.SESSION_SECRET || 'mosh-union-secret-2025',
-    store: sessionStore,
+    // store: undefined, // Use default memory store
     resave: false,
     saveUninitialized: false,
     cookie: {
