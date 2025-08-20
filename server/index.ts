@@ -9,6 +9,25 @@ import path from 'path';
 
 const app = express();
 
+// Add mobile health check endpoint
+app.get('/api/mobile-health', (req: Request, res: Response) => {
+  const userAgent = req.headers['user-agent'] || '';
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+  
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    mobile: isMobile,
+    userAgent: userAgent,
+    headers: {
+      origin: req.headers.origin,
+      host: req.headers.host,
+      connection: req.headers.connection
+    },
+    alphaMode: true
+  });
+});
+
 // Add security and CORS headers optimized for mobile compatibility
 app.use((req, res, next) => {
   // More permissive CORS for mobile during alpha

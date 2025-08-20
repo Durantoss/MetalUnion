@@ -39,6 +39,7 @@ import { BandDiscovery } from './components/BandDiscovery';
 import { AlphaAccess } from './components/AlphaAccess';
 import { AlphaDashboard } from './components/AlphaDashboard';
 import { AlphaFeedback } from './components/AlphaFeedback';
+import { MobileLoadingFallback } from './components/MobileLoadingFallback';
 import { Band } from './types';
 
 
@@ -775,6 +776,9 @@ export default function App() {
 
           {/* Global Authentication Handler */}
           <GlobalAuthHandler />
+          
+          {/* Mobile Loading Fallback */}
+          <MobileLoadingFallback />
 
         </div>
       </MobileOptimized>
