@@ -96,11 +96,12 @@ export default function Messages() {
 
   // Type guard for currentUser
   const hasValidUser = currentUser && typeof currentUser === 'object' && 'id' in currentUser;
+  const validUser = hasValidUser ? currentUser as { id: string; stagename?: string; isAdmin?: boolean } : null;
 
   // Load conversations for current user
   const { data: fetchedConversations } = useQuery({
-    queryKey: ['/api/messaging/conversations', currentUser?.id],
-    enabled: hasValidUser && !!currentUser?.id,
+    queryKey: ['/api/messaging/conversations', validUser?.id],
+    enabled: hasValidUser && !!validUser?.id,
     refetchInterval: 5000, // Refresh every 5 seconds
     retry: false
   });
@@ -128,7 +129,7 @@ export default function Messages() {
 
   // Initialize WebSocket connection
   useEffect(() => {
-    if (!hasValidUser || !currentUser.id) return;
+    if (!hasValidUser || !validUser?.id) return;
 
     const connectWebSocket = () => {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -149,8 +150,8 @@ export default function Messages() {
         ws.send(JSON.stringify({
           type: 'auth',
           data: {
-            userId: currentUser.id,
-            stagename: (currentUser as any).stagename || 'User'
+            userId: validUser.id,
+            stagename: validUser.stagename || 'User'
           }
         }));
 
@@ -212,7 +213,7 @@ export default function Messages() {
         wsRef.current.close();
       }
     };
-  }, [hasValidUser, currentUser?.id]);
+  }, [hasValidUser, validUser?.id]);
 
   // Handle incoming WebSocket messages
   const handleWebSocketMessage = (message: any) => {
@@ -578,7 +579,7 @@ export default function Messages() {
 
   // Check if message is from current user
   const isMyMessage = (message: Message) => {
-    return hasValidUser && message.senderId === currentUser.id;
+    return hasValidUser && message.senderId === validUser?.id;
   };
 
   if (!hasValidUser) {
