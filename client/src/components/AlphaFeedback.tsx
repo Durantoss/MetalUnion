@@ -115,7 +115,7 @@ export function AlphaFeedback({ currentUser, isOpen, onClose }: AlphaFeedbackPro
       setIsSubmitting(false);
       toast({
         title: "Feedback Sent! 🎸",
-        description: "Your feedback has been encrypted and sent directly to the developer. Thank you for helping improve MoshUnion!",
+        description: "Thank you for your feedback! We will check out the issue and figure it out on our end. We're all in this together.",
       });
       
       // Clear form
