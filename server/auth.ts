@@ -1,6 +1,8 @@
 import bcrypt from 'bcrypt';
 import session from 'express-session';
 import type { Express, Request, Response, NextFunction } from 'express';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 import connectPgSimple from 'connect-pg-simple';
 import { storage } from './storage';
 import type { CreateUser, LoginRequest } from '@shared/schema';
@@ -23,9 +25,9 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // Set to true in production with HTTPS
+      secure: process.env.NODE_ENV === 'production', // True in production with HTTPS
       maxAge: sessionTtl,
-      sameSite: 'lax', // Important for cross-origin requests
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // Strict CSRF protection in production
     },
   });
 }
@@ -39,18 +41,7 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
   
   console.log('isAuthenticated middleware - Demo mode check:', { host, isDeployedApp, isDemoMode, nodeEnv: process.env.NODE_ENV });
   
-  // UNIVERSAL DEMO MODE MIDDLEWARE - Always allow requests
-  console.log('🚀 UNIVERSAL DEMO MODE MIDDLEWARE: allowing ALL requests without authentication');
-  // Always create demo session for any request
-  if (!req.session || !(req.session as any).userId) {
-    (req.session as any).userId = 'demo-user-middleware-' + Date.now();
-    (req.session as any).stagename = 'Demo User';
-    (req.session as any).isAdmin = false;
-    console.log('Created demo session in middleware:', (req.session as any).userId);
-  }
-  return next();
-  
-  // Original authentication check for development
+  // Production authentication enabled - checking real session
   if (req.session && (req.session as any).userId) {
     return next();
   }
@@ -76,11 +67,37 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 
 // Setup authentication routes and middleware
 export async function setupAuth(app: Express) {
+  // Add security headers
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:"],
+      },
+    },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true
+    }
+  }));
+  
+  // Rate limiting for auth endpoints
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // 10 attempts per window
+    message: { error: 'Too many authentication attempts, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  
   // Add session middleware
   app.use(getSession());
   
-  // Register endpoint
-  app.post('/api/auth/register', async (req: Request, res: Response) => {
+  // Register endpoint with rate limiting
+  app.post('/api/auth/register', authLimiter, async (req: Request, res: Response) => {
     try {
       const { stagename: rawStagename, safeword: rawSafeword, email: rawEmail } = req.body;
       const stagename = rawStagename?.trim();
@@ -91,6 +108,19 @@ export async function setupAuth(app: Express) {
       if (!stagename || !safeword) {
         return res.status(400).json({ 
           error: 'Stagename and safeword are required' 
+        });
+      }
+      
+      // Password strength requirements
+      if (safeword.length < 8) {
+        return res.status(400).json({ 
+          error: 'Safeword must be at least 8 characters long' 
+        });
+      }
+      
+      if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/.test(safeword)) {
+        return res.status(400).json({ 
+          error: 'Safeword must contain at least one uppercase letter, lowercase letter, and number' 
         });
       }
       
@@ -152,8 +182,8 @@ export async function setupAuth(app: Express) {
     }
   });
   
-  // Login endpoint
-  app.post('/api/auth/login', async (req: Request, res: Response) => {
+  // Login endpoint with rate limiting
+  app.post('/api/auth/login', authLimiter, async (req: Request, res: Response) => {
     try {
       console.log('Backend: Login attempt received:', { 
         stagename: req.body.stagename, 
@@ -168,60 +198,21 @@ export async function setupAuth(app: Express) {
       const stagename = rawStagename?.trim();
       const safeword = rawSafeword?.trim();
       
-      // UNIVERSAL DEMO MODE - Always accept credentials in any production-like environment
-      const host = req.get('host') || req.headers.host || '';
-      const isProductionLike = process.env.NODE_ENV === 'production' || 
-                              host.includes('.replit.app') || 
-                              host.includes('band-blaze-durantoss') ||
-                              process.env.DEMO_MODE === 'true';
-      
-      console.log('Universal demo mode check:', { 
-        host, 
-        nodeEnv: process.env.NODE_ENV,
-        isProductionLike,
-        willActivateDemoMode: true // Always activate for simplicity
-      });
-
-      // Skip the else block entirely and always use demo mode logic first
+      // Validate required fields
       if (!stagename || !safeword) {
         return res.status(400).json({ 
           error: 'Stagename and safeword are required' 
         });
       }
       
-      // FORCE DEMO MODE ALWAYS - bypass all authentication for deployed apps
-      console.log('🚀 FORCING DEMO MODE: accepting login for:', stagename);
+      // Real authentication flow enabled
       
-      // Create demo user session
-      const demoUser = {
-        id: 'demo-user-' + Date.now(),
-        email: 'demo@moshunion.com',
-        stagename: stagename,
-        isAdmin: stagename.toLowerCase() === 'durantoss',
-        permissions: stagename.toLowerCase() === 'durantoss' ? { full_admin: true } : {},
-        theme: 'dark',
-        role: stagename.toLowerCase() === 'durantoss' ? 'admin' : 'user'
-      };
-      
-      // Set session
-      (req.session as any).userId = demoUser.id;
-      (req.session as any).stagename = demoUser.stagename;
-      (req.session as any).isAdmin = demoUser.isAdmin;
-      
-      console.log('FORCED Demo mode session set:', { userId: demoUser.id, stagename: demoUser.stagename });
-      
-      return res.json({ 
-        message: 'Login successful (Universal Demo Mode)',
-        user: demoUser 
-      });
-      
-      /* Original authentication code commented out to ensure demo mode works
       // Get user by stagename
       const user = await storage.getUserByStagename(stagename);
       if (!user) {
         console.log('User not found:', stagename);
         return res.status(401).json({ 
-          error: 'Invalid credentials' 
+          error: 'Invalid stagename or safeword' 
         });
       }
       
@@ -230,7 +221,7 @@ export async function setupAuth(app: Express) {
       if (!isValidPassword) {
         console.log('Invalid password for user:', stagename);
         return res.status(401).json({ 
-          error: 'Invalid credentials' 
+          error: 'Invalid stagename or safeword' 
         });
       }
       
@@ -239,68 +230,19 @@ export async function setupAuth(app: Express) {
       // Update last login
       await storage.updateUserLastLogin(user.id, rememberMe || false);
       
-      // Set session
+      // Set session with remember me option
+      const sessionTtl = rememberMe ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000; // 30 days vs 7 days
+      req.session.cookie.maxAge = sessionTtl;
+      
       (req.session as any).userId = user.id;
       (req.session as any).stagename = user.stagename;
-      (req.session as any).isAdmin = user.isAdmin;
+      (req.session as any).isAdmin = user.isAdmin || false;
       
       console.log('Session set:', { userId: user.id, stagename: user.stagename });
       
-      // Extend session if remember me is selected
-      if (rememberMe) {
-        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
-      }
-      
       // Return user data (without password)
       const { safeword: _, ...userResponse } = user;
-      console.log('Login response sent successfully');
-      res.json({ 
-        message: 'Login successful',
-        user: userResponse 
-      });
-      */
-      
-      // This code should never run due to forced demo mode above
-      console.log('ERROR: Original auth flow should not execute - demo mode failed!');
-      
-      // Get user by stagename
-      const user = await storage.getUserByStagename(stagename);
-      if (!user) {
-        console.log('User not found:', stagename);
-        return res.status(401).json({ 
-          error: 'Invalid credentials' 
-        });
-      }
-      
-      // Verify password
-      const isValidPassword = await verifyPassword(safeword, user.safeword || '');
-      if (!isValidPassword) {
-        console.log('Invalid password for user:', stagename);
-        return res.status(401).json({ 
-          error: 'Invalid credentials' 
-        });
-      }
-      
-      console.log('Authentication successful for:', stagename);
-      
-      // Update last login
-      await storage.updateUserLastLogin(user.id, rememberMe || false);
-      
-      // Set session
-      (req.session as any).userId = user.id;
-      (req.session as any).stagename = user.stagename;
-      (req.session as any).isAdmin = user.isAdmin;
-      
-      console.log('Session set:', { userId: user.id, stagename: user.stagename });
-      
-      // Extend session if remember me is selected
-      if (rememberMe) {
-        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
-      }
-      
-      // Return user data (without password)
-      const { safeword: _, ...userResponse } = user;
-      console.log('Login response sent successfully');
+      console.log('Login successful!');
       res.json({ 
         message: 'Login successful',
         user: userResponse 
