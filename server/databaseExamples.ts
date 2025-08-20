@@ -1,19 +1,16 @@
 import type { Express } from "express";
 import { storage } from "./storage";
 
-// Demo-compatible authentication middleware for messaging
+// Real authentication middleware - no demo bypasses
 const isDemoAuthenticated = (req: any, res: any, next: any) => {
-  // Create demo user structure that matches what messaging routes expect
-  if (!req.user) {
-    req.user = {
-      claims: {
-        sub: 'demo-user-testing', // Demo user ID
-        email: 'tester@moshunion.com',
-        first_name: 'Demo',
-        last_name: 'Tester'
-      }
-    };
+  if (!req.session || !(req.session as any).userId) {
+    return res.status(401).json({ error: 'Authentication required' });
   }
+  req.user = {
+    claims: {
+      sub: (req.session as any).userId
+    }
+  };
   next();
 };
 
@@ -26,7 +23,7 @@ export function registerDatabaseExamples(app: Express) {
   // Simple test route to verify messaging API is working
   app.get("/api/messaging/test", async (req, res) => {
     try {
-      const conversations = await storage.getConversations('demo-user-testing');
+      const conversations = await storage.getConversations('test-user-id');
       res.json({
         success: true,
         message: "Messaging API is working",
