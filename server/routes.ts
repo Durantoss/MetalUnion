@@ -75,6 +75,7 @@ import { WebSocketExamples } from "./websocketExamples";
 import { registerDatabaseExamples } from "./databaseExamples";
 import { getRealtimeVenueData, simulateRealtimeUpdates, type VenueRealtimeData } from "./venueCapacityService";
 import { aiChatRoutes } from "./aiChatRoutes";
+import { doubleRatchetRoutes } from './doubleRatchetRoutes';
 import multer from "multer";
 import path from "path";
 
@@ -2348,6 +2349,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register AI chat routes
   app.use('/api/ai-chat', aiChatRoutes);
   console.log('AI chat routes initialized');
+  
+  // Register Double Ratchet encryption routes
+  app.use('/api/encryption', doubleRatchetRoutes);
+  console.log('Double Ratchet encryption routes initialized');
   
   return httpServer;
 }

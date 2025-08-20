@@ -2,14 +2,16 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
 import { storage } from './storage';
 import { MessageEncryption } from './encryption';
+import { DoubleRatchetService } from './doubleRatchetService';
 import type { DirectMessage, InsertDirectMessage } from '@shared/schema';
 
 interface WebSocketMessage {
-  type: 'message' | 'typing' | 'read_receipt' | 'delivery_receipt' | 'user_status';
+  type: 'message' | 'typing' | 'read_receipt' | 'delivery_receipt' | 'user_status' | 'auth' | 'encrypted_message';
   data: any;
   conversationId?: string;
   messageId?: string;
   userId?: string;
+  password?: string; // For Double Ratchet encryption
 }
 
 interface ConnectedUser {
@@ -59,13 +61,17 @@ export class MessagingWebSocketServer {
             // Send confirmation
             ws.send(JSON.stringify({
               type: 'auth_success',
-              data: { userId }
+              data: { 
+                userId,
+                encryptionEnabled: true,
+                algorithm: 'Double Ratchet + Ed25519 + X25519 + AES-256'
+              }
             }));
             
             // Notify user's contacts about online status
             await this.broadcastUserStatus(userId, 'online');
             
-            console.log(`User ${userId} authenticated via WebSocket`);
+            console.log(`User ${userId} authenticated via WebSocket with encryption`);
             return;
           }
 
@@ -121,6 +127,10 @@ export class MessagingWebSocketServer {
         await this.handleNewMessage(message, userId);
         break;
       
+      case 'encrypted_message':
+        await this.handleEncryptedMessage(message, userId);
+        break;
+      
       case 'typing':
         await this.handleTypingIndicator(message, userId);
         break;
@@ -138,6 +148,45 @@ export class MessagingWebSocketServer {
           type: 'error',
           data: { message: 'Unknown message type' }
         }));
+    }
+  }
+
+  /**
+   * Handle encrypted message using Double Ratchet
+   */
+  private async handleEncryptedMessage(message: WebSocketMessage, senderId: string) {
+    try {
+      const { conversationId, data, password } = message;
+      
+      if (!conversationId || !data || !password) {
+        console.error('Missing required fields for encrypted message');
+        return;
+      }
+
+      // Send encrypted message using Double Ratchet
+      const encryptedMessage = await DoubleRatchetService.sendMessage(
+        conversationId,
+        senderId,
+        data.content,
+        password
+      );
+
+      // Broadcast to conversation participants
+      await this.broadcastToConversation(conversationId, {
+        type: 'encrypted_message_received',
+        data: {
+          messageId: encryptedMessage.id,
+          senderId,
+          conversationId,
+          timestamp: encryptedMessage.createdAt,
+          encrypted: true
+        }
+      }, senderId);
+
+      console.log(`Encrypted message sent in conversation ${conversationId}`);
+      
+    } catch (error) {
+      console.error('Error handling encrypted message:', error);
     }
   }
 

@@ -18,6 +18,7 @@ import { EnhancedToursPage } from './components/EnhancedToursPage';
 import { UserProfile } from './components/UserProfile';
 import { NotificationCenter } from './components/NotificationCenter';
 import { AIChatbot } from './components/AIChatbot';
+import { EncryptedChat } from './components/EncryptedChat';
 import { ActivityFeed } from './components/ActivityFeed';
 import { GameficationDashboard } from './components/GameficationDashboard';
 // Events Discovery functionality has been migrated to Tours section
@@ -462,10 +463,28 @@ export default function App() {
       case 'messaging':
         return (
           <SharedSectionLayout 
-            title="Messages" 
-            subtitle="Connect with fellow metalheads"
+            title="SECURE MESSAGING" 
+            subtitle="AI Chat & Military-Grade Encrypted Messaging"
           >
-            <AIChatbot currentUser={currentUser} />
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+              {/* AI Chat Section */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  🤖 MoshBot AI Assistant
+                  <span className="text-xs bg-electric-yellow text-void-black px-2 py-1 rounded-full">GPT-4o</span>
+                </h3>
+                <AIChatbot currentUser={currentUser} />
+              </div>
+              
+              {/* Encrypted Chat Section */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  🔒 Encrypted Messaging
+                  <span className="text-xs bg-fire-red text-white px-2 py-1 rounded-full">Double Ratchet</span>
+                </h3>
+                <EncryptedChat currentUser={currentUser} />
+              </div>
+            </div>
           </SharedSectionLayout>
         );
       case 'admin':
