@@ -36,6 +36,8 @@ import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/auth/AuthModal';
 import { SharedSectionLayout } from './components/SharedSectionLayout';
 import { BandDiscovery } from './components/BandDiscovery';
+import { AlphaAccess } from './components/AlphaAccess';
+import { AlphaDashboard } from './components/AlphaDashboard';
 import { Band } from './types';
 
 
@@ -92,6 +94,8 @@ export default function App() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [alphaTester, setAlphaTester] = useState<any>(null);
+  const [showAlphaAccess, setShowAlphaAccess] = useState(true);
   
   
   // Use useAuth hook for persistent authentication
@@ -303,6 +307,21 @@ export default function App() {
   };
 
   const renderContent = () => {
+    // Check if alpha access is required
+    if (showAlphaAccess && !alphaTester) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-red-900 relative overflow-hidden flex items-center justify-center p-6">
+          <AlphaAccess 
+            onAccess={(testerData) => {
+              setAlphaTester(testerData);
+              setShowAlphaAccess(false);
+            }} 
+            currentTester={alphaTester}
+          />
+        </div>
+      );
+    }
+
     // Only show landing page if explicitly set to 'landing' or initially undefined
     if (currentSection === 'landing' || currentSection === null || currentSection === undefined) {
       
@@ -514,6 +533,21 @@ export default function App() {
         }
         
         return <Messages />;
+      case 'alpha-dashboard':
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-red-900 relative overflow-hidden p-6">
+            <AlphaDashboard />
+            <div className="mt-6">
+              <button
+                onClick={handleReturnHome}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+              >
+                ← Back to App
+              </button>
+            </div>
+          </div>
+        );
+
       case 'admin':
         return (
           <SharedSectionLayout title="PRIVATE MESSAGES" subtitle="Connect privately with other metalheads">

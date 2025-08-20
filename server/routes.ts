@@ -430,6 +430,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // Alpha Testing Keys System
+  const alphaTesters = new Map<string, {
+    id: string;
+    name: string;
+    email: string;
+    accessKey: string;
+    joinedAt: string;
+    lastActive: string;
+    sessionsCount: number;
+    featuresUsed: string[];
+    feedbackSubmitted: boolean;
+  }>();
+
+  // Initialize alpha testers with unique keys
+  const initializeAlphaTesters = () => {
+    const testers = [
+      { id: 'alpha-001', name: 'Alpha Tester 1', email: 'tester1@example.com', accessKey: 'METAL-ALPHA-001' },
+      { id: 'alpha-002', name: 'Alpha Tester 2', email: 'tester2@example.com', accessKey: 'METAL-ALPHA-002' },
+      { id: 'alpha-003', name: 'Alpha Tester 3', email: 'tester3@example.com', accessKey: 'METAL-ALPHA-003' },
+      { id: 'alpha-004', name: 'Alpha Tester 4', email: 'tester4@example.com', accessKey: 'METAL-ALPHA-004' },
+      { id: 'alpha-005', name: 'Alpha Tester 5', email: 'tester5@example.com', accessKey: 'METAL-ALPHA-005' },
+      { id: 'alpha-006', name: 'Alpha Tester 6', email: 'tester6@example.com', accessKey: 'METAL-ALPHA-006' },
+      { id: 'alpha-007', name: 'Alpha Tester 7', email: 'tester7@example.com', accessKey: 'METAL-ALPHA-007' },
+      { id: 'alpha-008', name: 'Alpha Tester 8', email: 'tester8@example.com', accessKey: 'METAL-ALPHA-008' },
+      { id: 'alpha-009', name: 'Alpha Tester 9', email: 'tester9@example.com', accessKey: 'METAL-ALPHA-009' },
+      { id: 'alpha-010', name: 'Alpha Tester 10', email: 'tester10@example.com', accessKey: 'METAL-ALPHA-010' }
+    ];
+
+    testers.forEach(tester => {
+      alphaTesters.set(tester.accessKey, {
+        ...tester,
+        joinedAt: new Date().toISOString(),
+        lastActive: new Date().toISOString(),
+        sessionsCount: 0,
+        featuresUsed: [],
+        feedbackSubmitted: false
+      });
+    });
+  };
+
+  // Initialize alpha testers
+  initializeAlphaTesters();
+
+  // Alpha access validation endpoint
+  app.post('/api/alpha/access', async (req, res) => {
+    try {
+      const { accessKey } = req.body;
+      
+      if (!accessKey) {
+        return res.status(400).json({ error: 'Access key required' });
+      }
+
+      const tester = alphaTesters.get(accessKey);
+      if (!tester) {
+        return res.status(401).json({ error: 'Invalid alpha access key' });
+      }
+
+      // Update tester activity
+      tester.lastActive = new Date().toISOString();
+      tester.sessionsCount += 1;
+
+      // Set session
+      (req as any).session.userId = tester.id;
+      (req as any).session.alphaKey = accessKey;
+      (req as any).session.isAlphaTester = true;
+
+      res.json({
+        success: true,
+        tester: {
+          id: tester.id,
+          name: tester.name,
+          email: tester.email,
+          accessKey: tester.accessKey,
+          sessionsCount: tester.sessionsCount,
+          isAlphaTester: true
+        }
+      });
+    } catch (error) {
+      console.error('Alpha access error:', error);
+      res.status(500).json({ error: 'Failed to validate alpha access' });
+    }
+  });
+
+  // Alpha tester dashboard for admin
+  app.get('/api/alpha/dashboard', async (req, res) => {
+    try {
+      const testingStats = Array.from(alphaTesters.values()).map(tester => ({
+        id: tester.id,
+        name: tester.name,
+        email: tester.email,
+        accessKey: tester.accessKey,
+        joinedAt: tester.joinedAt,
+        lastActive: tester.lastActive,
+        sessionsCount: tester.sessionsCount,
+        featuresUsed: tester.featuresUsed,
+        feedbackSubmitted: tester.feedbackSubmitted
+      }));
+
+      const summary = {
+        totalTesters: alphaTesters.size,
+        activeTesters: testingStats.filter(t => t.sessionsCount > 0).length,
+        totalSessions: testingStats.reduce((sum, t) => sum + t.sessionsCount, 0),
+        feedbackCount: testingStats.filter(t => t.feedbackSubmitted).length,
+        mostActiveFeatures: getMostUsedFeatures(testingStats)
+      };
+
+      res.json({ summary, testers: testingStats });
+    } catch (error) {
+      console.error('Alpha dashboard error:', error);
+      res.status(500).json({ error: 'Failed to fetch alpha dashboard' });
+    }
+  });
+
+  // Track feature usage
+  app.post('/api/alpha/track-feature', async (req: any, res) => {
+    try {
+      const alphaKey = req.session?.alphaKey;
+      const { feature, section } = req.body;
+
+      if (alphaKey && alphaTesters.has(alphaKey)) {
+        const tester = alphaTesters.get(alphaKey)!;
+        const featureKey = `${section}:${feature}`;
+        
+        if (!tester.featuresUsed.includes(featureKey)) {
+          tester.featuresUsed.push(featureKey);
+        }
+        
+        tester.lastActive = new Date().toISOString();
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Feature tracking error:', error);
+      res.status(500).json({ error: 'Failed to track feature usage' });
+    }
+  });
+
+  // Helper function to get most used features
+  function getMostUsedFeatures(testers: any[]) {
+    const featureCount = new Map<string, number>();
+    
+    testers.forEach(tester => {
+      tester.featuresUsed.forEach((feature: string) => {
+        featureCount.set(feature, (featureCount.get(feature) || 0) + 1);
+      });
+    });
+
+    return Array.from(featureCount.entries())
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 10)
+      .map(([feature, count]) => ({ feature, count }));
+  }
+
   // Authentication check endpoint for persistent sessions
   app.get('/api/auth/user', async (req: any, res) => {
     try {
@@ -452,10 +605,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nodeEnv: process.env.NODE_ENV 
       });
 
-      // Check for valid session
+      // Check for valid session (regular user or alpha tester)
       if (!req.session || !req.session.userId) {
         console.log('No userId in session, returning 401');
         return res.status(401).json({ error: 'Not authenticated' });
+      }
+
+      // Check if this is an alpha tester
+      if (req.session.isAlphaTester && req.session.alphaKey) {
+        const tester = alphaTesters.get(req.session.alphaKey);
+        if (tester) {
+          return res.json({
+            id: tester.id,
+            stagename: tester.name,
+            email: tester.email,
+            isAlphaTester: true,
+            accessKey: tester.accessKey,
+            sessionsCount: tester.sessionsCount,
+            featuresUsed: tester.featuresUsed.length
+          });
+        }
       }
 
       const userId = req.session.userId;
