@@ -353,7 +353,7 @@ export function EncryptedChat({ currentUser }: EncryptedChatProps) {
                     />
                     <Button
                       onClick={handleSendMessage}
-                      disabled={!messageInput.trim() || !password || sendEncryptedMessageMutation.isPending}
+                      disabled={!messageInput.trim() || sendEncryptedMessageMutation.isPending}
                       size="icon"
                       data-testid="button-send-encrypted"
                     >
