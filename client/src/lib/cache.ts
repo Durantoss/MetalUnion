@@ -27,7 +27,13 @@ class EnhancedCache {
       }
 
       if (data === null || data === undefined) {
-        // Allow null/undefined but don't warn, just skip
+        // Store null/undefined values but mark them appropriately
+        const item: CacheItem<T> = {
+          data,
+          timestamp: Date.now(),
+          ttl,
+        };
+        this.cache.set(key, item);
         return;
       }
 
@@ -116,7 +122,7 @@ class EnhancedCache {
       }
       
       const stringified = JSON.stringify(data);
-      return stringified && stringified.length > this.compressionThreshold;
+      return Boolean(stringified && typeof stringified === 'string' && stringified.length > this.compressionThreshold);
     } catch {
       return false;
     }

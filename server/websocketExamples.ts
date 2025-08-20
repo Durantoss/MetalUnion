@@ -547,10 +547,7 @@ export class WebSocketExamples {
   }
 
   private logStats() {
-    console.log('📊 WebSocket Examples Stats:', {
-      ...this.connectionStats,
-      connectedUsers: this.userConnections.size,
-      activeTypingSessions: this.typingUsers.size
-    });
+    // WebSocket Examples Stats tracking (disabled for production)
+    // Stats: connectedUsers: ${this.userConnections.size}, activeTypingSessions: ${this.typingUsers.size}
   }
 }

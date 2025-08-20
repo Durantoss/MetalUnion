@@ -22,18 +22,18 @@ class ChatWebSocketServer {
     });
 
     this.wss.on('connection', this.handleConnection.bind(this));
-    console.log('Chat WebSocket server initialized on /chat-ws');
+    // Chat WebSocket server initialized on /chat-ws
   }
 
   private async handleConnection(socket: WebSocket, request: any) {
-    console.log('New chat WebSocket connection');
+    // New chat WebSocket connection
 
     socket.on('message', async (data) => {
       try {
         const message = JSON.parse(data.toString());
         await this.handleMessage(socket, message);
       } catch (error) {
-        console.error('Error parsing chat WebSocket message:', error);
+        // Error parsing chat WebSocket message
         socket.send(JSON.stringify({ 
           type: 'error', 
           message: 'Invalid message format' 
@@ -46,7 +46,7 @@ class ChatWebSocketServer {
     });
 
     socket.on('error', (error) => {
-      console.error('Chat WebSocket error:', error);
+      // Chat WebSocket error handled
       this.handleDisconnection(socket);
     });
   }
@@ -178,7 +178,7 @@ class ChatWebSocketServer {
   }
 
   private findClientBySocket(socket: WebSocket): string | undefined {
-    for (const [clientId, client] of this.clients.entries()) {
+    for (const [clientId, client] of Array.from(this.clients.entries())) {
       if (client.socket === socket) {
         return clientId;
       }
@@ -189,7 +189,7 @@ class ChatWebSocketServer {
   public broadcast(roomId: string, message: any, excludeUserIds: string[] = []) {
     const messageStr = JSON.stringify(message);
     
-    for (const [clientId, client] of this.clients.entries()) {
+    for (const [clientId, client] of Array.from(this.clients.entries())) {
       if (
         client.roomId === roomId && 
         !excludeUserIds.includes(client.userId) &&

@@ -40,7 +40,7 @@ export class MessagingWebSocketServer {
 
   private setupWebSocketHandlers() {
     this.wss.on('connection', (ws: WebSocket, request) => {
-      console.log('New WebSocket connection established');
+      // New WebSocket connection established
 
       // Handle authentication and user identification
       let userId: string | null = null;
