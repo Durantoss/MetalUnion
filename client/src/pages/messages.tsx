@@ -109,8 +109,11 @@ export default function Messages() {
   // Update conversations when data is fetched
   useEffect(() => {
     if (fetchedConversations && Array.isArray(fetchedConversations)) {
-      console.log('📋 Loaded conversations:', fetchedConversations.length);
+      console.log('📋 Mobile Debug - Loaded conversations:', fetchedConversations.length);
+      console.log('📱 Conversations data:', fetchedConversations);
       setConversations(fetchedConversations);
+    } else {
+      console.log('❌ Mobile Debug - No conversations loaded:', fetchedConversations);
     }
   }, [fetchedConversations]);
 
