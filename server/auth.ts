@@ -72,9 +72,11 @@ export async function setupAuth(app: Express) {
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
         imgSrc: ["'self'", "data:", "https:"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        connectSrc: ["'self'", "ws:", "wss:", "http:", "https:"],
       },
     },
     hsts: {
@@ -142,8 +144,6 @@ export async function setupAuth(app: Express) {
         stagename,
         safeword: hashedPassword,
         email: email || null,
-        reputationPoints: 0,
-        badges: [],
         concertAttendanceCount: 0,
         commentCount: 0,
         reviewCount: 0,
