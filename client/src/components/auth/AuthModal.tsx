@@ -233,7 +233,8 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
           fontSize: '0.85rem',
           textAlign: 'center'
         }}>
-          Enter Any Stagename and Safeword to explore MoshUnion! Have fun, be safe and remember to use your safeword!)
+          Enter Any Stagename and Safeword to explore MoshUnion!<br/>
+          (Have fun, be safe and remember to use your safeword!)
         </div>
 
         <form onSubmit={handleSubmit}>
