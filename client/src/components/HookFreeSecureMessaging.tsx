@@ -368,8 +368,14 @@ export class HookFreeSecureMessaging {
     const contentDiv = document.createElement('div');
     contentDiv.className = 'flex flex-1 overflow-hidden';
     
-    // Add conversations and messages with safe rendering
-    contentDiv.innerHTML = this.renderConversationsList() + this.renderMessageView();
+    // Safe DOM manipulation: Create temporary container and set innerHTML once
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = this.renderConversationsList() + this.renderMessageView();
+    
+    // Move all child nodes to contentDiv safely
+    while (tempDiv.firstChild) {
+      contentDiv.appendChild(tempDiv.firstChild);
+    }
     
     // Assemble and append
     innerDiv.appendChild(header);
