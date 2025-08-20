@@ -1092,29 +1092,21 @@ export class MemStorage implements IStorage {
   // File-based persistence for feedback system
   private feedbackDataFile = './feedback-data.json';
   
+  // Simple in-memory storage - no file persistence to avoid module issues
+  private static feedbackConversations: any[] = [];
+  private static feedbackMessages: any[] = [];
+  
   private loadFeedbackData(): { conversations: any[], messages: any[] } {
-    try {
-      import('fs').then(fs => {
-        if (fs.existsSync(this.feedbackDataFile)) {
-          const data = fs.readFileSync(this.feedbackDataFile, 'utf8');
-          return JSON.parse(data);
-        }
-      });
-    } catch (error) {
-      console.log('📝 Creating new feedback data file');
-    }
-    return { conversations: [], messages: [] };
+    return { 
+      conversations: MemStorage.feedbackConversations, 
+      messages: MemStorage.feedbackMessages 
+    };
   }
   
   private saveFeedbackData(conversations: any[], messages: any[]): void {
-    try {
-      import('fs').then(fs => {
-        const data = { conversations, messages };
-        fs.writeFileSync(this.feedbackDataFile, JSON.stringify(data, null, 2));
-      });
-    } catch (error) {
-      console.error('❌ Failed to save feedback data:', error);
-    }
+    MemStorage.feedbackConversations = conversations;
+    MemStorage.feedbackMessages = messages;
+    console.log(`💾 Saved ${conversations.length} conversations and ${messages.length} messages`);
   }
   
   private get feedbackConversations(): any[] {
@@ -2419,10 +2411,17 @@ export class MemStorage implements IStorage {
 
   // Secure Direct Messaging Implementation
   async getConversations(userId: string): Promise<any[]> {
+    console.log(`🔍 Getting conversations for user: ${userId}`);
+    
     // Get stored conversations from memory (includes feedback conversations)
-    const storedConversations = this.feedbackConversations.filter(conv => 
+    const data = this.loadFeedbackData();
+    console.log(`📊 Total conversations in system: ${data.conversations.length}`);
+    
+    const storedConversations = data.conversations.filter(conv => 
       conv.participant1Id === userId || conv.participant2Id === userId
     );
+    
+    console.log(`📝 Found ${storedConversations.length} conversations for user ${userId}`);
 
     // Format conversations with participant info
     const formattedConversations = storedConversations.map(conv => {
