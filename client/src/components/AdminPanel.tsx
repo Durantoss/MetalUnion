@@ -66,7 +66,9 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/users');
+      const response = await fetch('/api/admin/users', {
+        credentials: 'include'
+      });
       if (response.ok) {
         const usersData = await response.json();
         setUsers(usersData);
@@ -142,13 +144,24 @@ export function AdminPanel({ currentUserId }: AdminPanelProps) {
   const loadAlphaTesters = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/alpha-testers');
+      const response = await fetch('/api/admin/alpha-testers', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
       if (response.ok) {
         const data = await response.json();
         setAlphaTesters(data.testers);
         setAlphaTesterMetrics(data.metrics);
+        console.log('Alpha testers data loaded:', data);
+      } else {
+        console.error('Failed to load alpha testers:', response.status, await response.text());
       }
     } catch (error) {
+      console.error('Error loading alpha testers:', error);
     } finally {
       setLoading(false);
     }
