@@ -233,8 +233,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
           fontSize: '0.85rem',
           textAlign: 'center'
         }}>
-          Demo Mode Active: Enter any username and password to explore MoshUnion!<br/>
-          (Try "Durantoss" for admin access)
+          Enter Any Stagename and Safeword to explore MoshUnion! Have fun, be safe and remember to use your safeword!)
         </div>
 
         <form onSubmit={handleSubmit}>
