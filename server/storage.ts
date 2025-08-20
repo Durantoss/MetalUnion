@@ -1089,6 +1089,9 @@ export class DatabaseStorage implements IStorage {
 }
 
 export class MemStorage implements IStorage {
+  // Memory stores for feedback system
+  private feedbackConversations: any[] = [];
+  private feedbackMessages: any[] = [];
   private users: Map<string, User> = new Map();
   private bands: Map<string, Band> = new Map();
   private reviews: Map<string, Review> = new Map();
@@ -2384,56 +2387,88 @@ export class MemStorage implements IStorage {
 
   // Secure Direct Messaging Implementation
   async getConversations(userId: string): Promise<any[]> {
-    return [
-      {
-        id: 'conv1',
-        participant1Id: userId,
-        participant2Id: 'user2',
-        participant1Name: 'You',
-        participant2Name: 'ConcertGoer',
-        lastMessageAt: new Date('2024-08-18T14:30:00'),
-        isEncrypted: true,
-        unreadCount: 2
-      },
-      {
-        id: 'conv2',
-        participant1Id: userId,
-        participant2Id: 'user3',
-        participant1Name: 'You',
-        participant2Name: 'MetalQueen',
-        lastMessageAt: new Date('2024-08-18T12:15:00'),
-        isEncrypted: true,
-        unreadCount: 0
-      },
-      {
-        id: 'conv3',
-        participant1Id: userId,
-        participant2Id: 'user4',
-        participant1Name: 'You',
-        participant2Name: 'RockVeteran',
-        lastMessageAt: new Date('2024-08-17T18:45:00'),
-        isEncrypted: true,
-        unreadCount: 1
+    // Get stored conversations from memory (includes feedback conversations)
+    const storedConversations = this.feedbackConversations.filter(conv => 
+      conv.participant1Id === userId || conv.participant2Id === userId
+    );
+
+    // Format conversations with participant info
+    const formattedConversations = storedConversations.map(conv => {
+      const otherParticipantId = conv.participant1Id === userId ? 
+        conv.participant2Id : conv.participant1Id;
+      
+      // Get participant name
+      let participantName = 'Unknown User';
+      if (otherParticipantId === 'durantoss-admin-001') {
+        participantName = 'Admin (Developer)';
+      } else if (otherParticipantId.startsWith('METAL-ALPHA')) {
+        participantName = `Alpha Tester (${otherParticipantId})`;
+      } else if (otherParticipantId.startsWith('test-user')) {
+        participantName = 'Test User';
+      } else {
+        participantName = otherParticipantId;
       }
-    ];
+
+      return {
+        id: conv.id,
+        participant1Id: conv.participant1Id,
+        participant2Id: conv.participant2Id,
+        participantName: participantName,
+        participantStagename: participantName,
+        lastMessage: conv.lastMessage || 'New feedback conversation',
+        lastMessageAt: conv.lastMessageAt?.toISOString() || new Date().toISOString(),
+        isEncrypted: conv.isEncrypted,
+        conversationType: conv.conversationType || 'feedback',
+        unreadCount: conv.unreadCount || 0
+      };
+    });
+
+    console.log(`📋 Retrieved ${formattedConversations.length} conversations for user ${userId}`);
+    return formattedConversations;
   }
 
   async getConversation(conversationId: string): Promise<any> {
-    const conversations = await this.getConversations('demo-user');
-    return conversations.find(conv => conv.id === conversationId);
+    return this.feedbackConversations.find(conv => conv.id === conversationId);
   }
 
   async createConversation(conversation: any): Promise<any> {
-    return {
+    const newConversation = {
       id: randomUUID(),
       ...conversation,
       isEncrypted: true,
       lastMessageAt: new Date(),
-      createdAt: new Date()
+      createdAt: new Date(),
+      lastMessage: '',
+      unreadCount: 0
     };
+    
+    // Store in memory for retrieval
+    this.feedbackConversations.push(newConversation);
+    console.log(`💬 Created conversation: ${newConversation.id} between ${newConversation.participant1Id} and ${newConversation.participant2Id}`);
+    
+    return newConversation;
   }
 
   async getMessages(conversationId: string): Promise<any[]> {
+    // Get messages from memory store
+    const conversationMessages = this.feedbackMessages.filter(msg => 
+      msg.conversationId === conversationId
+    );
+
+    return conversationMessages.map(msg => ({
+      id: msg.id,
+      conversationId: msg.conversationId,
+      senderId: msg.senderId,
+      content: msg.content,
+      messageType: msg.messageType || 'text',
+      timestamp: msg.timestamp?.toISOString() || new Date().toISOString(),
+      encrypted: msg.encrypted || true,
+      deliveredAt: msg.deliveredAt?.toISOString(),
+      readAt: msg.readAt?.toISOString()
+    }));
+  }
+
+  async getMessagesOLD(conversationId: string): Promise<any[]> {
     // Mock encrypted messages - in reality these would be properly encrypted
     const mockMessages = {
       'conv1': [
@@ -2507,12 +2542,29 @@ export class MemStorage implements IStorage {
   }
 
   async createMessage(message: any): Promise<any> {
-    return {
-      id: randomUUID(),
+    const newMessage = { 
+      id: randomUUID(), 
       ...message,
+      timestamp: new Date(),
       deliveredAt: new Date(),
-      createdAt: new Date()
+      createdAt: new Date(),
+      encrypted: true
     };
+    
+    // Store in memory
+    this.feedbackMessages.push(newMessage);
+    
+    // Update conversation's last message
+    const conversation = this.feedbackConversations.find(conv => conv.id === message.conversationId);
+    if (conversation) {
+      conversation.lastMessage = message.content?.substring(0, 50) + '...';
+      conversation.lastMessageAt = new Date();
+      conversation.unreadCount = (conversation.unreadCount || 0) + 1;
+    }
+    
+    console.log(`✉️ Created message: ${newMessage.id} in conversation ${message.conversationId}`);
+    
+    return newMessage;
   }
 
   async markMessageAsRead(messageId: string, userId: string): Promise<void> {

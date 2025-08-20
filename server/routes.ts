@@ -2240,7 +2240,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/messaging/conversations', async (req: any, res) => {
     try {
-      const userId = 'demo-user'; // Use demo user for testing
+      const userId = req.query.userId as string || req.session?.userId || 'demo-user';
+      console.log(`🔍 Getting conversations for user: ${userId}`);
       const conversations = await storage.getConversations(userId);
       res.json(conversations);
     } catch (error) {
