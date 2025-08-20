@@ -28,23 +28,25 @@ export function getSession() {
 
 // Authentication middleware
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-  // Check if we're in deployed/production environment with demo mode
-  const host = req.get('host') || req.headers.host || '';
-  const isDeployedApp = host.includes('replit.dev') || host.includes('replit.app') || host.includes('band-blaze-durantoss');
-  const isDemoMode = process.env.DEMO_MODE === 'true' || isDeployedApp;
+  // Only enable demo mode when explicitly set via environment variable
+  const isDemoMode = process.env.DEMO_MODE === 'true';
   
-  console.log('isAuthenticated middleware - Demo mode check:', { host, isDeployedApp, isDemoMode, nodeEnv: process.env.NODE_ENV });
+  console.log('isAuthenticated middleware - Alpha mode active:', { isDemoMode, nodeEnv: process.env.NODE_ENV });
   
-  // Demo mode: Allow access without authentication
+  // Demo mode: Allow access without authentication (only when explicitly enabled)
   if (isDemoMode) {
+    console.log('🎭 Demo mode enabled - allowing access');
     return next();
   }
   
-  // Production authentication enabled - checking real session
+  // Alpha mode: Require real authentication
   if (req.session && (req.session as any).userId) {
+    console.log('✅ User authenticated:', (req.session as any).userId);
     return next();
   }
-  return res.status(401).json({ message: 'Authentication required' });
+  
+  console.log('🚫 Authentication required - redirecting to login');
+  return res.status(401).json({ message: 'Authentication required - Alpha testing mode' });
 };
 
 // Optional authentication middleware (doesn't block if not authenticated)
@@ -204,16 +206,14 @@ export async function setupAuth(app: Express) {
         });
       }
       
-      // Check if we're in demo mode
-      const host = req.get('host') || req.headers.host || '';
-      const isDeployedApp = host.includes('replit.dev') || host.includes('replit.app') || host.includes('band-blaze-durantoss');
-      const isDemoMode = process.env.DEMO_MODE === 'true' || isDeployedApp;
+      // Check if we're in demo mode (only when explicitly enabled)
+      const isDemoMode = process.env.DEMO_MODE === 'true';
       
-      console.log('Login: Demo mode check:', { host, isDeployedApp, isDemoMode });
+      console.log('🎯 Alpha login mode active:', { isDemoMode, stagename });
       
-      // Demo mode: Accept any credentials
+      // Demo mode: Accept any credentials (only when explicitly enabled)
       if (isDemoMode) {
-        console.log('Demo mode active - accepting any credentials');
+        console.log('🎭 Demo mode active - accepting any credentials');
         const demoUser = {
           id: 'demo-user-' + Date.now(),
           stagename: stagename,
@@ -241,7 +241,40 @@ export async function setupAuth(app: Express) {
         });
       }
       
-      // Real authentication flow for local development
+      // 🎯 ALPHA TESTER AUTHENTICATION
+      // Check for alpha tester login patterns
+      if (stagename.toLowerCase().startsWith('alpha-') || stagename.toLowerCase() === 'durantoss-alpha-001') {
+        console.log('🧪 Alpha tester login detected:', stagename);
+        
+        // Alpha testers can use any password for testing
+        const alphaUserId = stagename.toLowerCase() === 'durantoss-alpha-001' 
+          ? 'durantoss-admin-001' 
+          : stagename.toLowerCase();
+          
+        const alphaUser = {
+          id: alphaUserId,
+          stagename: stagename,
+          email: `${stagename.toLowerCase()}@alphatest.com`,
+          isAlphaTester: true,
+          accessKey: alphaUserId === 'durantoss-admin-001' ? 'Durantoss-Alpha-001' : `METAL-ALPHA-${stagename.substring(6).padStart(3, '0')}`,
+          isAdmin: alphaUserId === 'durantoss-admin-001',
+          permissions: alphaUserId === 'durantoss-admin-001' ? { full_admin: true } : {},
+          role: alphaUserId === 'durantoss-admin-001' ? 'admin' : 'alpha_tester'
+        };
+        
+        // Set session for alpha tester
+        (req.session as any).userId = alphaUser.id;
+        (req.session as any).stagename = alphaUser.stagename;
+        (req.session as any).isAdmin = alphaUser.isAdmin;
+        
+        console.log('✅ Alpha tester authenticated:', alphaUser.id);
+        return res.json({ 
+          message: 'Alpha tester login successful',
+          user: alphaUser 
+        });
+      }
+      
+      // Real authentication flow for registered users
       
       // Get user by stagename
       const user = await storage.getUserByStagename(stagename);
@@ -321,14 +354,13 @@ export async function setupAuth(app: Express) {
         cookies: req.headers.cookie
       });
       
-      // Check if we're in demo mode
-      const host = req.get('host') || req.headers.host || '';
-      const isDeployedApp = host.includes('replit.dev') || host.includes('replit.app') || host.includes('band-blaze-durantoss');
-      const isDemoMode = process.env.DEMO_MODE === 'true' || isDeployedApp;
-      
+      // Alpha mode active - only demo mode when explicitly enabled
+      const isDemoMode = process.env.DEMO_MODE === 'true';
       const userId = (req.session as any)?.userId;
       
-      // 🎯 ALPHA TESTER AUTHENTICATION - Complete fix for all alpha access
+      console.log('🎯 Alpha mode - user auth check:', { isDemoMode, userId });
+      
+      // 🎯 ALPHA TESTER AUTHENTICATION
       
       // Admin alpha tester
       if (userId === 'durantoss-admin-001') {
@@ -363,12 +395,10 @@ export async function setupAuth(app: Express) {
         });
       }
       
-      console.log('Auth user endpoint - Demo check debug:', { 
-        host, 
-        isDeployedApp, 
+      console.log('🎯 Alpha mode - authentication status:', { 
         isDemoMode, 
         userId,
-        fullUrl: req.protocol + '://' + req.get('host') + req.originalUrl 
+        hasValidSession: !!userId
       });
       
       if (!userId) {
