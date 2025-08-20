@@ -91,6 +91,11 @@ export default function App() {
       return;
     }
     
+    console.log('🐛 DEBUG: Section change requested:', newSection);
+    console.log('🐛 DEBUG: Current section before:', currentSection);
+    console.log('🐛 DEBUG: Current user:', currentUser);
+    console.log('🐛 DEBUG: Is switching to admin?', newSection === 'admin');
+    
     setCurrentSection(newSection);
   };
   const [showNotifications, setShowNotifications] = useState(false);
@@ -570,6 +575,7 @@ export default function App() {
         );
 
       case 'admin':
+        console.log('🐛 DEBUG: Rendering AdminPanel, currentUser:', currentUser);
         return <AdminPanel currentUserId={currentUser?.id} />;
       default:
         return (
