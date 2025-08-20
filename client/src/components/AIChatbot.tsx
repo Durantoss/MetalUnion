@@ -148,7 +148,7 @@ body: JSON.stringify({ content })
 
   return (
     <div 
-      className="w-full h-full min-h-[600px] bg-background text-foreground flex flex-col md:flex-row"
+      className="w-full h-full min-h-[600px] bg-background text-foreground flex flex-col"
       style={{
         backgroundColor: '#111827',
         color: '#ffffff',
@@ -156,109 +156,106 @@ body: JSON.stringify({ content })
       }}
       data-testid="ai-chatbot"
     >
-      {/* Conversation Sidebar */}
+      {/* Header with Conversation Toggle */}
       <div 
-        className={`${
-          isMobile 
-            ? (showConversationList ? 'block' : 'hidden') 
-            : 'block'
-        } w-full md:w-80 bg-gray-900 border-r border-red-900/30 flex flex-col`}
+        className="w-full bg-gray-900 border-b border-red-900/30 flex items-center justify-between p-4"
         style={{ backgroundColor: '#1f2937', borderColor: 'rgba(220, 38, 38, 0.3)' }}
       >
-        {/* Header */}
-        <div 
-          className="p-4 border-b border-red-900/30 bg-black/30"
-          style={{ borderColor: 'rgba(220, 38, 38, 0.3)', backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Bot className="h-6 w-6 text-yellow-400" />
-              <h2 className="text-lg font-bold text-white">MoshBot AI</h2>
-            </div>
-            <Button
-              onClick={() => createConversationMutation.mutate('New AI Chat')}
-              disabled={createConversationMutation.isPending}
-              className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-              data-testid="button-new-conversation"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={() => setShowConversationList(!showConversationList)}
+            className="p-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+            data-testid="toggle-conversations"
+          >
+            <MessageCircle className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <Bot className="h-6 w-6 text-yellow-400" />
+            <h2 className="text-lg font-bold text-white">MoshBot AI</h2>
           </div>
-          <p className="text-sm text-gray-400 mt-1">
-            Your AI assistant for all things metal 🤘
-          </p>
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-xs text-gray-400">Live</span>
         </div>
-
-        {/* Conversations List */}
-        <div className="flex-1 overflow-y-auto p-2">
-          {conversationsLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-yellow-400" />
-            </div>
-          ) : !conversations || conversations.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
-              <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-sm">No conversations yet</p>
-              <p className="text-xs mt-1">Start chatting with MoshBot!</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {conversations.map((conversation) => (
-                <div
-                  key={conversation.id}
-                  onClick={() => {
-                    setSelectedConversation(conversation.id);
-                    setShowConversationList(false);
-                  }}
-                  className={`p-3 rounded-lg cursor-pointer transition-all group ${
-                    selectedConversation === conversation.id
-                      ? 'bg-red-600 text-white'
-                      : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
-                  }`}
-                  data-testid={`conversation-${conversation.id}`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate text-sm">
-                        {conversation.title}
-                      </h3>
-                      <p className="text-xs opacity-70 mt-1">
-                        {formatTime(conversation.updatedAt)}
-                      </p>
-                      {conversation.messages && conversation.messages.length > 0 && (
-                        <p className="text-xs opacity-60 truncate mt-1">
-                          {conversation.messages && conversation.messages.length > 0 && conversation.messages[conversation.messages.length - 1].content}
-                        </p>
-                      )}
-                    </div>
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteConversationMutation.mutate(conversation.id);
-                      }}
-                      className="p-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2"
-                      variant="ghost"
-                      size="sm"
-                      data-testid={`delete-conversation-${conversation.id}`}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <Button
+          onClick={() => createConversationMutation.mutate('New AI Chat')}
+          disabled={createConversationMutation.isPending}
+          className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+          data-testid="button-new-conversation"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
       </div>
 
-      {/* Chat Area */}
-      <div className="flex-1 flex flex-col">
+      {/* Collapsible Conversation List */}
+      {showConversationList && (
+        <div 
+          className="w-full bg-gray-900 border-b border-red-900/30 max-h-48 overflow-y-auto"
+          style={{ backgroundColor: '#1f2937', borderColor: 'rgba(220, 38, 38, 0.3)' }}
+        >
+          <div className="p-3">
+            {conversationsLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-yellow-400" />
+                <span className="ml-2 text-sm text-gray-400">Loading conversations...</span>
+              </div>
+            ) : !conversations || conversations.length === 0 ? (
+              <div className="text-center py-4 text-gray-400">
+                <p className="text-sm">No conversations yet - create one to get started!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                {conversations.map((conversation) => (
+                  <div
+                    key={conversation.id}
+                    onClick={() => {
+                      setSelectedConversation(conversation.id);
+                      setShowConversationList(false);
+                    }}
+                    className={`p-2 rounded cursor-pointer transition-all group ${
+                      selectedConversation === conversation.id
+                        ? 'bg-red-600 text-white'
+                        : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                    }`}
+                    data-testid={`conversation-${conversation.id}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium truncate text-xs">
+                          {conversation.title}
+                        </h3>
+                        <p className="text-xs opacity-70">
+                          {formatTime(conversation.updatedAt)}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteConversationMutation.mutate(conversation.id);
+                        }}
+                        className="p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        variant="ghost"
+                        size="sm"
+                        data-testid={`delete-conversation-${conversation.id}`}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Full Width Chat Area */}
+      <div className="flex-1 flex flex-col w-full">
         {!selectedConversation ? (
           <div className="flex-1 flex items-center justify-center bg-black/20">
-            <div className="text-center">
+            <div className="text-center max-w-md mx-auto px-4">
               <Bot className="h-16 w-16 mx-auto mb-4 text-yellow-400" />
               <h3 className="text-xl font-bold text-white mb-2">Welcome to MoshBot!</h3>
-              <p className="text-gray-400 mb-4">
+              <p className="text-gray-400 mb-6">
                 Your AI assistant for metal & rock music discovery
               </p>
               <Button
@@ -278,39 +275,9 @@ body: JSON.stringify({ content })
           </div>
         ) : (
           <>
-            {/* Chat Header */}
-            <div 
-              className="p-4 border-b border-red-900/30 bg-black/30"
-              style={{ borderColor: 'rgba(220, 38, 38, 0.3)', backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {isMobile && (
-                    <Button
-                      onClick={() => setShowConversationList(true)}
-                      variant="ghost"
-                      size="sm"
-                      className="p-2"
-                      data-testid="button-back-to-conversations"
-                    >
-                      ←
-                    </Button>
-                  )}
-                  <Bot className="h-6 w-6 text-yellow-400" />
-                  <div>
-                    <h3 className="font-medium text-white">MoshBot</h3>
-                    <p className="text-xs text-gray-400">AI Assistant • Online</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs text-gray-400">Live</span>
-                </div>
-              </div>
-            </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* Messages - Full Width */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 w-full max-w-none">
               {conversationLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-yellow-400" />
@@ -345,7 +312,7 @@ body: JSON.stringify({ content })
                       )}
                     </div>
                     <div
-                      className={`max-w-[80%] rounded-lg p-3 ${
+                      className={`max-w-[90%] rounded-lg p-3 ${
                         message.role === 'user'
                           ? 'bg-red-600 text-white ml-auto'
                           : 'bg-gray-800 text-white'
@@ -396,19 +363,19 @@ body: JSON.stringify({ content })
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Message Input */}
+            {/* Message Input - Full Width */}
             <div 
-              className="p-4 border-t border-red-900/30 bg-black/20"
+              className="p-4 border-t border-red-900/30 bg-black/20 w-full"
               style={{ borderColor: 'rgba(220, 38, 38, 0.3)', backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
             >
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full max-w-none">
                 <Input
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Ask MoshBot about bands, concerts, or anything metal..."
                   disabled={sendMessageMutation.isPending}
-                  className="flex-1 bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-yellow-400"
+                  className="flex-1 bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-yellow-400 w-full"
                   data-testid="input-message"
                 />
                 <Button
