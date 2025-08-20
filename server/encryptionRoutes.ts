@@ -61,6 +61,58 @@ export function registerEncryptionRoutes(app: Express) {
     }
   });
 
+  // Auto-setup encryption keys with generated password (no manual password required)
+  app.post("/api/encryption/setup-keys", isDemoAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.session?.userId;
+      
+      // Check if user already has encryption keys
+      const existingKeys = await storage.getEncryptionKeys(userId);
+      if (existingKeys) {
+        return res.json({
+          success: true,
+          keys: {
+            id: existingKeys.id,
+            publicKey: existingKeys.publicKey,
+            keyType: existingKeys.keyType,
+            isActive: existingKeys.isActive
+          }
+        });
+      }
+      
+      // Auto-generate a secure encryption password for this user
+      const autoPassword = MessageEncryption.generateAutoPassword(userId);
+      
+      // Generate new RSA key pair
+      const keys = await MessageEncryption.generateKeyPair();
+      
+      // Encrypt private key with auto-generated password
+      const encryptedPrivateKey = MessageEncryption.encryptPrivateKey(keys.privateKey, autoPassword);
+      
+      // Store keys in database
+      const encryptionKeys = await storage.createEncryptionKey({
+        userId,
+        publicKey: keys.publicKey,
+        privateKeyEncrypted: encryptedPrivateKey,
+        keyType: 'rsa',
+        isActive: true
+      });
+      
+      res.json({
+        success: true,
+        keys: {
+          id: encryptionKeys.id,
+          publicKey: encryptionKeys.publicKey,
+          keyType: encryptionKeys.keyType,
+          isActive: encryptionKeys.isActive
+        }
+      });
+    } catch (error) {
+      console.error('Encryption setup error:', error);
+      res.status(500).json({ error: 'Failed to setup encryption keys' });
+    }
+  });
+
   // Test encryption/decryption workflow
   app.post("/api/messaging/test-encryption", isDemoAuthenticated, async (req: any, res) => {
     try {

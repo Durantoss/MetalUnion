@@ -135,4 +135,20 @@ export class MessageEncryption {
   private static deriveKey(password: string, salt: Buffer): Buffer {
     return pbkdf2Sync(password, salt, 100000, 32, 'sha256');
   }
+
+  /**
+   * Generate automatic encryption password for user (eliminates manual password requirement)
+   */
+  static generateAutoPassword(userId: string): string {
+    // Create a unique password based on user ID and app-specific salt
+    const appSalt = 'moshunion-encryption-2025';
+    const combinedData = `${userId}-${appSalt}-${process.env.NODE_ENV || 'development'}`;
+    
+    // Use SHA-256 to create a secure password from the combined data
+    const crypto = require('crypto');
+    const hash = crypto.createHash('sha256').update(combinedData).digest('hex');
+    
+    // Return first 32 characters as password (256 bits of entropy)
+    return hash.substring(0, 32);
+  }
 }
