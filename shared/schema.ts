@@ -456,6 +456,7 @@ export type InsertUserBadge = typeof userBadges.$inferInsert;
 export type ConcertAttendance = typeof concertAttendance.$inferSelect;
 export type InsertConcertAttendance = typeof concertAttendance.$inferInsert;
 
+
 // Zod schemas for validation
 export const createUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -816,6 +817,74 @@ export const groupMessageReactions = pgTable("group_message_reactions", {
   messageId: varchar("message_id").notNull().references(() => groupMessages.id, { onDelete: "cascade" }),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   emoji: varchar("emoji").notNull(), // Unicode emoji or custom emoji ID
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Double Ratchet Encryption System - User Key Bundles
+export const userKeyBundles = pgTable("user_key_bundles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Ed25519 Identity Key (for signatures)
+  identityPublicKey: text("identity_public_key").notNull(),
+  identityPrivateKeyEncrypted: text("identity_private_key_encrypted").notNull(), // Encrypted with user password
+  
+  // X25519 Signed Pre-Key (for key exchange)
+  signedPreKeyPublic: text("signed_pre_key_public").notNull(),
+  signedPreKeyPrivateEncrypted: text("signed_pre_key_private_encrypted").notNull(),
+  signedPreKeySignature: text("signed_pre_key_signature").notNull(),
+  
+  // X25519 Ephemeral Key (one-time use)
+  ephemeralKeyPublic: text("ephemeral_key_public").notNull(),
+  ephemeralKeyPrivateEncrypted: text("ephemeral_key_private_encrypted").notNull(),
+  
+  keyBundleId: integer("key_bundle_id").notNull(), // For key rotation
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"), // Pre-keys should expire periodically
+});
+
+// Double Ratchet State Storage for Conversations
+export const conversationRatchetStates = pgTable("conversation_ratchet_states", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Serialized ratchet state (encrypted JSON)
+  ratchetStateEncrypted: text("ratchet_state_encrypted").notNull(),
+  
+  // Current message numbers for debugging/sync
+  sendingMessageNumber: integer("sending_message_number").default(0),
+  receivingMessageNumber: integer("receiving_message_number").default(0),
+  
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Double Ratchet Encrypted Messages
+export const doubleRatchetMessages = pgTable("double_ratchet_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+  senderId: varchar("sender_id").notNull().references(() => users.id),
+  
+  // Double Ratchet message structure
+  encryptedHeader: text("encrypted_header").notNull(), // Encrypted message header
+  headerIv: varchar("header_iv").notNull(), // IV for header encryption
+  encryptedMessage: text("encrypted_message").notNull(), // Encrypted message content
+  messageIv: varchar("message_iv").notNull(), // IV for message encryption
+  authTag: varchar("auth_tag").notNull(), // GCM authentication tag
+  senderRatchetKey: text("sender_ratchet_key").notNull(), // Current sender public key
+  
+  // Message metadata
+  messageNumber: integer("message_number").notNull(),
+  previousChainLength: integer("previous_chain_length").notNull(),
+  messageType: varchar("message_type", { enum: ['text', 'image', 'video', 'file'] }).default('text'),
+  
+  // Message status
+  deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
+  isDeleted: boolean("is_deleted").default(false),
+  
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -1616,3 +1685,29 @@ export type PhotoAlbum = typeof photoAlbums.$inferSelect;
 export type InsertPhotoAlbum = z.infer<typeof insertPhotoAlbumSchema>;
 export type AlbumPhoto = typeof albumPhotos.$inferSelect;
 export type InsertAlbumPhoto = z.infer<typeof insertAlbumPhotoSchema>;
+
+// Double Ratchet Encryption Zod Schemas
+export const insertUserKeyBundleSchema = createInsertSchema(userKeyBundles).omit({
+  id: true,
+  createdAt: true,
+});
+export const selectUserKeyBundleSchema = createInsertSchema(userKeyBundles);
+export type InsertUserKeyBundle = z.infer<typeof insertUserKeyBundleSchema>;
+export type UserKeyBundle = typeof userKeyBundles.$inferSelect;
+
+export const insertConversationRatchetStateSchema = createInsertSchema(conversationRatchetStates).omit({
+  id: true,
+  createdAt: true,
+  lastUpdated: true,
+});
+export const selectConversationRatchetStateSchema = createInsertSchema(conversationRatchetStates);
+export type InsertConversationRatchetState = z.infer<typeof insertConversationRatchetStateSchema>;
+export type ConversationRatchetState = typeof conversationRatchetStates.$inferSelect;
+
+export const insertDoubleRatchetMessageSchema = createInsertSchema(doubleRatchetMessages).omit({
+  id: true,
+  createdAt: true,
+});
+export const selectDoubleRatchetMessageSchema = createInsertSchema(doubleRatchetMessages);
+export type InsertDoubleRatchetMessage = z.infer<typeof insertDoubleRatchetMessageSchema>;
+export type DoubleRatchetMessage = typeof doubleRatchetMessages.$inferSelect;
