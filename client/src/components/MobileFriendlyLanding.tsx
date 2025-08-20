@@ -74,7 +74,6 @@ interface MobileFriendlyLandingProps {
 }
 
 export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onLogin, onLogout }: MobileFriendlyLandingProps) {
-  console.log('🎸 MobileFriendlyLanding render - currentUser:', currentUser);
   const [refreshInterval] = useState(5000); // 5 seconds
   
   // Real-time data queries that refresh every 5 seconds
@@ -382,21 +381,11 @@ export function MobileFriendlyLanding({ onSectionChange, bands, currentUser, onL
           </>
         ) : (
           <>
-            {/* Login Button - Debug Enhanced */}
+            {/* Login Button */}
             <button
               onClick={() => {
-                console.log('🎸 Enter The Pit clicked - triggering login');
-                console.log('onLogin prop:', onLogin);
-                console.log('onLogin type:', typeof onLogin);
                 if (onLogin) {
-                  console.log('✅ Calling onLogin function...');
                   onLogin();
-                  console.log('✅ onLogin function called successfully');
-                  // Additional confirmation
-                  alert('Login triggered! Check if modal appears.');
-                } else {
-                  console.error('❌ onLogin prop not provided');
-                  alert('ERROR: Login function not available');
                 }
               }}
               style={{

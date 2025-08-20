@@ -6,22 +6,16 @@ export function useAuth() {
   const { data: user, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/auth/user'],
     queryFn: async () => {
-      console.log('🔍 useAuth: Checking authentication status...');
-      
       // Real authentication flow
       const response = await fetch('/api/auth/user', {
         credentials: 'include'
       });
       
-      console.log('🔍 useAuth: Server response:', response.status);
-      
       if (!response.ok) {
-        console.log('🔍 useAuth: Not authenticated - clearing any cached user data');
         return null;
       }
       
       const userData = await response.json();
-      console.log('🔍 useAuth: User authenticated:', userData);
       return userData;
     },
     retry: false,
@@ -32,7 +26,6 @@ export function useAuth() {
   });
 
   const isAuthenticated = !!user;
-  console.log('🔍 useAuth result:', { user: !!user, isLoading, isAuthenticated });
 
   return {
     user,
