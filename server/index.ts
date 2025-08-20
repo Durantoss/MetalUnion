@@ -97,7 +97,14 @@ app.use((req, res, next) => {
     log(`Environment: ${app.get("env") || "development"}`);
     log(`Node environment: ${process.env.NODE_ENV || "not set"}`);
     
-    // Test storage connection before starting server
+    // Test storage connection before starting server (skip during deployment if DB is suspended)
+    const isDeployment = process.env.NODE_ENV === "production" && process.env.REPL_SLUG;
+    const isDatabaseSuspended = (error: any) => {
+      return error?.message?.includes("endpoint has been disabled") || 
+             error?.code === "XX000" ||
+             error?.message?.includes("password authentication failed");
+    };
+
     try {
       log("Testing storage connection...");
       // Import and test storage connectivity
@@ -105,9 +112,14 @@ app.use((req, res, next) => {
       await storage.getBands(); // Simple test to verify storage connectivity
       log("✅ Storage connection successful");
     } catch (error) {
-      log(`❌ Storage connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      console.error("Storage error:", error);
-      process.exit(1);
+      if (isDeployment && isDatabaseSuspended(error)) {
+        log("⚠️ Database appears suspended during deployment - this is normal, it will wake up automatically");
+        log("🚀 Continuing with server startup...");
+      } else {
+        log(`❌ Storage connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.error("Storage error:", error);
+        process.exit(1);
+      }
     }
 
     // Register routes with error handling
