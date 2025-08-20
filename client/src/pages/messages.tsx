@@ -97,6 +97,22 @@ export default function Messages() {
   // Type guard for currentUser
   const hasValidUser = currentUser && typeof currentUser === 'object' && 'id' in currentUser;
 
+  // Load conversations for current user
+  const { data: fetchedConversations } = useQuery({
+    queryKey: ['/api/messaging/conversations', currentUser?.id],
+    enabled: hasValidUser && !!currentUser?.id,
+    refetchInterval: 5000, // Refresh every 5 seconds
+    retry: false
+  });
+
+  // Update conversations when data is fetched
+  useEffect(() => {
+    if (fetchedConversations && Array.isArray(fetchedConversations)) {
+      console.log('📋 Loaded conversations:', fetchedConversations.length);
+      setConversations(fetchedConversations);
+    }
+  }, [fetchedConversations]);
+
   // Detect mobile and set responsive layout
   useEffect(() => {
     const checkMobile = () => {
@@ -737,21 +753,33 @@ export default function Messages() {
               >
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10">
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-red-500/20 text-red-300">
                       {conversation.participantStagename?.[0]?.toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-medium truncate">
-                        {conversation.participantStagename || `User ${conversation.participant2Id}`}
-                      </h3>
-                      {conversation.unreadCount && conversation.unreadCount > 0 && (
-                        <Badge variant="destructive" className="text-xs">
-                          {conversation.unreadCount}
-                        </Badge>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium truncate">
+                          {conversation.participantStagename || `User ${conversation.participant1Id}`}
+                        </h3>
+                        {conversation.conversationType === 'feedback' && (
+                          <Badge variant="outline" className="text-xs bg-yellow-500/20 text-yellow-300 border-yellow-500/50">
+                            Alpha Feedback
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {conversation.unreadCount && conversation.unreadCount > 0 && (
+                          <Badge variant="destructive" className="text-xs">
+                            {conversation.unreadCount}
+                          </Badge>
+                        )}
+                        {conversation.isEncrypted && (
+                          <Shield className="w-3 h-3 text-green-400" />
+                        )}
+                      </div>
                     </div>
                     
                     {conversation.lastMessage && (
@@ -760,11 +788,16 @@ export default function Messages() {
                       </p>
                     )}
                     
-                    {conversation.lastMessageAt && (
-                      <p className="text-xs text-muted-foreground">
-                        {formatTime(conversation.lastMessageAt)}
-                      </p>
-                    )}
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-xs text-muted-foreground">
+                        ID: {conversation.participant1Id}
+                      </span>
+                      {conversation.lastMessageAt && (
+                        <p className="text-xs text-muted-foreground">
+                          {formatTime(conversation.lastMessageAt)}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
