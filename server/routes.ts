@@ -2331,6 +2331,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Initialize WebSocket Examples for comprehensive real-time demos
   const wsExamples = new WebSocketExamples(httpServer);
+
+  // Initialize production messaging WebSocket server
+  const { ProductionMessagingServer } = await import('./productionMessaging');
+  const productionMessaging = new ProductionMessagingServer(httpServer);
+  console.log('🎸 Production messaging WebSocket server initialized');
   console.log('WebSocket examples and demos initialized');
   
   // Register complete database examples and operations

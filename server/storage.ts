@@ -2520,6 +2520,35 @@ export class MemStorage implements IStorage {
     console.log(`Message ${messageId} marked as read by user ${userId}`);
   }
 
+  async getConversation(id: string): Promise<any | undefined> {
+    // Demo mode: Return mock conversation
+    return {
+      id,
+      participant1Id: 'user1',
+      participant2Id: 'user2',
+      createdAt: new Date('2024-01-15'),
+      lastMessageAt: new Date('2024-01-20')
+    };
+  }
+
+  async getMessage(id: string): Promise<any | undefined> {
+    // Demo mode: Return mock message
+    return {
+      id,
+      conversationId: 'conv1',
+      senderId: 'user2',
+      authorId: 'user2', // Add for compatibility
+      content: 'Demo message content',
+      timestamp: new Date().toISOString(),
+      messageType: 'text',
+      encrypted: false,
+      isRead: false,
+      isDelivered: true,
+      deliveredAt: new Date(),
+      readAt: null
+    };
+  }
+
   async getEncryptionKeys(userId: string): Promise<any[]> {
     return [
       {
