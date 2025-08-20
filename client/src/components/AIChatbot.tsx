@@ -348,16 +348,27 @@ body: JSON.stringify({ content })
                       className={`max-w-[80%] rounded-lg p-3 ${
                         message.role === 'user'
                           ? 'bg-red-600 text-white ml-auto'
-                          : 'bg-gray-800 text-gray-100'
+                          : 'bg-gray-800 text-white'
                       }`}
+                      style={{
+                        backgroundColor: message.role === 'user' ? '#dc2626' : '#374151',
+                        color: '#ffffff',
+                        border: message.role === 'assistant' ? '1px solid rgba(251, 191, 36, 0.3)' : 'none'
+                      }}
                     >
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      <p className="text-sm whitespace-pre-wrap" style={{ color: '#ffffff', lineHeight: '1.5' }}>
+                        {message.content}
+                      </p>
                       <p
                         className={`text-xs mt-2 ${
                           message.role === 'user' 
                             ? 'text-red-200' 
-                            : 'text-gray-400'
+                            : 'text-yellow-300'
                         }`}
+                        style={{
+                          color: message.role === 'user' ? '#fca5a5' : '#fde047',
+                          opacity: 0.8
+                        }}
                       >
                         {formatTime(message.timestamp)}
                       </p>
