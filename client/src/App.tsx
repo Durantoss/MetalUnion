@@ -38,6 +38,7 @@ import { SharedSectionLayout } from './components/SharedSectionLayout';
 import { BandDiscovery } from './components/BandDiscovery';
 import { AlphaAccess } from './components/AlphaAccess';
 import { AlphaDashboard } from './components/AlphaDashboard';
+import { AlphaFeedback } from './components/AlphaFeedback';
 import { Band } from './types';
 
 
@@ -96,6 +97,7 @@ export default function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [alphaTester, setAlphaTester] = useState<any>(null);
   const [showAlphaAccess, setShowAlphaAccess] = useState(true);
+  const [showAlphaFeedback, setShowAlphaFeedback] = useState(false);
   
   
   // Use useAuth hook for persistent authentication
@@ -751,6 +753,29 @@ export default function App() {
         }
       `}} />
       
+      {/* Alpha Feedback System */}
+      {(alphaTester || (currentUser && currentUser.isAlphaTester)) && (
+        <AlphaFeedback
+          currentUser={alphaTester || currentUser}
+          isOpen={showAlphaFeedback}
+          onClose={() => setShowAlphaFeedback(false)}
+        />
+      )}
+
+      {/* Alpha Feedback Floating Button */}
+      {(alphaTester || (currentUser && currentUser.isAlphaTester)) && !showAlphaAccess && currentSection !== 'landing' && (
+        <button
+          onClick={() => setShowAlphaFeedback(true)}
+          className="fixed bottom-6 left-6 z-40 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+          data-testid="button-alpha-feedback"
+          title="Send Feedback to Developer"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+        </button>
+      )}
+
       {/* Authentication Modal - Enabled for real authentication */}
       {showAuthModal && (
         <AuthModal 

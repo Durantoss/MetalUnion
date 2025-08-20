@@ -1854,6 +1854,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Alpha Feedback System Routes
+  app.post('/api/messaging/feedback-conversation', async (req, res) => {
+    try {
+      const { userId, stagename } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ error: 'User ID required' });
+      }
+
+      // Admin user ID for feedback conversations
+      const adminUserId = 'durantoss-admin-001';
+      
+      // Check if conversation already exists between user and admin
+      const existingConversations = await storage.getConversations(userId);
+      const existingFeedbackConv = existingConversations.find(conv => 
+        (conv.participant1Id === userId && conv.participant2Id === adminUserId) ||
+        (conv.participant1Id === adminUserId && conv.participant2Id === userId)
+      );
+
+      if (existingFeedbackConv) {
+        return res.json(existingFeedbackConv);
+      }
+
+      // Create new feedback conversation with admin
+      const conversation = await storage.createConversation({
+        participant1Id: userId,
+        participant2Id: adminUserId,
+        createdAt: new Date(),
+        isEncrypted: true,
+        conversationType: 'feedback'
+      });
+
+      res.status(201).json(conversation);
+    } catch (error) {
+      console.error('Error creating feedback conversation:', error);
+      res.status(500).json({ error: 'Failed to create feedback conversation' });
+    }
+  });
+
+  app.post('/api/messaging/feedback', async (req, res) => {
+    try {
+      const { conversationId, content, messageType, priority, metadata } = req.body;
+      
+      if (!conversationId || !content) {
+        return res.status(400).json({ error: 'Conversation ID and content required' });
+      }
+
+      // Create the feedback message with special formatting
+      const message = await storage.createMessage({
+        conversationId,
+        senderId: metadata.userId,
+        content,
+        messageType: messageType || 'feedback',
+        timestamp: new Date(),
+        encrypted: true,
+        priority: priority || 'medium',
+        metadata: JSON.stringify(metadata)
+      });
+
+      console.log(`📋 Alpha Feedback Received:
+        Type: ${metadata.feedbackType}
+        Urgency: ${metadata.urgency}
+        User: ${metadata.accessKey}
+        Section: ${metadata.section}
+        Title: ${content.split('\n')[0].replace(/[^\w\s]/gi, '').substring(0, 50)}...`);
+
+      res.status(201).json({
+        success: true,
+        message: 'Feedback sent successfully',
+        messageId: message.id
+      });
+    } catch (error) {
+      console.error('Error sending feedback:', error);
+      res.status(500).json({ error: 'Failed to send feedback' });
+    }
+  });
+
   // Enhanced Social Features API Routes
 
   // User Groups & Communities
