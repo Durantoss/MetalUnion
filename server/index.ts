@@ -101,6 +101,8 @@ app.use((req, res, next) => {
   try {
     // Log startup process
     log("Starting MoshUnion server...");
+    log(`Deployment environment: ${process.env.NODE_ENV || 'development'}`);
+    log(`External deployment: ${process.env.REPL_SLUG ? 'yes' : 'no'}`);
     
     // Check required environment variables
     const requiredEnvVars = ['DATABASE_URL'];
@@ -120,17 +122,20 @@ app.use((req, res, next) => {
     log(`Database URL configured: ${process.env.DATABASE_URL ? 'Yes' : 'No'}`);
     log(`Working directory: ${process.cwd()}`);
     log(`Platform: ${process.platform} ${process.arch}`);
+    log(`Replit ID: ${process.env.REPL_ID || 'Not set'}`);
+    log(`Replit Owner: ${process.env.REPL_OWNER || 'Not set'}`);
 
     // Log environment
     log(`Environment: ${app.get("env") || "development"}`);
     log(`Node environment: ${process.env.NODE_ENV || "not set"}`);
     
     // Test storage connection before starting server (skip during deployment if DB is suspended)
-    const isDeployment = process.env.NODE_ENV === "production" && process.env.REPL_SLUG;
+    const isDeployment = process.env.REPL_SLUG !== undefined; // Deployed on Replit
     const isDatabaseSuspended = (error: any) => {
       return error?.message?.includes("endpoint has been disabled") || 
              error?.code === "XX000" ||
-             error?.message?.includes("password authentication failed");
+             error?.message?.includes("password authentication failed") ||
+             error?.message?.includes("Connection refused");
     };
 
     try {
@@ -140,8 +145,8 @@ app.use((req, res, next) => {
       await storage.getBands(); // Simple test to verify storage connectivity
       log("✅ Storage connection successful");
     } catch (error) {
-      if (isDeployment && isDatabaseSuspended(error)) {
-        log("⚠️ Database appears suspended during deployment - this is normal, it will wake up automatically");
+      if (isDatabaseSuspended(error)) {
+        log("⚠️ Database appears suspended - this is normal during first access, it will wake up automatically");
         log("🚀 Continuing with server startup...");
       } else {
         log(`❌ Storage connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
