@@ -6,10 +6,6 @@ import { MobileDebugger } from './components/MobileDebugger';
 import './index.css';
 
 // Mobile-optimized initialization
-console.log('📱 Starting MoshUnion mobile app...');
-console.log('📊 Screen size:', window.innerWidth + 'x' + window.innerHeight);
-console.log('📱 User Agent:', navigator.userAgent);
-console.log('🌐 Online:', navigator.onLine);
 
 // Force permanent dark mode
 document.documentElement.classList.add('dark');
@@ -42,7 +38,6 @@ if (!container) {
   throw new Error('Root element not found in HTML');
 }
 
-console.log('✅ Root container found, initializing React...');
 
 try {
   const root = createRoot(container);
@@ -59,7 +54,6 @@ try {
     if (loading) loading.remove();
   }, 3000);
   
-  console.log('✅ React app rendered successfully');
 } catch (error) {
   console.error('❌ Failed to render React app:', error);
   // Show error message to user

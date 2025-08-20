@@ -53,10 +53,8 @@ export function AlphaFeedback({ currentUser, isOpen, onClose }: AlphaFeedbackPro
 
   const sendFeedbackMutation = useMutation({
     mutationFn: async (feedback: FeedbackMessage) => {
-      console.log('🔄 Starting feedback submission for:', feedback.title);
       
       // First, create or get existing conversation with admin
-      console.log('📞 Creating conversation with admin...');
       const conversationResponse = await apiRequest('/api/messaging/feedback-conversation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -73,7 +71,6 @@ export function AlphaFeedback({ currentUser, isOpen, onClose }: AlphaFeedbackPro
       }
 
       const conversation = await conversationResponse.json();
-      console.log('✅ Conversation created:', conversation.id);
 
       // Format the feedback message with metadata
       const feedbackMessage = {
@@ -93,7 +90,6 @@ export function AlphaFeedback({ currentUser, isOpen, onClose }: AlphaFeedbackPro
         }
       };
 
-      console.log('📨 Sending feedback message...');
       // Send the message through the encrypted messaging system
       const messageResponse = await apiRequest('/api/messaging/feedback', {
         method: 'POST',
@@ -108,7 +104,6 @@ export function AlphaFeedback({ currentUser, isOpen, onClose }: AlphaFeedbackPro
       }
 
       const result = await messageResponse.json();
-      console.log('✅ Feedback sent successfully:', result);
       return result;
     },
     onSuccess: () => {

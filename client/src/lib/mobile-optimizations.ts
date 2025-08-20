@@ -145,7 +145,6 @@ class MobileOptimizer {
     
     // Log slow touch responses
     if (touchDuration > 100) {
-      console.warn(`🐌 Slow touch response: ${touchDuration}ms`);
     }
   }
 

@@ -2411,17 +2411,14 @@ export class MemStorage implements IStorage {
 
   // Secure Direct Messaging Implementation
   async getConversations(userId: string): Promise<any[]> {
-    console.log(`🔍 Getting conversations for user: ${userId}`);
     
     // Get stored conversations from memory (includes feedback conversations)
     const data = this.loadFeedbackData();
-    console.log(`📊 Total conversations in system: ${data.conversations.length}`);
     
     const storedConversations = data.conversations.filter(conv => 
       conv.participant1Id === userId || conv.participant2Id === userId
     );
     
-    console.log(`📝 Found ${storedConversations.length} conversations for user ${userId}`);
 
     // Format conversations with participant info
     const formattedConversations = storedConversations.map(conv => {
@@ -2454,7 +2451,6 @@ export class MemStorage implements IStorage {
       };
     });
 
-    console.log(`📋 Retrieved ${formattedConversations.length} conversations for user ${userId}`);
     return formattedConversations;
   }
 
@@ -2478,7 +2474,6 @@ export class MemStorage implements IStorage {
     data.conversations.push(newConversation);
     this.saveFeedbackData(data.conversations, data.messages);
     
-    console.log(`💬 Created conversation: ${newConversation.id} between ${newConversation.participant1Id} and ${newConversation.participant2Id}`);
     
     return newConversation;
   }

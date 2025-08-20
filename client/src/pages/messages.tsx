@@ -109,11 +109,8 @@ export default function Messages() {
   // Update conversations when data is fetched
   useEffect(() => {
     if (fetchedConversations && Array.isArray(fetchedConversations)) {
-      console.log('📋 Mobile Debug - Loaded conversations:', fetchedConversations.length);
-      console.log('📱 Conversations data:', fetchedConversations);
       setConversations(fetchedConversations);
     } else {
-      console.log('❌ Mobile Debug - No conversations loaded:', fetchedConversations);
     }
   }, [fetchedConversations]);
 
@@ -138,15 +135,12 @@ export default function Messages() {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const wsUrl = `${protocol}//${window.location.host}/messaging-ws`;
       
-      console.log('🎸 Connecting to production messaging WebSocket:', wsUrl);
       setConnectionStatus(prev => ({ ...prev, reconnecting: true }));
       
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log('📱 Mobile Debug - Connected to messaging WebSocket');
-        console.log('📱 Mobile Debug - Setting connection status to connected');
         setConnectionStatus(prev => ({ ...prev, connected: true, reconnecting: false }));
         setReconnectAttempts(0); // Reset reconnect attempts on successful connection
         
@@ -176,20 +170,17 @@ export default function Messages() {
       };
 
       ws.onclose = () => {
-        console.log('📱 WebSocket connection closed');
         setConnectionStatus({ connected: false, authenticated: false, reconnecting: false });
         
         // Exponential backoff reconnection with max attempts
         if (reconnectAttempts < maxReconnectAttempts) {
           const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000); // Max 30 seconds
-          console.log(`🔄 Reconnecting in ${delay}ms (attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`);
           
           setTimeout(() => {
             setReconnectAttempts(prev => prev + 1);
             connectWebSocket();
           }, delay);
         } else {
-          console.error('❌ Max reconnection attempts reached');
           toast({
             title: "Connection Lost",
             description: "Failed to reconnect. Please refresh the page.",
@@ -199,7 +190,6 @@ export default function Messages() {
       };
 
       ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
         setConnectionStatus({ connected: false, authenticated: false, reconnecting: false });
         
         toast({
@@ -221,15 +211,12 @@ export default function Messages() {
 
   // Handle incoming WebSocket messages
   const handleWebSocketMessage = (message: any) => {
-    console.log('📨 WebSocket message received:', message.type);
     
     switch (message.type) {
       case 'welcome':
-        console.log('Welcome message:', message.data.message);
         break;
         
       case 'auth_success':
-        console.log('✅ Authentication successful');
         setConnectionStatus(prev => ({ ...prev, authenticated: true }));
         
         // Load conversations after authentication
@@ -237,19 +224,16 @@ export default function Messages() {
         break;
         
       case 'conversations_list':
-        console.log('📋 Conversations loaded:', message.data.conversations?.length);
         setConversations(message.data.conversations || []);
         break;
         
       case 'messages_list':
-        console.log('💬 Messages loaded for conversation:', message.data.conversationId);
         if (message.data.conversationId === selectedConversation) {
           setMessages(message.data.messages || []);
         }
         break;
         
       case 'message_received':
-        console.log('📨 New message received');
         const newMessage = message.data;
         
         // Add to messages if it's for the current conversation
@@ -325,7 +309,6 @@ export default function Messages() {
   // Load messages for a conversation
   const loadMessages = async (conversationId: string) => {
     try {
-      console.log('📨 Mobile Debug - Loading messages for conversation:', conversationId);
       
       // Try WebSocket first
       if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -339,7 +322,6 @@ export default function Messages() {
       const response = await apiRequest(`/api/messaging/conversations/${conversationId}/messages`);
       if (response.ok) {
         const messages = await response.json();
-        console.log('✅ Mobile Debug - Loaded', messages.length, 'messages for conversation:', conversationId);
         setMessages(messages);
         
         // If no messages exist, show placeholder for feedback conversations
@@ -361,10 +343,8 @@ export default function Messages() {
           }
         }
       } else {
-        console.error('❌ Mobile Debug - Failed to load messages via API');
       }
     } catch (error) {
-      console.error('❌ Mobile Debug - Error loading messages:', error);
     }
   };
 
@@ -472,7 +452,6 @@ export default function Messages() {
 
   // Handle conversation selection
   const selectConversation = (conversation: Conversation) => {
-    console.log('📱 Mobile Debug - Selecting conversation:', conversation.id);
     setSelectedConversation(conversation.id);
     setMessages([]); // Clear current messages
     joinConversation(conversation.id);
