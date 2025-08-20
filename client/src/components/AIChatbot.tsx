@@ -41,11 +41,9 @@ export function AIChatbot({ currentUser }: AIChatbotProps) {
     enabled: !!currentUser
   });
 
-  // Query for current conversation
-  const { data: currentConversation, isLoading: conversationLoading } = useQuery<ChatConversation>({
-    queryKey: ['/api/ai-chat/conversations', selectedConversation],
-    enabled: !!selectedConversation
-  });
+  // Get current conversation from the conversations list
+  const currentConversation = conversations?.find(conv => conv.id === selectedConversation);
+  const conversationLoading = conversationsLoading;
 
   // Mutation for creating new conversation
   const createConversationMutation = useMutation({
@@ -73,7 +71,6 @@ body: JSON.stringify({ content })
     onSuccess: () => {
       setMessageInput('');
       queryClient.invalidateQueries({ queryKey: ['/api/ai-chat/conversations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/ai-chat/conversations', selectedConversation] });
     }
   });
 
@@ -105,6 +102,18 @@ body: JSON.stringify({ content })
       setShowConversationList(false);
     }
   }, [conversations, selectedConversation]);
+
+  // Debug: log current state
+  useEffect(() => {
+    console.log('AIChatbot Debug:', {
+      selectedConversation,
+      conversationsCount: conversations?.length || 0,
+      currentConversation: currentConversation ? {
+        id: currentConversation.id,
+        messagesCount: currentConversation.messages?.length || 0
+      } : null
+    });
+  }, [selectedConversation, conversations, currentConversation]);
 
   const handleSendMessage = async () => {
     if (!messageInput.trim()) return;
