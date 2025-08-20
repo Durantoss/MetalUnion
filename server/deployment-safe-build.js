@@ -15,7 +15,7 @@ function runCommand(command, args = []) {
     
     const process = spawn(command, args, { 
       stdio: 'inherit',
-      shell: true 
+      shell: false 
     });
     
     process.on('close', (code) => {
