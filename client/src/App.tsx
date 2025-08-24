@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Route, Switch } from 'wouter';
 import { BandComparison } from './components/BandComparison';
 import { ModernNavigation } from './components/ModernNavigation';
 import { GlobalAuthHandler } from './components/auth/GlobalAuthHandler';
@@ -11,6 +12,8 @@ import { databaseOptimizer } from './lib/database-optimization';
 import { mobileOptimizer } from './lib/mobile-optimizations';
 import { initializeBundleOptimizations } from './lib/bundle-optimization';
 import { initializeLCPOptimizations } from './lib/lcp-optimization';
+import SplashScreen from './components/SplashScreen';
+import HomeScreen from './components/HomeScreen';
 
 import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
@@ -36,9 +39,7 @@ import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/auth/AuthModal';
 import { SharedSectionLayout } from './components/SharedSectionLayout';
 import { BandDiscovery } from './components/BandDiscovery';
-import { AlphaAccess } from './components/AlphaAccess';
 import { AlphaDashboard } from './components/AlphaDashboard';
-import { AlphaFeedback } from './components/AlphaFeedback';
 import { MobileLoadingFallback } from './components/MobileLoadingFallback';
 import { Band } from './types';
 
@@ -101,31 +102,12 @@ export default function App() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [alphaTester, setAlphaTester] = useState<any>(null);
-  const [showAlphaAccess, setShowAlphaAccess] = useState(true);
-  const [showAlphaFeedback, setShowAlphaFeedback] = useState(false);
   
   
   // Use useAuth hook for persistent authentication
   const { user: currentUser, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
 
-  // 🎯 ALPHA ACCESS SESSION PERSISTENCE - Check for existing alpha session
-  useEffect(() => {
-    if (currentUser && currentUser.isAlphaTester) {
-      // User already has valid alpha session - bypass alpha access screen
-      setAlphaTester(currentUser);
-      setShowAlphaAccess(false);
-    } else if (currentUser && !currentUser.isAlphaTester) {
-      // User is authenticated but not an alpha tester - hide alpha access
-      setShowAlphaAccess(false);
-    } else if (!currentUser && !authLoading) {
-      // No user session - show alpha access
-      setShowAlphaAccess(true);
-      setAlphaTester(null);
-    }
-  }, [currentUser, authLoading]);
-  
   // Auth state tracking
   
   // Check URL parameters for section navigation - ONLY on mount, not on every section change
@@ -152,6 +134,14 @@ export default function App() {
     // Ensure dark mode is always applied
     document.documentElement.classList.add('dark');
     document.documentElement.classList.remove('light');
+    
+    // Skip API calls in development when backend is not available
+    if (import.meta.env.DEV) {
+      // Set some mock data for development
+      setBands([]);
+      setLoading(false);
+      return;
+    }
     
     fetch('/api/bands')
       .then(response => {
@@ -331,23 +321,6 @@ export default function App() {
   };
 
   const renderContent = () => {
-    // Check if alpha access is required
-    if (showAlphaAccess && !alphaTester) {
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-red-900 relative overflow-hidden flex items-center justify-center p-6">
-          <AlphaAccess 
-            onAccess={(testerData) => {
-              setAlphaTester(testerData);
-              setShowAlphaAccess(false);
-              // Force refresh user auth state to persist the session
-              queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-            }} 
-            currentTester={alphaTester}
-          />
-        </div>
-      );
-    }
-
     // Only show landing page if explicitly set to 'landing' or initially undefined
     if (currentSection === 'landing' || currentSection === null || currentSection === undefined) {
       
@@ -613,20 +586,63 @@ export default function App() {
     <ErrorBoundary>
       <MobileOptimized>
         <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', color: '#ffffff' }}>
-          {currentSection !== 'landing' && (
-            <ModernNavigation
-              currentSection={currentSection}
-              onSectionChange={debugSetCurrentSection}
-              onShowComparison={() => setShowComparison(true)}
-              onShowLogin={handleLogin}
-              onReturnHome={handleReturnHome}
-            />
-          )}
-          
-          <main style={{ width: '100%' }}>
-            <div>
-              {renderContent()}
-            </div>
+          <Switch>
+            {/* Splash Screen Route */}
+            <Route path="/">
+              <SplashScreen />
+            </Route>
+            
+            {/* Home Route - Main App Content */}
+            <Route path="/home">
+              {currentSection !== 'landing' && (
+                <ModernNavigation
+                  currentSection={currentSection}
+                  onSectionChange={debugSetCurrentSection}
+                  onShowComparison={() => setShowComparison(true)}
+                  onShowLogin={handleLogin}
+                  onReturnHome={handleReturnHome}
+                />
+              )}
+              
+              <main style={{ width: '100%' }}>
+                <HomeScreen
+                  bands={bands}
+                  currentUser={currentUser}
+                  onSectionChange={debugSetCurrentSection}
+                  onLogin={handleLogin}
+                  onLogout={handleLogout}
+                />
+              </main>
+            </Route>
+            
+            {/* Section Routes */}
+            <Route path="/section/:sectionName">
+              {(params) => {
+                // Update current section based on URL
+                if (params.sectionName && currentSection !== params.sectionName) {
+                  debugSetCurrentSection(params.sectionName);
+                }
+                
+                return (
+                  <>
+                    <ModernNavigation
+                      currentSection={currentSection}
+                      onSectionChange={debugSetCurrentSection}
+                      onShowComparison={() => setShowComparison(true)}
+                      onShowLogin={handleLogin}
+                      onReturnHome={handleReturnHome}
+                    />
+                    
+                    <main style={{ width: '100%' }}>
+                      <div>
+                        {renderContent()}
+                      </div>
+                    </main>
+                  </>
+                );
+              }}
+            </Route>
+          </Switch>
         
         {showComparison && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 backdrop-blur-lg">
@@ -652,143 +668,118 @@ export default function App() {
             </div>
           </div>
         )}
-      </main>
 
-      {/* Floating Action Buttons for Social Features */}
-      {currentSection !== 'landing' && (
-        <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-40">
-          <button
-            onClick={() => setShowNotifications(true)}
-            className="bg-fire-red hover:bg-fire-red/80 text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110 relative"
-            data-testid="button-notifications"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            <span className="absolute -top-1 -right-1 bg-electric-yellow text-void-black text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-              3
-            </span>
-          </button>
+        {/* Floating Action Buttons for Social Features */}
+        {currentSection !== 'landing' && (
+          <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-40">
+            <button
+              onClick={() => setShowNotifications(true)}
+              className="bg-fire-red hover:bg-fire-red/80 text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110 relative"
+              data-testid="button-notifications"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span className="absolute -top-1 -right-1 bg-electric-yellow text-void-black text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                3
+              </span>
+            </button>
 
-          <button
-            onClick={() => setShowUserProfile(true)}
-            className="bg-electric-yellow hover:bg-electric-yellow/80 text-void-black rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
-            data-testid="button-profile"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-          </button>
+            <button
+              onClick={() => setShowUserProfile(true)}
+              className="bg-electric-yellow hover:bg-electric-yellow/80 text-void-black rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+              data-testid="button-profile"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </button>
 
-          <button
-            onClick={() => debugSetCurrentSection('feed')}
-            className={`${currentSection === 'feed' ? 'bg-lava-orange' : 'bg-border hover:bg-border/80'} text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110`}
-            data-testid="button-activity-feed"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </button>
-        </div>
-      )}
+            <button
+              onClick={() => debugSetCurrentSection('feed')}
+              className={`${currentSection === 'feed' ? 'bg-lava-orange' : 'bg-border hover:bg-border/80'} text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110`}
+              data-testid="button-activity-feed"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </button>
+          </div>
+        )}
 
-      {/* Global CSS animations for smooth transitions */}
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes fadeInUp {
-          from {
+        {/* Global CSS animations for smooth transitions */}
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes fadeInUp {
+            from {
+              opacity: 0;
+              transform: translateY(20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          
+          @keyframes slideInFromLeft {
+            from {
+              opacity: 0;
+              transform: translateX(-30px);
+            }
+            to {
+              opacity: 1;
+              transform: translateX(0);
+            }
+          }
+          
+          .section-transition {
+            animation: fadeInUp 0.4s ease-out;
+          }
+          
+          .smooth-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+          
+          .smooth-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(220, 38, 38, 0.3);
+          }
+          
+          .page-enter {
             opacity: 0;
             transform: translateY(20px);
           }
-          to {
+          
+          .page-enter-active {
             opacity: 1;
             transform: translateY(0);
+            transition: all 0.4s ease-out;
           }
-        }
-        
-        @keyframes slideInFromLeft {
-          from {
-            opacity: 0;
-            transform: translateX(-30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        
-        .section-transition {
-          animation: fadeInUp 0.4s ease-out;
-        }
-        
-        .smooth-card {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .smooth-card:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 20px 40px rgba(220, 38, 38, 0.3);
-        }
-        
-        .page-enter {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        
-        .page-enter-active {
-          opacity: 1;
-          transform: translateY(0);
-          transition: all 0.4s ease-out;
-        }
-        
-        /* Ensure consistent background colors */
-        .unified-section {
-          background: rgba(0, 0, 0, 0.95);
-          min-height: 100vh;
-          color: white;
-        }
-      `}} />
-      
-      {/* Alpha Feedback System */}
-      {(alphaTester || (currentUser && currentUser.isAlphaTester)) && (
-        <AlphaFeedback
-          currentUser={alphaTester || currentUser}
-          isOpen={showAlphaFeedback}
-          onClose={() => setShowAlphaFeedback(false)}
-        />
-      )}
-
-      {/* Alpha Feedback Floating Button */}
-      {(alphaTester || (currentUser && currentUser.isAlphaTester)) && !showAlphaAccess && currentSection !== 'landing' && (
-        <button
-          onClick={() => setShowAlphaFeedback(true)}
-          className="fixed bottom-6 left-6 z-40 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
-          data-testid="button-alpha-feedback"
-          title="Send Feedback to Developer"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-        </button>
-      )}
-
-      {/* Authentication Modal - Enabled for real authentication */}
-      {showAuthModal && (
-        <AuthModal 
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-          onAuthSuccess={handleAuthSuccess}
-        />
-      )}
-
-          {/* Global Authentication Handler */}
-          <GlobalAuthHandler />
           
-          {/* Mobile Loading Fallback */}
-          <MobileLoadingFallback />
+          /* Ensure consistent background colors */
+          .unified-section {
+            background: rgba(0, 0, 0, 0.95);
+            min-height: 100vh;
+            color: white;
+          }
+        `}} />
+
+        {/* Authentication Modal - Enabled for real authentication */}
+        {showAuthModal && (
+          <AuthModal 
+            isOpen={showAuthModal}
+            onClose={() => setShowAuthModal(false)}
+            onAuthSuccess={handleAuthSuccess}
+          />
+        )}
+
+        {/* Global Authentication Handler */}
+        <GlobalAuthHandler />
+        
+        {/* Mobile Loading Fallback */}
+        <MobileLoadingFallback />
 
         </div>
       </MobileOptimized>
     </ErrorBoundary>
   );
-};
-
+}
