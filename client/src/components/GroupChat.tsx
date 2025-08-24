@@ -382,7 +382,7 @@ export function GroupChat() {
               <DialogContent>
                 <div className="space-y-4">
                   <h2 className="text-lg font-semibold">Create Group Chat</h2>
-                <div className="space-y-4">
+                  <div className="space-y-4">
                   <Input
                     placeholder="Group name"
                     value={newGroupName}
@@ -408,6 +408,7 @@ export function GroupChat() {
                   <Button onClick={createGroupChat} className="w-full" data-testid="button-submit-group">
                     Create Group
                   </Button>
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>
