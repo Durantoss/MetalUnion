@@ -14,6 +14,7 @@ import { initializeBundleOptimizations } from './lib/bundle-optimization';
 import { initializeLCPOptimizations } from './lib/lcp-optimization';
 import SplashScreen from './components/SplashScreen';
 import HomeScreen from './components/HomeScreen';
+import OnboardingFlow from './components/onboarding/OnboardingFlow';
 
 import { ReviewsSection } from './components/ReviewsSection';
 import { PhotosSection } from './components/PhotosSection';
@@ -39,7 +40,6 @@ import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/auth/AuthModal';
 import { SharedSectionLayout } from './components/SharedSectionLayout';
 import { BandDiscovery } from './components/BandDiscovery';
-import { AlphaDashboard } from './components/AlphaDashboard';
 import { MobileLoadingFallback } from './components/MobileLoadingFallback';
 import { Band } from './types';
 
@@ -51,6 +51,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [showComparison, setShowComparison] = useState(false);
   const [currentSection, setCurrentSection] = useState('landing');
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [userNeedsOnboarding, setUserNeedsOnboarding] = useState(false);
   
   // Initialize performance monitoring and optimization
   useEffect(() => {
@@ -87,15 +89,10 @@ export default function App() {
   }, [currentSection]);
   
   // Section change handler
-  const debugSetCurrentSection = (newSection: string) => {
+  const handleSectionChange = (newSection: string) => {
     if (!newSection || typeof newSection !== 'string') {
       return;
     }
-    
-    console.log('🐛 DEBUG: Section change requested:', newSection);
-    console.log('🐛 DEBUG: Current section before:', currentSection);
-    console.log('🐛 DEBUG: Current user:', currentUser);
-    console.log('🐛 DEBUG: Is switching to admin?', newSection === 'admin');
     
     setCurrentSection(newSection);
   };
@@ -107,6 +104,23 @@ export default function App() {
   // Use useAuth hook for persistent authentication
   const { user: currentUser, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
+
+  // Check if user needs onboarding
+  useEffect(() => {
+    if (currentUser && !authLoading) {
+      // Check if user has completed onboarding
+      const needsOnboarding = !currentUser.onboardingCompleted;
+      setUserNeedsOnboarding(needsOnboarding);
+      
+      if (needsOnboarding) {
+        setShowOnboarding(true);
+      }
+    } else if (!currentUser && !authLoading) {
+      // User is not logged in, reset onboarding state
+      setUserNeedsOnboarding(false);
+      setShowOnboarding(false);
+    }
+  }, [currentUser, authLoading]);
 
   // Auth state tracking
   
@@ -126,7 +140,7 @@ export default function App() {
   const handleReturnHome = () => {
     // Clear URL params first to prevent trap
     window.history.replaceState({}, '', window.location.pathname);
-    debugSetCurrentSection('landing');
+    handleSectionChange('landing');
     setShowComparison(false);
   };
 
@@ -320,13 +334,24 @@ export default function App() {
     }
   };
 
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    setUserNeedsOnboarding(false);
+    
+    // Refresh user data to get updated profile
+    queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    
+    // Navigate to home
+    handleSectionChange('landing');
+  };
+
   const renderContent = () => {
     // Only show landing page if explicitly set to 'landing' or initially undefined
     if (currentSection === 'landing' || currentSection === null || currentSection === undefined) {
       
       return (
         <MobileFriendlyLanding 
-          onSectionChange={debugSetCurrentSection}
+          onSectionChange={handleSectionChange}
           bands={bands}
           currentUser={currentUser}
           onLogin={handleLogin}
@@ -532,23 +557,7 @@ export default function App() {
         }
         
         return <Messages />;
-      case 'alpha-dashboard':
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-red-900 relative overflow-hidden p-6">
-            <AlphaDashboard />
-            <div className="mt-6">
-              <button
-                onClick={handleReturnHome}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-              >
-                ← Back to App
-              </button>
-            </div>
-          </div>
-        );
-
       case 'admin':
-        console.log('🐛 DEBUG: Rendering AdminPanel, currentUser:', currentUser);
         return <AdminPanel currentUserId={currentUser?.id} />;
       default:
         return (
@@ -564,7 +573,7 @@ export default function App() {
               <h2>🚨 Section "{currentSection}" not found</h2>
               <p>Available sections: bands, social, tours, reviews, photos, messaging</p>
               <button 
-                onClick={() => debugSetCurrentSection('landing')}
+                onClick={() => handleSectionChange('landing')}
                 style={{
                   background: '#dc2626',
                   color: 'white',
@@ -597,7 +606,7 @@ export default function App() {
               {currentSection !== 'landing' && (
                 <ModernNavigation
                   currentSection={currentSection}
-                  onSectionChange={debugSetCurrentSection}
+                  onSectionChange={handleSectionChange}
                   onShowComparison={() => setShowComparison(true)}
                   onShowLogin={handleLogin}
                   onReturnHome={handleReturnHome}
@@ -608,7 +617,7 @@ export default function App() {
                 <HomeScreen
                   bands={bands}
                   currentUser={currentUser}
-                  onSectionChange={debugSetCurrentSection}
+                  onSectionChange={handleSectionChange}
                   onLogin={handleLogin}
                   onLogout={handleLogout}
                 />
@@ -620,14 +629,14 @@ export default function App() {
               {(params) => {
                 // Update current section based on URL
                 if (params.sectionName && currentSection !== params.sectionName) {
-                  debugSetCurrentSection(params.sectionName);
+                  handleSectionChange(params.sectionName);
                 }
                 
                 return (
                   <>
                     <ModernNavigation
                       currentSection={currentSection}
-                      onSectionChange={debugSetCurrentSection}
+                      onSectionChange={handleSectionChange}
                       onShowComparison={() => setShowComparison(true)}
                       onShowLogin={handleLogin}
                       onReturnHome={handleReturnHome}
@@ -696,7 +705,7 @@ export default function App() {
             </button>
 
             <button
-              onClick={() => debugSetCurrentSection('feed')}
+              onClick={() => handleSectionChange('feed')}
               className={`${currentSection === 'feed' ? 'bg-lava-orange' : 'bg-border hover:bg-border/80'} text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110`}
               data-testid="button-activity-feed"
             >
@@ -777,6 +786,24 @@ export default function App() {
         
         {/* Mobile Loading Fallback */}
         <MobileLoadingFallback />
+
+        {/* Onboarding Flow */}
+        {showOnboarding && currentUser && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+            backgroundColor: '#0a0a0a',
+          }}>
+            <OnboardingFlow
+              userId={currentUser.id}
+              onComplete={handleOnboardingComplete}
+            />
+          </div>
+        )}
 
         </div>
       </MobileOptimized>

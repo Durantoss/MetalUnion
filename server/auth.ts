@@ -19,7 +19,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // Disabled for mobile compatibility during alpha
+      secure: false, // Disabled for mobile compatibility
       maxAge: sessionTtl,
       sameSite: 'lax', // More permissive for mobile browsers
     },
@@ -243,38 +243,6 @@ export async function setupAuth(app: Express) {
         });
       }
       
-      // 🎯 ALPHA TESTER AUTHENTICATION
-      // Check for alpha tester login patterns
-      if (stagename.toLowerCase().startsWith('alpha-') || stagename.toLowerCase() === 'durantoss-alpha-001') {
-        console.log('🧪 Alpha tester login detected:', stagename);
-        
-        // Alpha testers can use any password for testing
-        const alphaUserId = stagename.toLowerCase() === 'durantoss-alpha-001' 
-          ? 'durantoss-admin-001' 
-          : stagename.toLowerCase();
-          
-        const alphaUser = {
-          id: alphaUserId,
-          stagename: stagename,
-          email: `${stagename.toLowerCase()}@alphatest.com`,
-          isAlphaTester: true,
-          accessKey: alphaUserId === 'durantoss-admin-001' ? 'Durantoss-Alpha-001' : `METAL-ALPHA-${stagename.substring(6).padStart(3, '0')}`,
-          isAdmin: alphaUserId === 'durantoss-admin-001',
-          permissions: alphaUserId === 'durantoss-admin-001' ? { full_admin: true } : {},
-          role: alphaUserId === 'durantoss-admin-001' ? 'admin' : 'alpha_tester'
-        };
-        
-        // Set session for alpha tester
-        (req.session as any).userId = alphaUser.id;
-        (req.session as any).stagename = alphaUser.stagename;
-        (req.session as any).isAdmin = alphaUser.isAdmin;
-        
-        console.log('✅ Alpha tester authenticated:', alphaUser.id);
-        return res.json({ 
-          message: 'Alpha tester login successful',
-          user: alphaUser 
-        });
-      }
       
       // Real authentication flow for registered users
       
@@ -351,40 +319,6 @@ export async function setupAuth(app: Express) {
       const userId = (req.session as any)?.userId;
       
       
-      // 🎯 ALPHA TESTER AUTHENTICATION
-      
-      // Admin alpha tester
-      if (userId === 'durantoss-admin-001') {
-        return res.json({
-          id: 'durantoss-admin-001',
-          stagename: 'Durantoss-Alpha-001',
-          email: 'admin@moshunion.com',
-          isAlphaTester: true,
-          accessKey: 'Durantoss-Alpha-001',
-          sessionsCount: 1,
-          featuresUsed: 0,
-          isAdmin: true,
-          canAccessDashboard: true,
-          hasDevAccess: true
-        });
-      }
-
-      // Regular alpha testers (alpha-001 through alpha-010)
-      if (userId && userId.startsWith('alpha-')) {
-        const testerNumber = userId.replace('alpha-', '');
-        return res.json({
-          id: userId,
-          stagename: `Alpha Tester ${testerNumber}`,
-          email: `tester${testerNumber}@example.com`,
-          isAlphaTester: true,
-          accessKey: `METAL-ALPHA-${testerNumber.padStart(3, '0')}`,
-          sessionsCount: 1,
-          featuresUsed: 0,
-          isAdmin: false,
-          canAccessDashboard: false,
-          hasDevAccess: false
-        });
-      }
       
       
       if (!userId) {

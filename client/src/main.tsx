@@ -2,7 +2,6 @@ import { createRoot } from 'react-dom/client';
 import { QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
 import { queryClient } from './lib/queryClient';
-import { MobileDebugger } from './components/MobileDebugger';
 import './index.css';
 
 // Mobile-optimized initialization
@@ -26,7 +25,6 @@ loadingDiv.innerHTML = `
   ">
     <div style="font-size: 24px; margin-bottom: 10px;">🎸</div>
     <div>Loading MoshUnion...</div>
-    <div style="font-size: 12px; margin-top: 5px; opacity: 0.7;">Alpha Testing Mode</div>
   </div>
 `;
 loadingDiv.id = 'mobile-loading';
@@ -44,7 +42,6 @@ try {
   root.render(
     <QueryClientProvider client={queryClient}>
       <App />
-      <MobileDebugger />
     </QueryClientProvider>
   );
   
