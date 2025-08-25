@@ -42,6 +42,7 @@ import { SharedSectionLayout } from './components/SharedSectionLayout';
 import { BandDiscovery } from './components/BandDiscovery';
 import { MobileLoadingFallback } from './components/MobileLoadingFallback';
 import { Band } from './types';
+import { supabase } from './lib/supabase';
 
 
 
@@ -149,29 +150,43 @@ export default function App() {
     document.documentElement.classList.add('dark');
     document.documentElement.classList.remove('light');
     
-    // Skip API calls in development when backend is not available
-    if (import.meta.env.DEV) {
-      // Set some mock data for development
-      setBands([]);
-      setLoading(false);
-      return;
-    }
-    
-    fetch('/api/bands')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+    // Load bands from Supabase
+    const loadBands = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('bands')
+          .select('*')
+          .eq('status', 'approved')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          throw error;
         }
-        return response.json();
-      })
-      .then(data => {
-        setBands(data);
+
+        // Transform the data to match the Band interface
+        const transformedBands: Band[] = (data || []).map(band => ({
+          id: band.id,
+          name: band.name,
+          genre: band.genre,
+          description: band.description,
+          imageUrl: band.image_url,
+          founded: band.founded,
+          members: band.members,
+          albums: band.albums,
+          website: band.website,
+          instagram: band.instagram
+        }));
+
+        setBands(transformedBands);
         setLoading(false);
-      })
-      .catch(err => {
+      } catch (err) {
+        console.error('Error loading bands:', err);
         setError('Failed to load bands. Please try again.');
         setLoading(false);
-      });
+      }
+    };
+
+    loadBands();
   }, []);
 
   if (loading || authLoading) {

@@ -2,6 +2,7 @@
  * Database query optimization and caching strategies
  */
 import { enhancedCache } from './cache';
+import { supabase } from './supabase';
 
 interface QueryOptions {
   cacheKey?: string;
@@ -163,18 +164,56 @@ class DatabaseOptimizer {
     const cacheKey = `prefetch:${type}`;
     
     // Check if already prefetched recently
-    const lastPrefetch = enhancedCache.get(`${cacheKey}:timestamp`);
+    const lastPrefetch = enhancedCache.get<number>(`${cacheKey}:timestamp`);
     if (lastPrefetch && Date.now() - lastPrefetch < 5 * 60 * 1000) {
       return; // Already prefetched within 5 minutes
     }
 
     try {
-      const response = await fetch(`/api/${type}?limit=20&popular=true`, {
-        credentials: 'include',
-      });
+      let data;
+      
+      switch (type) {
+        case 'bands':
+          const { data: bandsData, error: bandsError } = await supabase
+            .from('bands')
+            .select('*')
+            .eq('status', 'approved')
+            .order('created_at', { ascending: false })
+            .limit(20);
+          
+          if (bandsError) throw bandsError;
+          data = bandsData;
+          break;
+          
+        case 'tours':
+          const { data: toursData, error: toursError } = await supabase
+            .from('tours')
+            .select('*, bands(*)')
+            .gte('date', new Date().toISOString())
+            .order('date', { ascending: true })
+            .limit(20);
+          
+          if (toursError) throw toursError;
+          data = toursData;
+          break;
+          
+        case 'reviews':
+          const { data: reviewsData, error: reviewsError } = await supabase
+            .from('reviews')
+            .select('*, bands(*)')
+            .order('created_at', { ascending: false })
+            .limit(20);
+          
+          if (reviewsError) throw reviewsError;
+          data = reviewsData;
+          break;
+          
+        default:
+          console.warn(`Unknown prefetch type: ${type}`);
+          return;
+      }
 
-      if (response.ok) {
-        const data = await response.json();
+      if (data) {
         enhancedCache.set(cacheKey, data, options.ttl || 10 * 60 * 1000); // 10 minutes
         enhancedCache.set(`${cacheKey}:timestamp`, Date.now(), 10 * 60 * 1000);
       }
