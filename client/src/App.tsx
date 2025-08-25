@@ -106,9 +106,16 @@ export default function App() {
   const { user: currentUser, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
 
-  // Check if user needs onboarding
+  // Check if user needs onboarding - Skip for guest users
   useEffect(() => {
     if (currentUser && !authLoading) {
+      // Skip onboarding for guest users
+      if (currentUser.isGuest) {
+        setUserNeedsOnboarding(false);
+        setShowOnboarding(false);
+        return;
+      }
+      
       // Check if user has completed onboarding
       const needsOnboarding = !currentUser.onboardingCompleted;
       setUserNeedsOnboarding(needsOnboarding);

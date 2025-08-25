@@ -220,19 +220,6 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
           </div>
         )}
 
-        {/* Show demo mode notice for all environments */}
-        <div style={{
-          backgroundColor: '#059669',
-          color: 'white',
-          padding: '0.75rem',
-          borderRadius: '6px',
-          marginBottom: '1rem',
-          fontSize: '0.85rem',
-          textAlign: 'center'
-        }}>
-          Enter Any Stagename and Safeword to explore MoshUnion!<br/>
-          (Have fun, be safe and remember to use your safeword!)
-        </div>
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '1rem' }}>

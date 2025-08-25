@@ -26,27 +26,11 @@ export function getSession() {
   });
 }
 
-// Authentication middleware
+// Authentication middleware - Now allows access without authentication
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-  // Only enable demo mode when explicitly set via environment variable
-  const isDemoMode = process.env.DEMO_MODE === 'true';
-  
-  console.log('isAuthenticated middleware - Demo mode active:', { isDemoMode, nodeEnv: process.env.NODE_ENV });
-  
-  // Demo mode: Allow access without authentication (only when explicitly enabled)
-  if (isDemoMode) {
-    console.log('🎭 Demo mode enabled - allowing access');
-    return next();
-  }
-  
-  // Alpha mode: Require real authentication
-  if (req.session && (req.session as any).userId) {
-    console.log('✅ User authenticated:', (req.session as any).userId);
-    return next();
-  }
-  
-  console.log('🚫 Authentication required - redirecting to login');
-  return res.status(401).json({ message: 'Authentication required' });
+  // Always allow access - no authentication required
+  console.log('🔓 Open access mode - allowing all requests');
+  return next();
 };
 
 // Optional authentication middleware (doesn't block if not authenticated)
@@ -310,55 +294,83 @@ export async function setupAuth(app: Express) {
     }
   });
   
-  // Current user endpoint
+  // Current user endpoint - Always provides a user (guest if not authenticated)
   app.get('/api/auth/user', optionalAuth, async (req: Request, res: Response) => {
     try {
-      
-      // Demo mode active - only demo mode when explicitly enabled
-      const isDemoMode = process.env.DEMO_MODE === 'true';
       const userId = (req.session as any)?.userId;
       
-      
-      
-      
       if (!userId) {
-        if (isDemoMode) {
-          console.log('Demo mode: Providing demo user for authentication check');
-          const demoUser = {
-            id: 'demo-guest-user',
-            stagename: 'Guest',
-            email: 'guest@moshunion.com',
-            role: 'user',
-            isAdmin: false,
-            permissions: {},
-            concertAttendanceCount: 0,
-            commentCount: 0,
-            reviewCount: 0,
-            isOnline: true,
-            loginStreak: 0,
-            totalReviews: 0,
-            totalPhotos: 0,
-            totalLikes: 0
-          };
-          return res.json(demoUser);
-        }
-        
-        console.log('No userId in session, returning 401');
-        return res.status(401).json({ error: 'Not authenticated' });
+        // Always provide a guest user for open access
+        console.log('No authenticated user, providing guest user');
+        const guestUser = {
+          id: 'guest-user',
+          stagename: 'Guest',
+          email: 'guest@moshunion.com',
+          role: 'user',
+          isAdmin: false,
+          permissions: {},
+          concertAttendanceCount: 0,
+          commentCount: 0,
+          reviewCount: 0,
+          isOnline: true,
+          loginStreak: 0,
+          totalReviews: 0,
+          totalPhotos: 0,
+          totalLikes: 0,
+          isGuest: true
+        };
+        return res.json(guestUser);
       }
       
       const user = await storage.getUser(userId);
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        // If user not found in database, provide guest user
+        console.log('User not found in database, providing guest user');
+        const guestUser = {
+          id: 'guest-user',
+          stagename: 'Guest',
+          email: 'guest@moshunion.com',
+          role: 'user',
+          isAdmin: false,
+          permissions: {},
+          concertAttendanceCount: 0,
+          commentCount: 0,
+          reviewCount: 0,
+          isOnline: true,
+          loginStreak: 0,
+          totalReviews: 0,
+          totalPhotos: 0,
+          totalLikes: 0,
+          isGuest: true
+        };
+        return res.json(guestUser);
       }
       
-      // Return user data (without password)
+      // Return authenticated user data (without password)
       const { safeword: _, ...userResponse } = user;
       res.json(userResponse);
       
     } catch (error) {
       console.error('Get user error:', error);
-      res.status(500).json({ error: 'Failed to get user' });
+      // Even on error, provide guest user for open access
+      const guestUser = {
+        id: 'guest-user',
+        stagename: 'Guest',
+        email: 'guest@moshunion.com',
+        role: 'user',
+        isAdmin: false,
+        permissions: {},
+        concertAttendanceCount: 0,
+        commentCount: 0,
+        reviewCount: 0,
+        isOnline: true,
+        loginStreak: 0,
+        totalReviews: 0,
+        totalPhotos: 0,
+        totalLikes: 0,
+        isGuest: true
+      };
+      res.json(guestUser);
     }
   });
   
