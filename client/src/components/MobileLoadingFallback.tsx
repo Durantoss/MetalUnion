@@ -25,14 +25,14 @@ export function MobileLoadingFallback() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          stagename: 'alpha-001',
+          stagename: 'demo-001',
           safeword: 'test123'
         })
       });
       const data = await response.json();
       
       if (response.ok) {
-        alert('✅ Alpha login successful! Refreshing page...');
+        alert('✅ Demo login successful! Refreshing page...');
         window.location.reload();
       } else {
         alert(`❌ Login failed: ${data.error}`);
@@ -85,10 +85,10 @@ export function MobileLoadingFallback() {
           <button
             onClick={testLogin}
             className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 px-4 py-3 rounded-lg flex items-center justify-center gap-2 font-bold text-lg shadow-lg"
-            data-testid="button-test-alpha-login"
+            data-testid="button-test-demo-login"
           >
             <Wifi className="w-5 h-5" />
-            🔑 Test Alpha Login Now!
+            🔑 Test Demo Login Now!
           </button>
 
           <button
@@ -102,16 +102,16 @@ export function MobileLoadingFallback() {
 
         <div className="mt-4 p-3 bg-gradient-to-r from-red-600/20 to-yellow-600/20 rounded-lg border border-red-500/30">
           <div className="text-center">
-            <h3 className="text-yellow-400 font-bold text-sm mb-2">🎸 ALPHA TESTING ACCESS 🎸</h3>
+            <h3 className="text-yellow-400 font-bold text-sm mb-2">🎸 DEMO ACCESS 🎸</h3>
             <div className="bg-black/50 p-3 rounded text-xs font-mono">
-              <div className="text-green-400 mb-1">Username: <span className="text-white">alpha-001</span></div>
-              <div className="text-green-400 mb-1">Username: <span className="text-white">alpha-002</span></div>
-              <div className="text-green-400 mb-1">Username: <span className="text-white">alpha-003</span></div>
-              <div className="text-gray-400 text-center mt-2">...through alpha-010</div>
+              <div className="text-green-400 mb-1">Username: <span className="text-white">demo-001</span></div>
+              <div className="text-green-400 mb-1">Username: <span className="text-white">demo-002</span></div>
+              <div className="text-green-400 mb-1">Username: <span className="text-white">demo-003</span></div>
+              <div className="text-gray-400 text-center mt-2">...through demo-010</div>
               <div className="text-yellow-400 mt-2 text-center">Password: <span className="text-white">Any password works!</span></div>
             </div>
             <div className="mt-2 text-xs text-gray-300">
-              Admin Access: <span className="text-red-400">durantoss-alpha-001</span>
+              Admin Access: <span className="text-red-400">durantoss-demo-001</span>
             </div>
           </div>
         </div>

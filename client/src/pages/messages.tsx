@@ -47,12 +47,15 @@ interface Conversation {
   unreadCount?: number;
   participantName?: string;
   participantStagename?: string;
+  conversationType?: string;
+  isEncrypted?: boolean;
 }
 
 interface ConnectionStatus {
   connected: boolean;
   authenticated: boolean;
   lastPing?: Date;
+  reconnecting?: boolean;
 }
 
 export default function Messages() {
@@ -332,7 +335,7 @@ export default function Messages() {
               id: `placeholder-${conversationId}`,
               conversationId: conversationId,
               senderId: conversation.participant1Id,
-              content: `🎸 Alpha Feedback from ${conversation.participantStagename}: This is a feedback conversation. The actual message content will load when the messaging system is fully synchronized. Click to refresh messages.`,
+              content: `🎸 Feedback from ${conversation.participantStagename}: This is a feedback conversation. The actual message content will load when the messaging system is fully synchronized. Click to refresh messages.`,
               timestamp: new Date().toISOString(),
               encrypted: false,
               messageType: 'text' as const,
@@ -389,7 +392,7 @@ export default function Messages() {
     const localMessage: Message = {
       id: messageId,
       conversationId: selectedConversation,
-      senderId: hasValidUser ? currentUser.id : 'demo-user',
+      senderId: hasValidUser ? (currentUser as any).id : 'demo-user',
       content: messageContent, // Show original content locally
       timestamp: new Date().toISOString(),
       encrypted: isEncrypted,
@@ -549,9 +552,9 @@ export default function Messages() {
       console.error('Error creating conversation:', error);
       
       // Fallback: Create mock conversation for demo
-      const mockConversation = {
+      const mockConversation: Conversation = {
         id: `conv-${Date.now()}`,
-        participant1Id: hasValidUser ? currentUser.id : 'demo-user',
+        participant1Id: hasValidUser ? (currentUser as any).id : 'demo-user',
         participant2Id: user.id,
         participantStagename: user.stagename,
         lastMessage: '',
@@ -770,7 +773,7 @@ export default function Messages() {
                         </h3>
                         {conversation.conversationType === 'feedback' && (
                           <Badge variant="outline" className="text-xs bg-yellow-500/20 text-yellow-300 border-yellow-500/50">
-                            Alpha Feedback
+                            Feedback
                           </Badge>
                         )}
                       </div>

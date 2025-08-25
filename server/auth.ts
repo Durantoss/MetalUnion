@@ -31,7 +31,7 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
   // Only enable demo mode when explicitly set via environment variable
   const isDemoMode = process.env.DEMO_MODE === 'true';
   
-  console.log('isAuthenticated middleware - Alpha mode active:', { isDemoMode, nodeEnv: process.env.NODE_ENV });
+  console.log('isAuthenticated middleware - Demo mode active:', { isDemoMode, nodeEnv: process.env.NODE_ENV });
   
   // Demo mode: Allow access without authentication (only when explicitly enabled)
   if (isDemoMode) {
@@ -46,7 +46,7 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
   }
   
   console.log('🚫 Authentication required - redirecting to login');
-  return res.status(401).json({ message: 'Authentication required - Alpha testing mode' });
+  return res.status(401).json({ message: 'Authentication required' });
 };
 
 // Optional authentication middleware (doesn't block if not authenticated)
@@ -83,7 +83,7 @@ export async function setupAuth(app: Express) {
         manifestSrc: ["'self'"]
       },
     },
-    // Disable HSTS for mobile compatibility during alpha
+    // Disable HSTS for mobile compatibility during development
     hsts: false,
     // Allow cross-origin for mobile apps
     crossOriginEmbedderPolicy: false
@@ -211,7 +211,7 @@ export async function setupAuth(app: Express) {
       // Check if we're in demo mode (only when explicitly enabled)
       const isDemoMode = process.env.DEMO_MODE === 'true';
       
-      console.log('🎯 Alpha login mode active:', { isDemoMode, stagename });
+      console.log('🎯 Demo login mode active:', { isDemoMode, stagename });
       
       // Demo mode: Accept any credentials (only when explicitly enabled)
       if (isDemoMode) {
@@ -314,7 +314,7 @@ export async function setupAuth(app: Express) {
   app.get('/api/auth/user', optionalAuth, async (req: Request, res: Response) => {
     try {
       
-      // Alpha mode active - only demo mode when explicitly enabled
+      // Demo mode active - only demo mode when explicitly enabled
       const isDemoMode = process.env.DEMO_MODE === 'true';
       const userId = (req.session as any)?.userId;
       

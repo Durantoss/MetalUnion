@@ -24,13 +24,13 @@ app.get('/api/mobile-health', (req: Request, res: Response) => {
       host: req.headers.host,
       connection: req.headers.connection
     },
-    alphaMode: true
+    demoMode: true
   });
 });
 
 // Add security and CORS headers optimized for mobile compatibility
 app.use((req, res, next) => {
-  // More permissive CORS for mobile during alpha
+  // More permissive CORS for mobile during development
   const origin = req.headers.origin;
   if (origin) {
     res.header('Access-Control-Allow-Origin', origin);

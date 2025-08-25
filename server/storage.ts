@@ -700,13 +700,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Stub implementations for all other interface methods
-  async getPitMessages(): Promise<any[]> { return []; }
-  async getPitMessage(id: string): Promise<any> { return undefined; }
-  async createPitMessage(messageData: any): Promise<any> { return { id: randomUUID(), ...messageData }; }
+  async getPitMessages(): Promise<PitMessage[]> { return []; }
+  async getPitMessage(id: string): Promise<PitMessage | undefined> { return undefined; }
+  async createPitMessage(messageData: InsertPitMessage): Promise<PitMessage> { 
+    return { 
+      id: randomUUID(), 
+      ...messageData, 
+      createdAt: new Date(),
+      likes: 0,
+      replies: 0
+    }; 
+  }
   async incrementPitMessageLikes(id: string): Promise<void> {}
   async incrementPitMessageReplies(id: string): Promise<void> {}
-  async getPitReplies(messageId: string): Promise<any[]> { return []; }
-  async createPitReply(replyData: any): Promise<any> { return { id: randomUUID(), ...replyData }; }
+  async getPitReplies(messageId: string): Promise<PitReply[]> { return []; }
+  async createPitReply(replyData: InsertPitReply): Promise<PitReply> { 
+    return { 
+      id: randomUUID(), 
+      ...replyData, 
+      createdAt: new Date(),
+      likes: 0
+    }; 
+  }
+  async incrementPitReplyLikes(id: string): Promise<void> {}
   async getComments(): Promise<any[]> { return []; }
   async getComment(id: string): Promise<any> { return undefined; }
   async createComment(commentData: any): Promise<any> { return { id: randomUUID(), ...commentData }; }
@@ -2429,8 +2445,8 @@ export class MemStorage implements IStorage {
       let participantName = 'Unknown User';
       if (otherParticipantId === 'durantoss-admin-001') {
         participantName = 'Admin (Developer)';
-      } else if (otherParticipantId.startsWith('METAL-ALPHA')) {
-        participantName = `Alpha Tester (${otherParticipantId})`;
+      } else if (otherParticipantId.startsWith('METAL-DEMO')) {
+        participantName = `Demo Tester (${otherParticipantId})`;
       } else if (otherParticipantId.startsWith('test-user')) {
         participantName = 'Test User';
       } else {
@@ -2656,57 +2672,101 @@ export class MemStorage implements IStorage {
   }
 
   // Missing PitMessage methods
-  async getPitMessages(): Promise<any[]> {
+  async getPitReplies(messageId: string): Promise<PitReply[]> {
     return [];
   }
 
-  async getPitMessage(id: string): Promise<any> {
+  async createPitReply(replyData: InsertPitReply): Promise<PitReply> {
+    return { 
+      id: randomUUID(), 
+      ...replyData, 
+      createdAt: new Date(),
+      likes: 0
+    };
+  }
+
+  async incrementPitReplyLikes(id: string): Promise<void> {
+    console.log(`Pit reply ${id} likes incremented`);
+  }
+
+  // Missing comment methods
+  async getComments(targetType: string, targetId: string): Promise<PostComment[]> {
+    return [];
+  }
+
+  async createComment(commentData: InsertPostComment): Promise<PostComment> {
+    return {
+      id: randomUUID(),
+      ...commentData,
+      createdAt: new Date(),
+      likes: 0,
+      isDeleted: false
+    };
+  }
+
+  async updateComment(id: string, content: string): Promise<PostComment> {
+    return {
+      id,
+      userId: 'demo-user',
+      targetType: 'post',
+      targetId: 'demo-target',
+      content,
+      createdAt: new Date(),
+      likes: 0,
+      isDeleted: false
+    };
+  }
+
+  async deleteComment(id: string, reason: string): Promise<void> {
+    console.log(`Comment ${id} deleted for reason: ${reason}`);
+  }
+
+  async createCommentReaction(reactionData: InsertContentReaction): Promise<ContentReaction> {
+    return {
+      id: randomUUID(),
+      ...reactionData,
+      createdAt: new Date()
+    };
+  }
+
+  // Missing conversation methods
+  async getUserConversations(userId: string): Promise<Conversation[]> {
+    return [];
+  }
+
+  async updateConversationLastMessage(conversationId: string): Promise<void> {
+    console.log(`Conversation ${conversationId} last message updated`);
+  }
+
+  async createDirectMessage(messageData: InsertDirectMessage): Promise<DirectMessage> {
+    return {
+      id: randomUUID(),
+      ...messageData,
+      createdAt: new Date(),
+      isRead: false,
+      isDelivered: false,
+      isDeleted: false
+    };
+  }
+
+  async getDirectMessage(id: string): Promise<DirectMessage | undefined> {
     return undefined;
   }
 
-  async createPitMessage(messageData: any): Promise<any> {
-    return { id: randomUUID(), ...messageData, createdAt: new Date() };
-  }
-
-  async incrementPitMessageLikes(id: string): Promise<void> {
-    console.log(`Pit message ${id} likes incremented`);
-  }
-
-  async incrementPitMessageReplies(id: string): Promise<void> {
-    console.log(`Pit message ${id} replies incremented`);
-  }
-
-  // Missing User Groups methods
-  async getUserGroups(): Promise<any[]> {
+  async getConversationMessages(conversationId: string, limit?: number, offset?: number): Promise<DirectMessage[]> {
     return [];
   }
 
-  async createUserGroup(group: any): Promise<any> {
-    return { id: randomUUID(), ...group, createdAt: new Date() };
+  async markMessageAsDelivered(messageId: string, userId: string): Promise<void> {
+    console.log(`Message ${messageId} marked as delivered for user ${userId}`);
   }
 
-  async joinGroup(groupId: string, userId: string): Promise<any> {
-    return { groupId, userId, joinedAt: new Date() };
-  }
-
-  async getGroupPosts(groupId: string): Promise<any[]> {
-    return [];
-  }
-
-  async createGroupPost(post: any): Promise<any> {
-    return { id: randomUUID(), ...post, createdAt: new Date() };
-  }
-
-  async getMentorProfiles(): Promise<any[]> {
-    return [];
-  }
-
-  async createMentorProfile(profile: any): Promise<any> {
-    return { id: randomUUID(), ...profile, createdAt: new Date() };
-  }
-
-  async requestMentorship(mentorship: any): Promise<any> {
-    return { id: randomUUID(), ...mentorship, createdAt: new Date() };
+  async createUserEncryptionKeys(keys: InsertMessageEncryptionKey): Promise<MessageEncryptionKey> {
+    return {
+      id: randomUUID(),
+      ...keys,
+      createdAt: new Date()
+    };
   }
 }
 

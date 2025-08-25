@@ -1597,7 +1597,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Alpha Feedback System Routes
+  // Feedback System Routes
   app.post('/api/messaging/feedback-conversation', async (req, res) => {
     try {
       const { userId, stagename } = req.body;
@@ -1656,7 +1656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         metadata: JSON.stringify(metadata)
       });
 
-      console.log(`📋 Alpha Feedback Received:
+      console.log(`📋 Feedback Received:
         Type: ${metadata.feedbackType}
         Urgency: ${metadata.urgency}
         User: ${metadata.accessKey}
@@ -2094,7 +2094,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const searchTerm = q.toLowerCase().trim();
       
-      // Demo mode: Return mock users for alpha testing
+      // Demo mode: Return mock users for testing
       const mockUsers = [
         { id: 'user1', stagename: 'MetalFan2024', email: 'metal@example.com' },
         { id: 'user2', stagename: 'ConcertGoer', email: 'concert@example.com' },
