@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: #0a0a0a;
+  background: radial-gradient(#0f0f0f, #1a1a1a);
   color: #f5f5f5;
   opacity: 0;
   transition: opacity 1.2s ease;
@@ -16,6 +16,30 @@
 }
 
 /* Logo styles */
+.splash-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.splash-logo img {
+  width: 180px;
+  filter: drop-shadow(0 0 10px crimson);
+  animation: splashLogoGlow 2.5s ease-in-out infinite;
+}
+
+/* MoshUnion Logo specific styles */
+.logo {
+  width: 220px;
+  max-width: 90%;
+  margin: 0 auto;
+  display: block;
+  filter: drop-shadow(0 0 12px #ff0000);
+  animation: pulse 2s infinite;
+}
+
+/* Legacy logo styles for backward compatibility */
 .logo-image {
   width: 300px;
   max-width: 80%;
@@ -50,7 +74,22 @@
   background-color: #d0002f;
 }
 
-/* Glow animation */
+/* Glow animations */
+@keyframes splashLogoGlow {
+  0% {
+    filter: drop-shadow(0 0 10px crimson);
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 20px crimson);
+    transform: scale(1.03);
+  }
+  100% {
+    filter: drop-shadow(0 0 10px crimson);
+    transform: scale(1);
+  }
+}
+
 @keyframes pulseGlow {
   0% {
     filter: drop-shadow(0 0 0px #B00020);
@@ -64,4 +103,10 @@
     filter: drop-shadow(0 0 0px #B00020);
     transform: scale(1);
   }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.85; }
+  100% { transform: scale(1); opacity: 1; }
 }

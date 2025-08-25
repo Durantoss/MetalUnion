@@ -1,0 +1,85 @@
+-- MetalUnion Database Population Script
+-- This script populates the database with sample data for testing
+
+-- Insert sample bands with approved status
+INSERT INTO bands (id, name, genre, description, image_url, founded, members, albums, website, instagram, status, approved_at) VALUES
+('band-1', 'Architects', 'Metalcore', 'British metalcore band known for their technical prowess and emotional depth. Their blend of heavy breakdowns and melodic passages has made them one of the most influential bands in modern metal.', '/attached_assets/generated_images/Architects_band_photo_69a0cfaa.png', 2004, ARRAY['Sam Carter', 'Josh Middleton', 'Alex Dean', 'Adam Christianson', 'Dan Searle'], ARRAY['Nightmares', 'Daybreaker', 'Lost Forever // Lost Together', 'All Our Gods Have Abandoned Us', 'Holy Hell', 'For Those That Wish to Exist'], 'https://architectsofficial.com', 'https://instagram.com/architectsofficial', 'approved', NOW()),
+
+('band-2', 'Sleep Token', 'Progressive Metal', 'Anonymous collective blending metal with pop sensibilities. Their mysterious identity and genre-defying sound has captivated audiences worldwide with emotional vulnerability wrapped in heavy instrumentation.', '/attached_assets/generated_images/Sleep_Token_masked_band_d2eee2e7.png', 2016, ARRAY['Vessel', 'II', 'III', 'IV'], ARRAY['One', 'Two', 'Sundowning', 'This Place Will Become Your Tomb', 'Take Me Back to Eden'], 'https://sleep-token.com', 'https://instagram.com/sleep_token', 'approved', NOW()),
+
+('band-3', 'Spiritbox', 'Metalcore', 'Canadian metalcore band featuring Courtney LaPlante''s versatile vocals ranging from ethereal cleans to devastating screams. Their modern approach to metalcore has earned critical acclaim.', '/attached_assets/generated_images/Spiritbox_band_photo_fb4a5c9c.png', 2017, ARRAY['Courtney LaPlante', 'Mike Stringer', 'Bill Crook', 'Zev Rose'], ARRAY['Spiritbox', 'Eternal Blue'], 'https://spiritbox.com', 'https://instagram.com/spiritboxband', 'approved', NOW()),
+
+('band-4', 'Lorna Shore', 'Deathcore', 'American deathcore band known for their symphonic elements and Will Ramos'' incredible vocal range. Their theatrical approach to extreme metal has redefined the deathcore genre.', '/attached_assets/generated_images/Lorna_Shore_photo_9474087c.png', 2009, ARRAY['Will Ramos', 'Adam De Micco', 'Andrew O''Connor', 'Michael Yager'], ARRAY['Psalms', 'Flesh Coffin', 'Immortal', 'Pain Remains'], 'https://lornashore.com', 'https://instagram.com/lornashore', 'approved', NOW()),
+
+('band-5', 'Bad Omens', 'Alternative Metal', 'American rock band blending alternative metal with electronic elements. Their cinematic approach and Noah Sebastian''s dynamic vocals have created a unique sound in modern rock.', '/attached_assets/generated_images/Bad_Omens_photo_bae5bfa0.png', 2015, ARRAY['Noah Sebastian', 'Nicholas Ruffilo', 'Joakim Karlsson', 'Nick Folio'], ARRAY['Bad Omens', 'Finding God Before God Finds Me', 'THE DEATH OF PEACE OF MIND'], 'https://badomensofficial.com', 'https://instagram.com/badomensband', 'approved', NOW()),
+
+('band-6', 'Bring Me The Horizon', 'Alternative Rock', 'British rock band that evolved from deathcore to alternative rock. Their experimental approach and Oli Sykes'' evolution as a vocalist has made them one of the most successful modern rock acts.', '/attached_assets/generated_images/Bring_Me_Horizon_photo_f56c0efe.png', 2004, ARRAY['Oliver Sykes', 'Lee Malia', 'Matt Kean', 'Matt Nicholls', 'Jordan Fish'], ARRAY['Count Your Blessings', 'Suicide Season', 'There Is a Hell...', 'Sempiternal', 'That''s the Spirit', 'amo', 'POST HUMAN: SURVIVAL HORROR'], 'https://bmthofficial.com', 'https://instagram.com/bringmethehorizon', 'approved', NOW()),
+
+('band-7', 'Ghost', 'Heavy Metal', 'Swedish rock band known for their theatrical Satanic imagery and catchy melodies. Papa Emeritus and the Nameless Ghouls create a unique blend of horror and rock spectacle.', '/attached_assets/generated_images/Ghost_theatrical_band_b297ecc2.png', 2006, ARRAY['Papa Emeritus IV', 'Nameless Ghouls'], ARRAY['Opus Eponymous', 'Infestissumam', 'Meliora', 'Prequelle', 'IMPERA'], 'https://ghost-official.com', 'https://instagram.com/thebandghost', 'approved', NOW()),
+
+('band-8', 'Jinjer', 'Progressive Metal', 'Ukrainian progressive metal band featuring Tatiana Shmayluk''s incredible vocal versatility. Their technical musicianship and genre-blending approach has earned international recognition.', '/attached_assets/generated_images/Jinjer_progressive_metal_8f4045ae.png', 2008, ARRAY['Tatiana Shmayluk', 'Roman Ibramkhalilov', 'Eugene Abdukhanov', 'Vladislav Ulasevich'], ARRAY['Inhale, Don''t Breathe', 'Cloud Factory', 'King of Everything', 'Macro', 'Wallflowers'], 'https://jinjer-metal.com', 'https://instagram.com/jinjer_official', 'approved', NOW());
+
+-- Insert sample tours
+INSERT INTO tours (id, band_id, tour_name, venue, city, country, date, ticket_url, price, status, venue_capacity, current_attendance, crowd_energy_level) VALUES
+('tour-1', 'band-1', 'The Classic Symptoms of a Broken Spirit Tour', 'Madison Square Garden', 'New York', 'USA', '2024-03-15 20:00:00', 'https://ticketmaster.com/architects-nyc', '$45-85', 'upcoming', 20000, 15000, 0.85),
+('tour-2', 'band-2', 'Take Me Back to Eden World Tour', 'The Forum', 'Los Angeles', 'USA', '2024-03-22 19:30:00', 'https://ticketmaster.com/sleep-token-la', '$55-120', 'upcoming', 17500, 17500, 0.95),
+('tour-3', 'band-3', 'Eternal Blue Tour', 'House of Blues', 'Chicago', 'USA', '2024-04-05 20:00:00', 'https://livenation.com/spiritbox-chicago', '$35-65', 'upcoming', 1800, 1200, 0.78),
+('tour-4', 'band-4', 'Pain Remains Tour', 'The Fillmore', 'Philadelphia', 'USA', '2024-04-12 19:00:00', 'https://ticketmaster.com/lorna-shore-philly', '$40-75', 'upcoming', 2500, 2100, 0.88),
+('tour-5', 'band-5', 'The Death of Peace of Mind Tour', 'Paramount Theatre', 'Seattle', 'USA', '2024-04-20 20:30:00', 'https://ticketmaster.com/bad-omens-seattle', '$42-80', 'upcoming', 2800, 1900, 0.82),
+('tour-6', 'band-6', 'POST HUMAN Tour', 'Red Rocks Amphitheatre', 'Morrison', 'USA', '2024-05-01 19:00:00', 'https://redrocks.com/bmth', '$65-150', 'upcoming', 9525, 8000, 0.92),
+('tour-7', 'band-7', 'Re-Imperatour USA', 'The Kia Forum', 'Inglewood', 'USA', '2024-05-15 20:00:00', 'https://ticketmaster.com/ghost-forum', '$55-200', 'upcoming', 17500, 16000, 0.91),
+('tour-8', 'band-8', 'Wallflowers World Tour', 'The Observatory', 'Santa Ana', 'USA', '2024-05-28 19:30:00', 'https://observatoryoc.com/jinjer', '$38-70', 'upcoming', 1000, 850, 0.89);
+
+-- Insert sample reviews
+INSERT INTO reviews (id, band_id, stagename, rating, title, content, review_type, target_name, likes) VALUES
+('review-1', 'band-1', 'MetalWarrior', 5, 'Architects Live: Absolutely Devastating', 'Just saw Architects at Madison Square Garden and I''m still processing what happened. Sam Carter''s vocals were absolutely insane - the way he delivered "Doomsday" had the entire venue in tears. The new material from FTTWTE hits so much harder live. When they played "Gone With The Wind" the entire floor was a sea of movement. This band continues to push boundaries while honoring Tom''s legacy beautifully. 10/10 would recommend to anyone who wants to feel something real.', 'concert', 'Madison Square Garden', 47),
+('review-2', 'band-2', 'SleeplessInSeattle', 5, 'Sleep Token: Genre-Defying Perfection', 'Sleep Token''s latest album "Take Me Back to Eden" is a masterpiece that defies every expectation. Vessel''s vocals on "Chokehold" are hauntingly beautiful, while "The Summoning" showcases their heaviest material yet. The way they blend pop sensibilities with crushing metal is unmatched. Each song feels like a journey through different emotions. This album will be remembered as a defining moment in modern metal.', 'album', 'Take Me Back to Eden', 89),
+('review-3', 'band-3', 'CourtneyFan2023', 4, 'Spiritbox: The Future of Metalcore', 'Spiritbox continues to impress with their innovative approach to metalcore. Courtney LaPlante''s vocal range is absolutely incredible - she can go from angelic cleans to bone-crushing screams seamlessly. "Eternal Blue" showcases their songwriting maturity. The production is crisp and every instrument shines. My only complaint is that I want more! Can''t wait to see what they do next.', 'band', '', 34),
+('review-4', 'band-4', 'DeathcoreKing', 5, 'Lorna Shore: Will Ramos is Inhuman', 'Will Ramos has single-handedly revitalized Lorna Shore and the entire deathcore scene. His vocal performance on "Pain Remains" trilogy is otherworldly. The symphonic elements blend perfectly with the crushing heaviness. "To the Hellfire" remains an absolute banger that never gets old. This band is pushing deathcore into new territories while respecting the genre''s roots.', 'album', 'Pain Remains', 76),
+('review-5', 'band-5', 'BadOmensFan', 4, 'Bad Omens: Cinematic Metal at its Finest', 'Bad Omens has crafted something special with their latest work. Noah Sebastian''s vocals have improved dramatically, and the electronic elements add a cinematic quality that sets them apart. "Just Pretend" is an emotional powerhouse, while "THE DEATH OF PEACE OF MIND" shows their heavier side. The production is top-notch and every song serves a purpose in the overall narrative.', 'band', '', 52),
+('review-6', 'band-6', 'BMTHLifer', 5, 'BMTH: Masters of Evolution', 'Bring Me The Horizon''s evolution from deathcore to alternative rock has been incredible to witness. "POST HUMAN: SURVIVAL HORROR" shows they''re not afraid to experiment while maintaining their core identity. Oli''s vocals have never sounded better, and the band''s willingness to push boundaries keeps them relevant. They''ve influenced an entire generation of musicians.', 'band', '', 91),
+('review-7', 'band-7', 'PapaEmeritus', 5, 'Ghost: Theatrical Metal Perfection', 'Ghost continues to be the most entertaining band in metal. Their live show is a full theatrical experience that transports you to another world. Papa Emeritus IV''s stage presence is commanding, and the Nameless Ghouls create the perfect mysterious atmosphere. "IMPERA" is their most cohesive album yet, blending catchy melodies with their signature dark themes.', 'band', '', 68),
+('review-8', 'band-8', 'UkrainianMetal', 5, 'Jinjer: Technical Mastery Meets Emotion', 'Jinjer represents the best of modern progressive metal. Tatiana''s vocals are absolutely phenomenal - her range and control are unmatched in the genre. The band''s technical proficiency never overshadows the emotional content of their songs. "Wallflowers" showcases their growth as songwriters while maintaining their signature sound. Essential listening for any metal fan.', 'album', 'Wallflowers', 43);
+
+-- Insert sample photos
+INSERT INTO photos (id, band_id, title, image_url, category, uploaded_by, description) VALUES
+('photo-1', 'band-1', 'Architects Live at MSG', '/attached_assets/generated_images/Architects_band_photo_69a0cfaa.png', 'live', 'ConcertPhotographer', 'Sam Carter commanding the stage during "Doomsday" - the emotion was palpable'),
+('photo-2', 'band-2', 'Sleep Token Ritual', '/attached_assets/generated_images/Sleep_Token_masked_band_d2eee2e7.png', 'live', 'MysticalShots', 'The mysterious Vessel during an intimate acoustic moment'),
+('photo-3', 'band-3', 'Spiritbox Energy', '/attached_assets/generated_images/Spiritbox_band_photo_fb4a5c9c.png', 'live', 'MetalcorePhotos', 'Courtney LaPlante delivering crushing vocals with incredible stage presence'),
+('photo-4', 'band-4', 'Lorna Shore Chaos', '/attached_assets/generated_images/Lorna_Shore_photo_9474087c.png', 'live', 'DeathcoreShots', 'Will Ramos showcasing his incredible vocal range during "To the Hellfire"'),
+('photo-5', 'band-5', 'Bad Omens Atmosphere', '/attached_assets/generated_images/Bad_Omens_photo_bae5bfa0.png', 'promo', 'CinematicMetal', 'The band creating their signature atmospheric sound in the studio'),
+('photo-6', 'band-6', 'BMTH Evolution', '/attached_assets/generated_images/Bring_Me_Horizon_photo_f56c0efe.png', 'backstage', 'RockPhotography', 'Behind the scenes with Oli and the crew preparing for their massive show'),
+('photo-7', 'band-7', 'Ghost Theatrical', '/attached_assets/generated_images/Ghost_theatrical_band_b297ecc2.png', 'live', 'TheatricalMetal', 'Papa Emeritus IV in full regalia during their spectacular stage show'),
+('photo-8', 'band-8', 'Jinjer Technical', '/attached_assets/generated_images/Jinjer_progressive_metal_8f4045ae.png', 'equipment', 'ProgMetalGear', 'Tatiana''s impressive vocal setup and the band''s technical equipment');
+
+-- Insert sample pit messages (community posts)
+INSERT INTO pit_messages (id, author_name, title, content, category, likes, replies, is_pinned) VALUES
+('pit-1', 'MetalWarrior', 'Best Metal Albums 2024', 'What are everyone''s top picks for metal albums this year? I''ve been obsessed with Sleep Token''s "Take Me Back to Eden" and Lorna Shore''s "Pain Remains". The production quality and songwriting on both are incredible. What else should I be listening to?', 'general', 23, 8, 0),
+('pit-2', 'RiffMaster', 'Wacken 2024 Lineup Thoughts', 'Just saw the Wacken lineup and I''m so hyped! Architects, Ghost, and Jinjer all on the same festival? This is going to be legendary. Anyone else planning to make the trip to Germany? We should organize a MoshUnion meetup!', 'tours', 45, 12, 1),
+('pit-3', 'VocalCoach', 'Will Ramos Vocal Analysis', 'As someone who teaches vocals, I have to say Will Ramos from Lorna Shore is doing things that shouldn''t be humanly possible. His technique on "To the Hellfire" is absolutely flawless. The way he transitions between different vocal styles is masterful. Any other vocalists here studying his technique?', 'bands', 67, 15, 0),
+('pit-4', 'GearHead2024', 'Spiritbox Guitar Tone Discussion', 'Can we talk about Mike Stringer''s guitar tone on the new Spiritbox material? That djenty low-end combined with the crystalline highs is perfection. Anyone know what amp setup he''s using? I''ve been trying to recreate that sound for months.', 'gear', 34, 9, 0),
+('pit-5', 'ConcertGoer', 'Sleep Token Live Experience', 'Just got back from the Sleep Token show and I''m emotionally destroyed in the best way possible. Vessel''s performance was transcendent. The way they blend heavy and beautiful is unmatched. If you have a chance to see them live, DO IT. Life-changing experience.', 'general', 89, 22, 0);
+
+-- Insert sample pit replies
+INSERT INTO pit_replies (id, message_id, author_name, content, likes) VALUES
+('reply-1', 'pit-1', 'ProgMetalFan', 'You absolutely need to check out Jinjer''s "Wallflowers" if you haven''t already. Tatiana''s vocals are incredible and the songwriting is top-tier.', 12),
+('reply-2', 'pit-1', 'DeathcoreKid', 'Bad Omens'' latest stuff is also worth checking out. They''ve really evolved their sound in interesting ways.', 8),
+('reply-3', 'pit-2', 'FestivalVet', 'I''ve been to Wacken 5 times and this lineup might be the best yet. Definitely organizing a group trip!', 15),
+('reply-4', 'pit-3', 'ScreamQueen', 'Will Ramos is absolutely insane. His range and control are unmatched in the deathcore scene right now.', 23),
+('reply-5', 'pit-4', 'ToneChaser', 'I think he''s using a Fractal Axe-FX with custom IRs. The clarity is definitely digital processing but sounds organic.', 18);
+
+-- Insert sample users for community activity
+INSERT INTO users (id, stagename, email, bio, favorite_genres, reputation_points, concert_attendance_count, comment_count, review_count, is_online, login_streak, total_reviews, total_photos, total_likes, role) VALUES
+('user-1', 'MetalWarrior', 'metalwarrior@moshunion.com', 'Metalcore enthusiast since 2010. Love discovering new bands and attending shows.', ARRAY['Metalcore', 'Progressive Metal'], 450, 23, 45, 8, true, 7, 8, 12, 156, 'user'),
+('user-2', 'RiffMaster', 'riffmaster@moshunion.com', 'Guitar player and metal historian. Always down to discuss gear and technique.', ARRAY['Death Metal', 'Technical Death Metal'], 380, 18, 32, 5, true, 12, 5, 8, 98, 'user'),
+('user-3', 'VocalCoach', 'vocalcoach@moshunion.com', 'Professional vocal coach specializing in extreme metal techniques.', ARRAY['Deathcore', 'Black Metal'], 520, 15, 67, 12, false, 3, 12, 5, 203, 'user'),
+('user-4', 'SleeplessInSeattle', 'sleepless@moshunion.com', 'Sleep Token superfan. Love atmospheric and progressive metal.', ARRAY['Progressive Metal', 'Post-Metal'], 290, 12, 28, 6, true, 5, 6, 15, 87, 'user'),
+('user-5', 'ConcertGoer', 'concertgoer@moshunion.com', 'Live music addict. If there''s a show, I''m probably there.', ARRAY['Alternative Metal', 'Metalcore'], 340, 45, 38, 9, true, 15, 9, 22, 134, 'user');
+
+-- Success message
+SELECT 'Sample data inserted successfully! The database now contains:' as status,
+       (SELECT COUNT(*) FROM bands WHERE status = 'approved') as approved_bands,
+       (SELECT COUNT(*) FROM tours) as tours,
+       (SELECT COUNT(*) FROM reviews) as reviews,
+       (SELECT COUNT(*) FROM photos) as photos,
+       (SELECT COUNT(*) FROM pit_messages) as pit_messages;
