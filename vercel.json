@@ -1,8 +1,12 @@
 {
   "version": 2,
-  "buildCommand": "npm run build:client",
-  "outputDirectory": "dist/public",
+  "framework": "vite",
+  "buildCommand": "cd client && npx vite build",
+  "outputDirectory": "client/dist",
   "installCommand": "npm install",
+  "env": {
+    "NODE_VERSION": "18"
+  },
   "routes": [
     {
       "src": "/api/(.*)",
