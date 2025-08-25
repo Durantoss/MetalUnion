@@ -1,8 +1,8 @@
 {
   "version": 2,
   "framework": "vite",
-  "buildCommand": "cd client && npx vite build",
-  "outputDirectory": "client/dist",
+  "buildCommand": "npx vite build",
+  "outputDirectory": "dist/public",
   "installCommand": "npm install",
   "env": {
     "NODE_VERSION": "18"
