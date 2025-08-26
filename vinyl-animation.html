@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOSHUNION Vinyl Animation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        #splash-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #vinyl-record {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            animation: spin 10s linear infinite;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        #vinyl-record img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        #logo-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+
+        #logo-overlay img {
+            width: 80px;
+            height: 80px;
+            filter: brightness(1.2);
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .pulse {
+            animation: pulseEffect 0.5s ease-in-out;
+        }
+
+        @keyframes pulseEffect {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .flicker {
+            animation: flickerEffect 1s ease-in-out;
+        }
+
+        @keyframes flickerEffect {
+            0%, 100% { opacity: 1; }
+            10%, 30%, 50%, 70%, 90% { opacity: 0.3; }
+            20%, 40%, 60%, 80% { opacity: 1; }
+        }
+
+        #tooltip {
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 3;
+        }
+
+        #tooltip.show {
+            opacity: 1;
+        }
+
+        #tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .spin-counter {
+            position: absolute;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ccc;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="splash-container">
+        <div id="vinyl-record">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iMTUwIiBmaWxsPSIjMmEyYTJhIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iMTQwIiBmaWxsPSIjMWExYTFhIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iMTIwIiBmaWxsPSIjMmEyYTJhIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iMTAwIiBmaWxsPSIjMWExYTFhIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iODAiIGZpbGw9IiMyYTJhMmEiLz4KPGNpcmNsZSBjeD0iMTUwIiBjeT0iMTUwIiByPSI2MCIgZmlsbD0iIzFhMWExYSIvPgo8Y2lyY2xlIGN4PSIxNTAiIGN5PSIxNTAiIHI9IjQwIiBmaWxsPSIjMmEyYTJhIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iMjAiIGZpbGw9IiMxYTFhMWEiLz4KPGNpcmNsZSBjeD0iMTUwIiBjeT0iMTUwIiByPSI4IiBmaWxsPSIjMDAwIi8+CjxwYXRoIGQ9Ik0xMDAgNTBMMTIwIDcwTDEwMCA5MEw4MCA3MEwxMDAgNTBaIiBmaWxsPSIjZGMzNTQ1Ii8+CjxwYXRoIGQ9Ik0yMDAgMTAwTDIyMCAxMjBMMjAwIDE0MEwxODAgMTIwTDIwMCAxMDBaIiBmaWxsPSIjZGMzNTQ1Ii8+CjxwYXRoIGQ9Ik0xNTAgMjAwTDE3MCAyMjBMMTUwIDI0MEwxMzAgMjIwTDE1MCAyMDBaIiBmaWxsPSIjZGMzNTQ1Ci8+CjxwYXRoIGQ9Ik01MCAyMDBMNzAgMjIwTDUwIDI0MEwzMCAyMjBMNTAgMjAwWiIgZmlsbD0iI2RjMzU0NSIvPgo8L3N2Zz4K" alt="Vinyl Record">
+            <div id="logo-overlay">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiByeD0iNDAiIGZpbGw9IiNmZmYiLz4KPHRleHQgeD0iNDAiIHk9IjMwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMzMzIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZvbnQtd2VpZ2h0PSJib2xkIj5NT1NIPC90ZXh0Pgo8dGV4dCB4PSI0MCIgeT0iNDUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMzMzMiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZm9udC13ZWlnaHQ9ImJvbGQiPlVOSU9OPC90ZXh0Pgo8Y2lyY2xlIGN4PSI0MCIgY3k9IjYwIiByPSI4IiBmaWxsPSIjZGMzNTQ1Ii8+Cjwvc3ZnPgo=" alt="MOSHUNION Logo">
+            </div>
+            <div id="tooltip">Keep spinning for surprises!</div>
+        </div>
+        <div class="spin-counter">
+            <div>Spins: <span id="spin-count">0</span></div>
+        </div>
+        <div class="instructions">
+            Click and drag to spin the vinyl record
+        </div>
+    </div>
+
+    <script>
+        let rotation = 0;
+        let spins = 0;
+        let isDragging = false;
+        let lastMouseAngle = 0;
+        let animationPaused = false;
+
+        const vinylRecord = document.getElementById('vinyl-record');
+        const logoOverlay = document.getElementById('logo-overlay');
+        const tooltip = document.getElementById('tooltip');
+        const spinCountElement = document.getElementById('spin-count');
+
+        function handleSpin(delta) {
+            rotation += delta;
+            
+            // Update the visual rotation
+            if (!animationPaused) {
+                vinylRecord.style.animation = 'none';
+                animationPaused = true;
+            }
+            
+            vinylRecord.style.transform = `rotate(${rotation}deg)`;
+            
+            // Check for complete rotations
+            const currentSpins = Math.floor(Math.abs(rotation) / 360);
+            if (currentSpins > spins) {
+                spins = currentSpins;
+                spinCountElement.textContent = spins;
+                triggerPulse();
+                
+                if (spins === 2) triggerLogoFlicker();
+                if (spins === 3) showTooltip();
+                if (spins >= 5) {
+                    showSpecialEffect();
+                }
+            }
+        }
+
+        function triggerPulse() {
+            vinylRecord.classList.add('pulse');
+            setTimeout(() => {
+                vinylRecord.classList.remove('pulse');
+            }, 500);
+        }
+
+        function triggerLogoFlicker() {
+            logoOverlay.classList.add('flicker');
+            setTimeout(() => {
+                logoOverlay.classList.remove('flicker');
+            }, 1000);
+        }
+
+        function showTooltip() {
+            tooltip.classList.add('show');
+            setTimeout(() => {
+                tooltip.classList.remove('show');
+            }, 3000);
+        }
+
+        function showSpecialEffect() {
+            document.body.style.background = 'linear-gradient(135deg, #dc3545, #6f42c1, #20c997)';
+            setTimeout(() => {
+                document.body.style.background = 'linear-gradient(135deg, #1a1a1a, #2d2d2d)';
+            }, 2000);
+        }
+
+        function getMouseAngle(event, element) {
+            const rect = element.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const deltaX = event.clientX - centerX;
+            const deltaY = event.clientY - centerY;
+            return Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+        }
+
+        // Mouse events for spinning
+        vinylRecord.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            lastMouseAngle = getMouseAngle(e, vinylRecord);
+            vinylRecord.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            
+            const currentMouseAngle = getMouseAngle(e, vinylRecord);
+            let angleDelta = currentMouseAngle - lastMouseAngle;
+            
+            // Handle angle wrap-around
+            if (angleDelta > 180) angleDelta -= 360;
+            if (angleDelta < -180) angleDelta += 360;
+            
+            handleSpin(angleDelta);
+            lastMouseAngle = currentMouseAngle;
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                vinylRecord.style.cursor = 'pointer';
+                
+                // Resume animation after a delay
+                setTimeout(() => {
+                    vinylRecord.style.animation = 'spin 10s linear infinite';
+                    animationPaused = false;
+                }, 1000);
+            }
+        });
+
+        // Touch events for mobile
+        vinylRecord.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            const touch = e.touches[0];
+            lastMouseAngle = getMouseAngle(touch, vinylRecord);
+            e.preventDefault();
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            
+            const touch = e.touches[0];
+            const currentMouseAngle = getMouseAngle(touch, vinylRecord);
+            let angleDelta = currentMouseAngle - lastMouseAngle;
+            
+            if (angleDelta > 180) angleDelta -= 360;
+            if (angleDelta < -180) angleDelta += 360;
+            
+            handleSpin(angleDelta);
+            lastMouseAngle = currentMouseAngle;
+            e.preventDefault();
+        });
+
+        document.addEventListener('touchend', () => {
+            if (isDragging) {
+                isDragging = false;
+                setTimeout(() => {
+                    vinylRecord.style.animation = 'spin 10s linear infinite';
+                    animationPaused = false;
+                }, 1000);
+            }
+        });
+
+        // Initialize
+        console.log('MOSHUNION Vinyl Animation Loaded');
+    </script>
+</body>
+</html>
