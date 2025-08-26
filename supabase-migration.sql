@@ -523,13 +523,42 @@ ALTER TABLE message_encryption_keys ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_locations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (to avoid conflicts)
+DROP POLICY IF EXISTS "Users can view own profile" ON users;
+DROP POLICY IF EXISTS "Users can update own profile" ON users;
+DROP POLICY IF EXISTS "Users can view own messages" ON direct_messages;
+DROP POLICY IF EXISTS "Users can view own conversations" ON conversations;
+DROP POLICY IF EXISTS "Users can view own notifications" ON notifications;
+DROP POLICY IF EXISTS "Users can view own location" ON user_locations;
+DROP POLICY IF EXISTS "Users can insert own location" ON user_locations;
+DROP POLICY IF EXISTS "Users can update own location" ON user_locations;
+DROP POLICY IF EXISTS "Users can delete own location" ON user_locations;
+DROP POLICY IF EXISTS "Users can view own encryption keys" ON message_encryption_keys;
+DROP POLICY IF EXISTS "Users can insert own encryption keys" ON message_encryption_keys;
+DROP POLICY IF EXISTS "Users can update own encryption keys" ON message_encryption_keys;
+DROP POLICY IF EXISTS "Users can insert notifications" ON notifications;
+DROP POLICY IF EXISTS "Users can update own notifications" ON notifications;
+DROP POLICY IF EXISTS "Users can insert conversations" ON conversations;
+DROP POLICY IF EXISTS "Users can update own conversations" ON conversations;
+DROP POLICY IF EXISTS "Users can insert messages in own conversations" ON direct_messages;
+DROP POLICY IF EXISTS "Users can update own messages" ON direct_messages;
+
 -- Basic RLS policies (you may want to customize these based on your auth system)
 -- Users can only see their own data
-CREATE POLICY "Users can view own profile" ON users FOR SELECT USING (auth.uid()::text = id);
-CREATE POLICY "Users can update own profile" ON users FOR UPDATE USING (auth.uid()::text = id);
+CREATE POLICY "Users can view own profile" ON users 
+FOR SELECT 
+TO authenticated 
+USING (id = auth.uid()::text);
+
+CREATE POLICY "Users can update own profile" ON users 
+FOR UPDATE 
+TO authenticated 
+USING (id = auth.uid()::text);
 
 -- Direct messages - users can only see messages in their conversations
-CREATE POLICY "Users can view own messages" ON direct_messages FOR SELECT 
+CREATE POLICY "Users can view own messages" ON direct_messages 
+FOR SELECT 
+TO authenticated 
 USING (
     EXISTS (
         SELECT 1 FROM conversations 
@@ -539,27 +568,112 @@ USING (
 );
 
 -- Conversations - users can only see their own conversations
-CREATE POLICY "Users can view own conversations" ON conversations FOR SELECT 
+CREATE POLICY "Users can view own conversations" ON conversations 
+FOR SELECT 
+TO authenticated 
 USING (participant1_id = auth.uid()::text OR participant2_id = auth.uid()::text);
 
 -- Notifications - users can only see their own notifications
-CREATE POLICY "Users can view own notifications" ON notifications FOR SELECT 
+CREATE POLICY "Users can view own notifications" ON notifications 
+FOR SELECT 
+TO authenticated 
 USING (user_id = auth.uid()::text);
 
 -- User locations - users can only see their own location data
-CREATE POLICY "Users can view own location" ON user_locations FOR SELECT 
+CREATE POLICY "Users can view own location" ON user_locations 
+FOR SELECT 
+TO authenticated 
+USING (user_id = auth.uid()::text);
+
+CREATE POLICY "Users can insert own location" ON user_locations 
+FOR INSERT 
+TO authenticated 
+WITH CHECK (user_id = auth.uid()::text);
+
+CREATE POLICY "Users can update own location" ON user_locations 
+FOR UPDATE 
+TO authenticated 
+USING (user_id = auth.uid()::text)
+WITH CHECK (user_id = auth.uid()::text);
+
+CREATE POLICY "Users can delete own location" ON user_locations 
+FOR DELETE 
+TO authenticated 
 USING (user_id = auth.uid()::text);
 
 -- Message encryption keys - users can only see their own keys
-CREATE POLICY "Users can view own encryption keys" ON message_encryption_keys FOR SELECT 
+CREATE POLICY "Users can view own encryption keys" ON message_encryption_keys 
+FOR SELECT 
+TO authenticated 
 USING (user_id = auth.uid()::text);
 
--- Insert some initial data
-INSERT INTO badges (name, description, icon, category, requirement, rarity, points) VALUES
+CREATE POLICY "Users can insert own encryption keys" ON message_encryption_keys 
+FOR INSERT 
+TO authenticated 
+WITH CHECK (user_id = auth.uid()::text);
+
+CREATE POLICY "Users can update own encryption keys" ON message_encryption_keys 
+FOR UPDATE 
+TO authenticated 
+USING (user_id = auth.uid()::text)
+WITH CHECK (user_id = auth.uid()::text);
+
+-- Notifications - comprehensive policies
+CREATE POLICY "Users can insert notifications" ON notifications 
+FOR INSERT 
+TO authenticated 
+WITH CHECK (true);
+
+CREATE POLICY "Users can update own notifications" ON notifications 
+FOR UPDATE 
+TO authenticated 
+USING (user_id = auth.uid()::text)
+WITH CHECK (user_id = auth.uid()::text);
+
+-- Conversations - comprehensive policies
+CREATE POLICY "Users can insert conversations" ON conversations 
+FOR INSERT 
+TO authenticated 
+WITH CHECK (participant1_id = auth.uid()::text OR participant2_id = auth.uid()::text);
+
+CREATE POLICY "Users can update own conversations" ON conversations 
+FOR UPDATE 
+TO authenticated 
+USING (participant1_id = auth.uid()::text OR participant2_id = auth.uid()::text)
+WITH CHECK (participant1_id = auth.uid()::text OR participant2_id = auth.uid()::text);
+
+-- Direct messages - comprehensive policies
+CREATE POLICY "Users can insert messages in own conversations" ON direct_messages 
+FOR INSERT 
+TO authenticated 
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM conversations 
+        WHERE conversations.id = direct_messages.conversation_id 
+        AND (conversations.participant1_id = auth.uid()::text OR conversations.participant2_id = auth.uid()::text)
+    )
+);
+
+CREATE POLICY "Users can update own messages" ON direct_messages 
+FOR UPDATE 
+TO authenticated 
+USING (sender_id = auth.uid()::text)
+WITH CHECK (sender_id = auth.uid()::text);
+
+-- Insert some initial data with conflict resolution
+INSERT INTO badges (name, description, icon, category, requirement, rarity, points)
+VALUES 
 ('First Review', 'Posted your first review', '⭐', 'content', '{"type": "count", "action": "review", "threshold": 1}', 'common', 10),
 ('Concert Goer', 'Attended your first concert', '🎵', 'engagement', '{"type": "count", "action": "concert_attendance", "threshold": 1}', 'common', 15),
 ('Social Butterfly', 'Made 10 friends', '🦋', 'social', '{"type": "count", "action": "friends", "threshold": 10}', 'rare', 25),
-('Metal Head', 'Posted 50 reviews', '🤘', 'content', '{"type": "count", "action": "review", "threshold": 50}', 'epic', 100);
+('Metal Head', 'Posted 50 reviews', '🤘', 'content', '{"type": "count", "action": "review", "threshold": 50}', 'epic', 100)
+ON CONFLICT (name) DO UPDATE SET
+    description = EXCLUDED.description,
+    icon = EXCLUDED.icon,
+    category = EXCLUDED.category,
+    requirement = EXCLUDED.requirement,
+    rarity = EXCLUDED.rarity,
+    points = EXCLUDED.points;
 
 -- Success message
 SELECT 'MetalUnion database schema created successfully!' as status;
