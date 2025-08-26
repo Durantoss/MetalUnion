@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Search, Menu, X, ChevronDown, Filter, Wifi, WifiOff } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Card, CardContent } from './ui/card';
+import { Badge } from './ui/badge';
 
 interface MobileOptimizedProps {
   children?: React.ReactNode;

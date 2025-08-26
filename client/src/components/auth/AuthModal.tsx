@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { useMobileAuth } from '@/hooks/useMobileAuth';
+import { apiRequest } from '../../lib/queryClient';
+import { useMobileAuth } from '../../hooks/useMobileAuth';
 
 interface AuthModalProps {
   isOpen: boolean;

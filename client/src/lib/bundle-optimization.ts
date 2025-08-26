@@ -172,43 +172,43 @@ export const resourcePreloader = new ResourcePreloader();
 export const OptimizedComponents = {
   // Core components (preload with high priority)
   BandDiscovery: createOptimizedLazyComponent(
-    () => import('@/components/BandDiscovery'),
+    () => import('../components/BandDiscovery'),
     'BandDiscovery',
     { preload: true, priority: 'high' }
   ),
   
   EnhancedToursPage: createOptimizedLazyComponent(
-    () => import('@/components/EnhancedToursPage'),
+    () => import('../components/EnhancedToursPage'),
     'EnhancedToursPage',
     { preload: true, priority: 'high' }
   ),
   
   // Secondary components (preload with medium priority)
   ReviewsSection: createOptimizedLazyComponent(
-    () => import('@/components/ReviewsSection'),
+    () => import('../components/ReviewsSection'),
     'ReviewsSection',
     { preload: true, priority: 'low' }
   ),
   
   PhotosSection: createOptimizedLazyComponent(
-    () => import('@/components/PhotosSection'),
+    () => import('../components/PhotosSection'),
     'PhotosSection',
     { preload: true, priority: 'low' }
   ),
   
   // Heavy components (load on demand)
   AIChatbot: createOptimizedLazyComponent(
-    () => import('@/components/AIChatbot'),
+    () => import('../components/AIChatbot'),
     'AIChatbot'
   ),
   
   EncryptedChat: createOptimizedLazyComponent(
-    () => import('@/components/EncryptedChat'),
+    () => import('../components/EncryptedChat'),
     'EncryptedChat'
   ),
   
   PerformanceMonitor: createOptimizedLazyComponent(
-    () => import('@/components/PerformanceMonitor'),
+    () => import('../components/PerformanceMonitor'),
     'PerformanceMonitor'
   ),
 };
@@ -222,13 +222,13 @@ export function initializeBundleOptimizations() {
     setTimeout(() => {
       // Preload based on user behavior patterns
       resourcePreloader.addToQueue(
-        () => import('@/components/EnhancedSocialHub'),
+        () => import('../components/EnhancedSocialHub'),
         'EnhancedSocialHub',
         'medium'
       );
       
       resourcePreloader.addToQueue(
-        () => import('@/components/GameficationDashboard'),
+        () => import('../components/GameficationDashboard'),
         'GameficationDashboard',
         'low'
       );
@@ -244,14 +244,14 @@ export function initializeBundleOptimizations() {
       switch (section) {
         case 'messaging':
           resourcePreloader.addToQueue(
-            () => import('@/components/EncryptedChat'),
+            () => import('../components/EncryptedChat'),
             'EncryptedChat',
             'high'
           );
           break;
         case 'social':
           resourcePreloader.addToQueue(
-            () => import('@/components/EnhancedSocialHub'),
+            () => import('../components/EnhancedSocialHub'),
             'EnhancedSocialHub',
             'high'
           );
