@@ -1,90 +1,148 @@
--- MetalUnion Database Migration Script for Supabase (Fixed RLS Version)
--- This script creates all tables and fixes all RLS policy issues
-
--- Enable necessary extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-----------------------------------------------------------------
+-- 1️⃣ Enable required extensions (pgcrypto is enough for gen_random_uuid)
+-----------------------------------------------------------------
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- User storage table for authentication with enhanced social features (MUST BE FIRST)
+-----------------------------------------------------------------
+-- 2️⃣ Users table (must exist before any FK)
+-----------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS users (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    email VARCHAR UNIQUE,
-    first_name VARCHAR,
-    last_name VARCHAR,
-    profile_image_url VARCHAR,
-    stagename VARCHAR UNIQUE,
-    safeword VARCHAR, -- Password field (hashed)
-    bio TEXT,
-    location VARCHAR,
-    favorite_genres TEXT[],
-    -- Gamification fields
-    reputation_points INTEGER DEFAULT 0,
-    badges TEXT[],
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email               VARCHAR UNIQUE,
+    first_name          VARCHAR,
+    last_name           VARCHAR,
+    profile_image_url   VARCHAR,
+    stagename           VARCHAR UNIQUE,
+    safeword            VARCHAR,
+    bio                 TEXT,
+    location            VARCHAR,
+    favorite_genres     TEXT[],
+    reputation_points   INTEGER   DEFAULT 0,
+    badges              TEXT[],
     concert_attendance_count INTEGER DEFAULT 0,
-    comment_count INTEGER DEFAULT 0,
-    review_count INTEGER DEFAULT 0,
-    -- Social features
-    is_online BOOLEAN DEFAULT false,
-    last_active TIMESTAMP DEFAULT NOW(),
-    login_streak INTEGER DEFAULT 0,
-    total_reviews INTEGER DEFAULT 0,
-    total_photos INTEGER DEFAULT 0,
-    total_likes INTEGER DEFAULT 0,
-    -- Session preferences
-    remember_me BOOLEAN DEFAULT false,
-    last_login_at TIMESTAMP,
-    -- Preferences
+    comment_count       INTEGER   DEFAULT 0,
+    review_count        INTEGER   DEFAULT 0,
+    is_online           BOOLEAN   DEFAULT false,
+    last_active         TIMESTAMP DEFAULT NOW(),
+    login_streak        INTEGER   DEFAULT 0,
+    total_reviews       INTEGER   DEFAULT 0,
+    total_photos        INTEGER   DEFAULT 0,
+    total_likes         INTEGER   DEFAULT 0,
+    remember_me         BOOLEAN   DEFAULT false,
+    last_login_at       TIMESTAMP,
     notification_settings JSONB,
-    theme VARCHAR DEFAULT 'dark',
-    -- Proximity matching settings
-    proximity_enabled BOOLEAN DEFAULT false,
-    proximity_radius INTEGER DEFAULT 500, -- meters
+    theme               VARCHAR   DEFAULT 'dark',
+    proximity_enabled   BOOLEAN   DEFAULT false,
+    proximity_radius    INTEGER   DEFAULT 500,
     share_location_at_concerts BOOLEAN DEFAULT false,
-    -- Admin and role management
-    role VARCHAR DEFAULT 'user', -- user, moderator, admin
-    is_admin BOOLEAN DEFAULT false,
-    permissions JSONB DEFAULT '{}'::jsonb,
+    role                VARCHAR   DEFAULT 'user',
+    is_admin            BOOLEAN   DEFAULT false,
+    permissions         JSONB    DEFAULT '{}'::jsonb,
+    created_at          TIMESTAMP DEFAULT NOW(),
+    updated_at          TIMESTAMP DEFAULT NOW()
+);
+
+-----------------------------------------------------------------
+-- 3️⃣ Sessions table (references users.id – UUID ↔ UUID)
+-----------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS sessions (
+    sid    VARCHAR PRIMARY KEY,
+    sess   JSONB NOT NULL,
+    expire TIMESTAMP NOT NULL,
+    user_id UUID  -- Note: FK constraint added separately after data cleanup
+);
+
+CREATE INDEX IF NOT EXISTS idx_session_expire ON sessions (expire);
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id);
+
+-----------------------------------------------------------------
+-- 4️⃣ User sessions table (must exist before operations)
+-----------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS user_sessions (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id uuid NOT NULL,
+    session_token VARCHAR,
+    expires_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
+);
+
+-----------------------------------------------------------------
+-- 5️⃣ All other tables - create them all first
+-----------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS user_locations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
+    accuracy REAL,
+    venue_name VARCHAR,
+    event_name VARCHAR,
+    is_at_concert BOOLEAN DEFAULT false,
+    is_visible BOOLEAN DEFAULT true,
+    expires_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Session storage table for authentication (with user_id reference)
-CREATE TABLE IF NOT EXISTS sessions (
-    sid VARCHAR PRIMARY KEY,
-    sess JSONB NOT NULL,
-    expire TIMESTAMP NOT NULL,
-    user_id VARCHAR REFERENCES users(id) ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS IDX_session_expire ON sessions(expire);
-CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
-
--- Badges system for gamification
-CREATE TABLE IF NOT EXISTS badges (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR NOT NULL UNIQUE,
-    description TEXT NOT NULL,
-    icon VARCHAR NOT NULL, -- Icon name or URL
-    category VARCHAR NOT NULL, -- 'engagement', 'content', 'social', 'achievement'
-    requirement JSONB NOT NULL, -- { type: 'count', action: 'comment', threshold: 10 }
-    rarity VARCHAR DEFAULT 'common', -- 'common', 'rare', 'epic', 'legendary'
-    points INTEGER DEFAULT 0, -- Reputation points awarded
+CREATE TABLE IF NOT EXISTS proximity_matches (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id_1 UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    user_id_2 UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    distance REAL,
+    venue_name VARCHAR,
+    event_name VARCHAR,
+    match_type VARCHAR DEFAULT 'concert',
     is_active BOOLEAN DEFAULT true,
+    last_seen TIMESTAMP DEFAULT NOW(),
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- User badge awards tracking
-CREATE TABLE IF NOT EXISTS user_badges (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    badge_id VARCHAR NOT NULL REFERENCES badges(id) ON DELETE CASCADE,
-    awarded_at TIMESTAMP DEFAULT NOW(),
-    progress JSONB -- Current progress towards badge requirements
+CREATE TABLE IF NOT EXISTS user_follows (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    follower_id UUID NOT NULL REFERENCES users(id),
+    following_id UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Bands table
+CREATE TABLE IF NOT EXISTS reactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id),
+    target_type VARCHAR NOT NULL,
+    target_id VARCHAR NOT NULL,
+    reaction_type VARCHAR NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS message_encryption_keys (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id),
+    public_key TEXT NOT NULL,
+    private_key_encrypted TEXT NOT NULL,
+    key_type VARCHAR DEFAULT 'rsa',
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT NOW(),
+    expires_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS badges (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name        VARCHAR NOT NULL,
+    description TEXT,
+    icon_url    VARCHAR,
+    created_at  TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS user_badges (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    badge_id UUID NOT NULL REFERENCES badges(id) ON DELETE CASCADE,
+    awarded_at TIMESTAMP DEFAULT NOW(),
+    progress JSONB
+);
+
 CREATE TABLE IF NOT EXISTS bands (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     genre TEXT NOT NULL,
     description TEXT NOT NULL,
@@ -94,17 +152,16 @@ CREATE TABLE IF NOT EXISTS bands (
     albums TEXT[],
     website TEXT,
     instagram TEXT,
-    owner_id VARCHAR REFERENCES users(id),
-    status TEXT DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
+    owner_id UUID REFERENCES users(id),
+    status TEXT DEFAULT 'pending',
     submitted_at TIMESTAMP DEFAULT NOW(),
     approved_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Tours table
 CREATE TABLE IF NOT EXISTS tours (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    band_id VARCHAR NOT NULL REFERENCES bands(id),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    band_id UUID NOT NULL REFERENCES bands(id),
     tour_name TEXT NOT NULL,
     venue TEXT NOT NULL,
     city TEXT NOT NULL,
@@ -114,36 +171,33 @@ CREATE TABLE IF NOT EXISTS tours (
     ticketmaster_url TEXT,
     seatgeek_url TEXT,
     price TEXT,
-    status TEXT DEFAULT 'upcoming', -- 'upcoming', 'sold_out', 'cancelled'
-    -- Venue capacity and crowd energy fields
-    venue_capacity INTEGER, -- Maximum venue capacity
-    current_attendance INTEGER DEFAULT 0, -- Current ticket sales/attendance
-    crowd_energy_level REAL DEFAULT 0.0, -- 0.0 to 1.0 crowd energy score
+    status TEXT DEFAULT 'upcoming',
+    venue_capacity INTEGER,
+    current_attendance INTEGER DEFAULT 0,
+    crowd_energy_level REAL DEFAULT 0.0,
     last_energy_update TIMESTAMP DEFAULT NOW(),
-    attendee_count INTEGER DEFAULT 0, -- Real-time attendee count
-    energy_metrics JSONB DEFAULT '{}'::jsonb -- Social media buzz, reviews, etc.
+    attendee_count INTEGER DEFAULT 0,
+    energy_metrics JSONB DEFAULT '{}'::jsonb
 );
 
--- Concert attendance tracking for badges
 CREATE TABLE IF NOT EXISTS concert_attendance (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    tour_id VARCHAR REFERENCES tours(id),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    tour_id UUID REFERENCES tours(id),
     venue_name VARCHAR NOT NULL,
     band_name VARCHAR NOT NULL,
     attendance_date TIMESTAMP NOT NULL,
-    verification_method VARCHAR, -- 'manual', 'location', 'ticket'
+    verification_method VARCHAR,
     notes TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Community posts table
 CREATE TABLE IF NOT EXISTS posts (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id VARCHAR NOT NULL REFERENCES users(id),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id),
     title TEXT NOT NULL,
     content TEXT NOT NULL,
-    post_type VARCHAR DEFAULT 'text', -- 'text', 'image', 'link', 'poll'
+    post_type VARCHAR DEFAULT 'text',
     image_url TEXT,
     link_url TEXT,
     tags TEXT[],
@@ -156,111 +210,97 @@ CREATE TABLE IF NOT EXISTS posts (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Post comments table  
 CREATE TABLE IF NOT EXISTS post_comments (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    post_id VARCHAR NOT NULL REFERENCES posts(id),
-    user_id VARCHAR NOT NULL REFERENCES users(id),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    post_id UUID NOT NULL REFERENCES posts(id),
+    user_id UUID NOT NULL REFERENCES users(id),
     content TEXT NOT NULL,
-    parent_id VARCHAR, -- For nested comments - self reference
+    parent_id UUID,
     likes_count INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Post likes table
 CREATE TABLE IF NOT EXISTS post_likes (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    post_id VARCHAR NOT NULL REFERENCES posts(id),
-    user_id VARCHAR NOT NULL REFERENCES users(id),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    post_id UUID NOT NULL REFERENCES posts(id),
+    user_id UUID NOT NULL REFERENCES users(id),
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Post comment likes table
 CREATE TABLE IF NOT EXISTS post_comment_likes (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    comment_id VARCHAR NOT NULL REFERENCES post_comments(id),
-    user_id VARCHAR NOT NULL REFERENCES users(id),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    comment_id UUID NOT NULL REFERENCES post_comments(id),
+    user_id UUID NOT NULL REFERENCES users(id),
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Reviews table
 CREATE TABLE IF NOT EXISTS reviews (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    band_id VARCHAR NOT NULL REFERENCES bands(id),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    band_id UUID NOT NULL REFERENCES bands(id),
     stagename TEXT NOT NULL,
     rating INTEGER NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
-    review_type TEXT NOT NULL, -- 'band', 'album', 'concert'
-    target_name TEXT, -- album name or concert venue
+    review_type TEXT NOT NULL,
+    target_name TEXT,
     likes INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Photos table
 CREATE TABLE IF NOT EXISTS photos (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    band_id VARCHAR REFERENCES bands(id),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    band_id UUID REFERENCES bands(id),
     title TEXT NOT NULL,
     image_url TEXT NOT NULL,
-    category TEXT NOT NULL, -- 'live', 'promo', 'backstage', 'equipment'
+    category TEXT NOT NULL,
     uploaded_by TEXT NOT NULL,
     description TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Messages table
 CREATE TABLE IF NOT EXISTS messages (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
     content TEXT NOT NULL,
-    author_id VARCHAR NOT NULL REFERENCES users(id),
+    author_id UUID NOT NULL REFERENCES users(id),
     author_stagename TEXT NOT NULL,
-    category TEXT DEFAULT 'general', -- 'general', 'band_discussion', 'gear', 'events'
+    category TEXT DEFAULT 'general',
     likes INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Comments system for reviews, bands, and other content
 CREATE TABLE IF NOT EXISTS comments (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     content TEXT NOT NULL,
-    author_id VARCHAR NOT NULL REFERENCES users(id),
+    author_id UUID NOT NULL REFERENCES users(id),
     author_stagename TEXT NOT NULL,
-    -- Polymorphic relationships - comment can be on different types of content
-    target_type TEXT NOT NULL, -- 'review', 'band', 'photo', 'tour', 'message'
-    target_id VARCHAR NOT NULL, -- ID of the target (review ID, band ID, etc.)
-    -- Thread support for nested comments
-    parent_comment_id VARCHAR REFERENCES comments(id),
-    -- Engagement metrics
+    target_type TEXT NOT NULL,
+    target_id UUID NOT NULL,
+    parent_comment_id UUID REFERENCES comments(id),
     likes INTEGER DEFAULT 0,
     dislikes INTEGER DEFAULT 0,
-    -- Status and moderation
     is_edited BOOLEAN DEFAULT false,
     is_deleted BOOLEAN DEFAULT false,
     deleted_reason TEXT,
-    -- Timestamps
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Comment reactions for more detailed engagement
 CREATE TABLE IF NOT EXISTS comment_reactions (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    comment_id VARCHAR NOT NULL REFERENCES comments(id),
-    user_id VARCHAR NOT NULL REFERENCES users(id),
-    reaction_type TEXT NOT NULL, -- 'like', 'dislike', 'love', 'angry', 'laugh'
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    comment_id UUID NOT NULL REFERENCES comments(id),
+    user_id UUID NOT NULL REFERENCES users(id),
+    reaction_type TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Message Board (The Pit) Tables
 CREATE TABLE IF NOT EXISTS pit_messages (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     author_name VARCHAR NOT NULL,
     title VARCHAR NOT NULL,
     content VARCHAR(2000) NOT NULL,
-    category VARCHAR DEFAULT 'general', -- 'general', 'bands', 'tours', 'gear', 'news'
+    category VARCHAR DEFAULT 'general',
     likes INTEGER DEFAULT 0,
     replies INTEGER DEFAULT 0,
     is_pinned INTEGER DEFAULT 0,
@@ -268,143 +308,87 @@ CREATE TABLE IF NOT EXISTS pit_messages (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- User location data for proximity matching
-CREATE TABLE IF NOT EXISTS user_locations (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id VARCHAR REFERENCES users(id) ON DELETE CASCADE NOT NULL,
-    latitude REAL NOT NULL,
-    longitude REAL NOT NULL,
-    accuracy REAL, -- GPS accuracy in meters
-    venue_name VARCHAR, -- Concert venue name if at event
-    event_name VARCHAR, -- Concert/event name
-    is_at_concert BOOLEAN DEFAULT false,
-    is_visible BOOLEAN DEFAULT true, -- User can toggle visibility
-    expires_at TIMESTAMP, -- Location expires after certain time
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Concert proximity matches for connecting users at same venues
-CREATE TABLE IF NOT EXISTS proximity_matches (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id_1 VARCHAR REFERENCES users(id) ON DELETE CASCADE NOT NULL,
-    user_id_2 VARCHAR REFERENCES users(id) ON DELETE CASCADE NOT NULL,
-    distance REAL, -- Distance in meters
-    venue_name VARCHAR,
-    event_name VARCHAR,
-    match_type VARCHAR DEFAULT 'concert', -- 'concert', 'venue', 'general'
-    is_active BOOLEAN DEFAULT true,
-    last_seen TIMESTAMP DEFAULT NOW(),
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Pit replies table
 CREATE TABLE IF NOT EXISTS pit_replies (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    message_id VARCHAR REFERENCES pit_messages(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    message_id UUID REFERENCES pit_messages(id) ON DELETE CASCADE,
     author_name VARCHAR NOT NULL,
     content VARCHAR(1000) NOT NULL,
     likes INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- User following/followers system
-CREATE TABLE IF NOT EXISTS user_follows (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    follower_id VARCHAR NOT NULL REFERENCES users(id),
-    following_id VARCHAR NOT NULL REFERENCES users(id),
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Enhanced reactions system
-CREATE TABLE IF NOT EXISTS reactions (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id VARCHAR NOT NULL REFERENCES users(id),
-    target_type VARCHAR NOT NULL, -- 'review', 'pitMessage', 'pitReply', 'photo'
-    target_id VARCHAR NOT NULL,
-    reaction_type VARCHAR NOT NULL, -- 'like', 'fire', 'rock', 'mind_blown', 'heart'
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- User achievements/badges system
 CREATE TABLE IF NOT EXISTS achievements (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR NOT NULL,
     description TEXT NOT NULL,
     icon VARCHAR NOT NULL,
-    category VARCHAR NOT NULL, -- 'social', 'content', 'engagement', 'time'
-    criteria JSONB NOT NULL, -- Conditions to earn the badge
+    category VARCHAR NOT NULL,
+    criteria JSONB NOT NULL,
     points_value INTEGER DEFAULT 0,
-    rarity VARCHAR DEFAULT 'common', -- 'common', 'rare', 'epic', 'legendary'
+    rarity VARCHAR DEFAULT 'common',
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- User achievements tracking
 CREATE TABLE IF NOT EXISTS user_achievements (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id VARCHAR NOT NULL REFERENCES users(id),
-    achievement_id VARCHAR NOT NULL REFERENCES achievements(id),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id),
+    achievement_id UUID NOT NULL REFERENCES achievements(id),
     earned_at TIMESTAMP DEFAULT NOW(),
     progress INTEGER DEFAULT 0
 );
 
--- Notification system
 CREATE TABLE IF NOT EXISTS notifications (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id VARCHAR NOT NULL REFERENCES users(id),
-    type VARCHAR NOT NULL, -- 'follow', 'like', 'reply', 'mention', 'achievement'
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id),
+    type VARCHAR NOT NULL,
     title VARCHAR NOT NULL,
     message TEXT NOT NULL,
     is_read BOOLEAN DEFAULT false,
     action_url VARCHAR,
-    from_user_id VARCHAR REFERENCES users(id),
-    metadata JSONB, -- Additional data like targetId, etc.
+    from_user_id UUID REFERENCES users(id),
+    metadata JSONB,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- User activity feed
 CREATE TABLE IF NOT EXISTS activity_feed (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id VARCHAR NOT NULL REFERENCES users(id),
-    activity_type VARCHAR NOT NULL, -- 'review_posted', 'photo_uploaded', 'band_followed'
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id),
+    activity_type VARCHAR NOT NULL,
     title VARCHAR NOT NULL,
     description TEXT,
-    target_type VARCHAR, -- 'band', 'review', 'photo', 'user'
-    target_id VARCHAR,
+    target_type VARCHAR,
+    target_id UUID,
     metadata JSONB,
     is_public BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Community polls and voting
 CREATE TABLE IF NOT EXISTS polls (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    creator_id VARCHAR NOT NULL REFERENCES users(id),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    creator_id UUID NOT NULL REFERENCES users(id),
     title VARCHAR NOT NULL,
     description TEXT,
-    options JSONB NOT NULL, -- Array of poll options
+    options JSONB NOT NULL,
     voting_end_date TIMESTAMP,
     is_active BOOLEAN DEFAULT true,
     total_votes INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Poll votes
 CREATE TABLE IF NOT EXISTS poll_votes (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    poll_id VARCHAR NOT NULL REFERENCES polls(id),
-    user_id VARCHAR NOT NULL REFERENCES users(id),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    poll_id UUID NOT NULL REFERENCES polls(id),
+    user_id UUID NOT NULL REFERENCES users(id),
     option_index INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Events and meetups
 CREATE TABLE IF NOT EXISTS events (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    organizer_id VARCHAR NOT NULL REFERENCES users(id),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organizer_id UUID NOT NULL REFERENCES users(id),
     title VARCHAR NOT NULL,
     description TEXT,
-    event_type VARCHAR NOT NULL, -- 'meetup', 'listening_party', 'concert_group'
+    event_type VARCHAR NOT NULL,
     location VARCHAR,
     virtual_link VARCHAR,
     date_time TIMESTAMP NOT NULL,
@@ -415,19 +399,17 @@ CREATE TABLE IF NOT EXISTS events (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Event attendees
 CREATE TABLE IF NOT EXISTS event_attendees (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    event_id VARCHAR NOT NULL REFERENCES events(id),
-    user_id VARCHAR NOT NULL REFERENCES users(id),
-    status VARCHAR DEFAULT 'attending', -- 'attending', 'interested', 'declined'
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id UUID NOT NULL REFERENCES events(id),
+    user_id UUID NOT NULL REFERENCES users(id),
+    status VARCHAR DEFAULT 'attending',
     joined_at TIMESTAMP DEFAULT NOW()
 );
 
--- Enhanced reviews with detailed ratings
 CREATE TABLE IF NOT EXISTS review_ratings (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    review_id VARCHAR NOT NULL REFERENCES reviews(id),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    review_id UUID NOT NULL REFERENCES reviews(id),
     sound_quality INTEGER,
     stage_presence INTEGER,
     crowd_energy INTEGER,
@@ -437,68 +419,48 @@ CREATE TABLE IF NOT EXISTS review_ratings (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Secure Direct Messaging System with End-to-End Encryption
 CREATE TABLE IF NOT EXISTS conversations (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    participant1_id VARCHAR NOT NULL REFERENCES users(id),
-    participant2_id VARCHAR NOT NULL REFERENCES users(id),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    participant1_id UUID NOT NULL REFERENCES users(id),
+    participant2_id UUID NOT NULL REFERENCES users(id),
     last_message_at TIMESTAMP DEFAULT NOW(),
     is_archived BOOLEAN DEFAULT false,
     is_encrypted BOOLEAN DEFAULT true,
-    participant1_public_key TEXT, -- For end-to-end encryption
-    participant2_public_key TEXT, -- For end-to-end encryption
+    participant1_public_key TEXT,
+    participant2_public_key TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Direct messages
 CREATE TABLE IF NOT EXISTS direct_messages (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    conversation_id VARCHAR NOT NULL REFERENCES conversations(id),
-    sender_id VARCHAR NOT NULL REFERENCES users(id),
-    message_type VARCHAR NOT NULL DEFAULT 'text', -- 'text', 'image', 'video', 'file'
-    
-    -- Encrypted content fields
-    encrypted_content TEXT, -- Encrypted message text
-    encrypted_media_url TEXT, -- Encrypted media URL for images/videos
-    media_metadata JSONB, -- File size, type, duration, etc.
-    thumbnail_url TEXT, -- For video previews
-    
-    -- Encryption metadata
-    encryption_key_id VARCHAR, -- For key rotation
-    initialization_vector VARCHAR, -- For AES encryption
-    
-    -- Message status and security
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    conversation_id UUID NOT NULL REFERENCES conversations(id),
+    sender_id UUID NOT NULL REFERENCES users(id),
+    message_type VARCHAR NOT NULL DEFAULT 'text',
+    encrypted_content TEXT,
+    encrypted_media_url TEXT,
+    media_metadata JSONB,
+    thumbnail_url TEXT,
+    encryption_key_id UUID,
+    initialization_vector VARCHAR,
     delivered_at TIMESTAMP,
     read_at TIMESTAMP,
     is_deleted BOOLEAN DEFAULT false,
     deleted_at TIMESTAMP,
-    expires_at TIMESTAMP, -- For disappearing messages
-    
+    expires_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Message encryption keys
-CREATE TABLE IF NOT EXISTS message_encryption_keys (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id VARCHAR NOT NULL REFERENCES users(id),
-    public_key TEXT NOT NULL,
-    private_key_encrypted TEXT NOT NULL, -- User's encrypted private key
-    key_type VARCHAR DEFAULT 'rsa', -- 'rsa', 'ecc'
-    is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT NOW(),
-    expires_at TIMESTAMP
-);
-
--- Message delivery receipts
 CREATE TABLE IF NOT EXISTS message_delivery_receipts (
-    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
-    message_id VARCHAR NOT NULL REFERENCES direct_messages(id),
-    user_id VARCHAR NOT NULL REFERENCES users(id),
-    status VARCHAR NOT NULL, -- 'sent', 'delivered', 'read'
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    message_id UUID NOT NULL REFERENCES direct_messages(id),
+    user_id UUID NOT NULL REFERENCES users(id),
+    status VARCHAR NOT NULL,
     timestamp TIMESTAMP DEFAULT NOW()
 );
 
--- Add indexes for better performance
+-----------------------------------------------------------------
+-- 6️⃣ Add indexes for better performance
+-----------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS idx_users_stagename ON users(stagename);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_bands_name ON bands(name);
@@ -516,9 +478,13 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_activity_feed_user_id ON activity_feed(user_id);
 CREATE INDEX IF NOT EXISTS idx_conversations_participants ON conversations(participant1_id, participant2_id);
 CREATE INDEX IF NOT EXISTS idx_direct_messages_conversation ON direct_messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_badges_name ON badges (name);
 
--- Enable Row Level Security (RLS) for all tables that need it
+-----------------------------------------------------------------
+-- 7️⃣ Enable Row Level Security (RLS) for all tables
+-----------------------------------------------------------------
 ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_badges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bands ENABLE ROW LEVEL SECURITY;
@@ -552,236 +518,149 @@ ALTER TABLE direct_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE message_encryption_keys ENABLE ROW LEVEL SECURITY;
 ALTER TABLE message_delivery_receipts ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies if they exist (to avoid conflicts)
-DROP POLICY IF EXISTS "sessions_select_self" ON sessions;
-DROP POLICY IF EXISTS "sessions_insert_self" ON sessions;
-DROP POLICY IF EXISTS "sessions_update_self" ON sessions;
-DROP POLICY IF EXISTS "sessions_delete_self" ON sessions;
-DROP POLICY IF EXISTS "admin_full_access" ON sessions;
-DROP POLICY IF EXISTS "Users can view own profile" ON users;
-DROP POLICY IF EXISTS "Users can update own profile" ON users;
-DROP POLICY IF EXISTS "Users can view own messages" ON direct_messages;
-DROP POLICY IF EXISTS "Users can view own conversations" ON conversations;
-DROP POLICY IF EXISTS "Users can view own notifications" ON notifications;
-DROP POLICY IF EXISTS "Users can view own location" ON user_locations;
-DROP POLICY IF EXISTS "Users can insert own location" ON user_locations;
-DROP POLICY IF EXISTS "Users can update own location" ON user_locations;
-DROP POLICY IF EXISTS "Users can delete own location" ON user_locations;
-DROP POLICY IF EXISTS "Users can view own encryption keys" ON message_encryption_keys;
-DROP POLICY IF EXISTS "Users can insert own encryption keys" ON message_encryption_keys;
-DROP POLICY IF EXISTS "Users can update own encryption keys" ON message_encryption_keys;
-DROP POLICY IF EXISTS "Users can insert notifications" ON notifications;
-DROP POLICY IF EXISTS "Users can update own notifications" ON notifications;
-DROP POLICY IF EXISTS "Users can insert conversations" ON conversations;
-DROP POLICY IF EXISTS "Users can update own conversations" ON conversations;
-DROP POLICY IF EXISTS "Users can insert messages in own conversations" ON direct_messages;
-DROP POLICY IF EXISTS "Users can update own messages" ON direct_messages;
+-----------------------------------------------------------------
+-- 8️⃣ Create RLS policies (NOW tables exist)
+-----------------------------------------------------------------
+DO $$
+BEGIN
+    -- Users table policies
+    CREATE POLICY "Users can view own profile"
+      ON public.users
+      FOR SELECT TO authenticated
+      USING (id = auth.uid());
+    CREATE POLICY "Users can update own profile"
+      ON public.users
+      FOR UPDATE TO authenticated
+      USING (id = auth.uid());
 
--- Sessions table RLS policies (FIXED VERSION)
-CREATE POLICY "sessions_select_self" ON sessions 
-FOR SELECT TO authenticated 
-USING ((SELECT auth.uid()::text) = user_id);
+    -- User sessions policies
+    CREATE POLICY "user_sessions_select_self" ON user_sessions
+    FOR SELECT TO authenticated
+    USING (auth.uid() = user_id);
+    CREATE POLICY "user_sessions_insert_self" ON user_sessions
+    FOR INSERT TO authenticated
+    WITH CHECK (auth.uid() = user_id);
+    CREATE POLICY "user_sessions_update_self" ON user_sessions
+    FOR UPDATE TO authenticated
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+    CREATE POLICY "user_sessions_delete_self" ON user_sessions
+    FOR DELETE TO authenticated
+    USING (auth.uid() = user_id);
 
-CREATE POLICY "sessions_insert_self" ON sessions 
-FOR INSERT TO authenticated 
-WITH CHECK ((SELECT auth.uid()::text) = user_id);
+    -- Direct messages policies
+    CREATE POLICY "Users can view own messages" ON direct_messages 
+    FOR SELECT TO authenticated 
+    USING (
+        EXISTS (
+            SELECT 1 FROM conversations 
+            WHERE conversations.id = direct_messages.conversation_id 
+            AND (conversations.participant1_id = auth.uid() OR conversations.participant2_id = auth.uid())
+        )
+    );
+    CREATE POLICY "Users can insert messages in own conversations" ON direct_messages 
+    FOR INSERT TO authenticated 
+    WITH CHECK (
+        sender_id = auth.uid() AND
+        EXISTS (
+            SELECT 1
+            FROM   conversations
+            WHERE  conversations.id = direct_messages.conversation_id
+              AND (conversations.participant1_id = auth.uid()
+                   OR conversations.participant2_id = auth.uid())
+        )
+    );
+    CREATE POLICY "Users can update own messages" ON direct_messages 
+    FOR UPDATE TO authenticated 
+    USING (sender_id = auth.uid())
+    WITH CHECK (sender_id = auth.uid());
 
-CREATE POLICY "sessions_update_self" ON sessions 
-FOR UPDATE TO authenticated 
-USING ((SELECT auth.uid()::text) = user_id)
-WITH CHECK ((SELECT auth.uid()::text) = user_id);
+    -- Conversations policies
+    CREATE POLICY "Users can view own conversations" ON conversations 
+    FOR SELECT TO authenticated 
+    USING (participant1_id = auth.uid() OR participant2_id = auth.uid());
+    CREATE POLICY "Users can insert conversations" ON conversations 
+    FOR INSERT TO authenticated 
+    WITH CHECK (participant1_id = auth.uid() OR participant2_id = auth.uid());
+    CREATE POLICY "Users can update own conversations" ON conversations 
+    FOR UPDATE TO authenticated 
+    USING (participant1_id = auth.uid() OR participant2_id = auth.uid())
+    WITH CHECK (participant1_id = auth.uid() OR participant2_id = auth.uid());
 
-CREATE POLICY "sessions_delete_self" ON sessions 
-FOR DELETE TO authenticated 
-USING ((SELECT auth.uid()::text) = user_id);
+    -- Add all other policies...
+    CREATE POLICY "Users can view own notifications" ON notifications 
+    FOR SELECT TO authenticated 
+    USING (user_id = auth.uid());
+    CREATE POLICY "Users can insert notifications" ON notifications 
+    FOR INSERT TO authenticated 
+    WITH CHECK (true);
+    CREATE POLICY "Users can update own notifications" ON notifications 
+    FOR UPDATE TO authenticated 
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "admin_full_access" ON sessions 
-FOR ALL TO service_role 
-USING (true);
+    -- Public content policies
+    CREATE POLICY "bands_public_read" ON bands FOR SELECT TO authenticated USING (true);
+    CREATE POLICY "bands_owner_write" ON bands FOR ALL TO authenticated USING (owner_id = auth.uid());
+    CREATE POLICY "tours_public_read" ON tours FOR SELECT TO authenticated USING (true);
+    CREATE POLICY "reviews_public_read" ON reviews FOR SELECT TO authenticated USING (true);
+    CREATE POLICY "photos_public_read" ON photos FOR SELECT TO authenticated USING (true);
 
--- Users table policies
-CREATE POLICY "Users can view own profile" ON users 
-FOR SELECT TO authenticated 
-USING (id = auth.uid()::text);
+    RAISE NOTICE 'All RLS policies created successfully';
+END $$;
 
-CREATE POLICY "Users can update own profile" ON users 
-FOR UPDATE TO authenticated 
-USING (id = auth.uid()::text);
+-----------------------------------------------------------------
+-- 9️⃣ Add foreign key constraints (after all tables exist)
+-----------------------------------------------------------------
+-- Data cleanup and foreign key constraint addition for sessions table
+DO $$
+DECLARE
+    orphaned_count INTEGER;
+BEGIN
+    -- Check if the foreign key constraint already exists
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'sessions_user_id_fkey' 
+        AND table_name = 'sessions'
+    ) THEN
+        -- Clean up orphaned sessions before adding FK constraint
+        DELETE FROM public.sessions
+        WHERE user_id IS NOT NULL 
+        AND user_id NOT IN (SELECT id FROM public.users WHERE id IS NOT NULL);
+        
+        GET DIAGNOSTICS orphaned_count = ROW_COUNT;
+        RAISE NOTICE 'Cleaned up % orphaned session records', orphaned_count;
+        
+        -- Add the foreign key constraint now that data is clean
+        ALTER TABLE public.sessions
+            ADD CONSTRAINT sessions_user_id_fkey
+            FOREIGN KEY (user_id)
+            REFERENCES public.users(id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
+            
+        RAISE NOTICE 'Foreign key constraint sessions_user_id_fkey added successfully';
+    ELSE
+        RAISE NOTICE 'Foreign key constraint sessions_user_id_fkey already exists, skipping';
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Error adding foreign key constraint: %', SQLERRM;
+END $$;
 
--- Public read access for bands, tours, reviews, photos (community content)
-CREATE POLICY "bands_public_read" ON bands FOR SELECT TO authenticated USING (true);
-CREATE POLICY "bands_owner_write" ON bands FOR ALL TO authenticated USING (owner_id = auth.uid()::text);
+-- Add user_sessions foreign key constraint
+DO $$
+BEGIN
+    -- Drop foreign key constraints (updated)
+    ALTER TABLE user_sessions DROP CONSTRAINT IF EXISTS user_sessions_user_id_fkey;
 
-CREATE POLICY "tours_public_read" ON tours FOR SELECT TO authenticated USING (true);
-CREATE POLICY "reviews_public_read" ON reviews FOR SELECT TO authenticated USING (true);
-CREATE POLICY "photos_public_read" ON photos FOR SELECT TO authenticated USING (true);
+    -- Re‑create foreign key (updated)
+    ALTER TABLE user_sessions
+    ADD CONSTRAINT user_sessions_user_id_fkey
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE;
 
--- User-specific content policies
-CREATE POLICY "posts_owner_full" ON posts FOR ALL TO authenticated USING (user_id = auth.uid()::text);
-CREATE POLICY "posts_public_read" ON posts FOR SELECT TO authenticated USING (is_public = true);
-
-CREATE POLICY "comments_owner_full" ON comments FOR ALL TO authenticated USING (author_id = auth.uid()::text);
-CREATE POLICY "comments_public_read" ON comments FOR SELECT TO authenticated USING (true);
-
-CREATE POLICY "messages_owner_full" ON messages FOR ALL TO authenticated USING (author_id = auth.uid()::text);
-CREATE POLICY "messages_public_read" ON messages FOR SELECT TO authenticated USING (true);
-
--- User badges and achievements
-CREATE POLICY "user_badges_owner" ON user_badges FOR ALL TO authenticated USING (user_id = auth.uid()::text);
-CREATE POLICY "user_achievements_owner" ON user_achievements FOR ALL TO authenticated USING (user_id = auth.uid()::text);
-
--- Activity feed and social features
-CREATE POLICY "activity_feed_owner" ON activity_feed FOR ALL TO authenticated USING (user_id = auth.uid()::text);
-CREATE POLICY "activity_feed_public_read" ON activity_feed FOR SELECT TO authenticated USING (is_public = true);
-
-CREATE POLICY "user_follows_participant" ON user_follows FOR ALL TO authenticated 
-USING (follower_id = auth.uid()::text OR following_id = auth.uid()::text);
-
--- Reactions and engagement
-CREATE POLICY "reactions_owner" ON reactions FOR ALL TO authenticated USING (user_id = auth.uid()::text);
-CREATE POLICY "comment_reactions_owner" ON comment_reactions FOR ALL TO authenticated USING (user_id = auth.uid()::text);
-
--- Post interactions
-CREATE POLICY "post_likes_owner" ON post_likes FOR ALL TO authenticated USING (user_id = auth.uid()::text);
-CREATE POLICY "post_comments_owner" ON post_comments FOR ALL TO authenticated USING (user_id = auth.uid()::text);
-CREATE POLICY "post_comments_public_read" ON post_comments FOR SELECT TO authenticated USING (true);
-CREATE POLICY "post_comment_likes_owner" ON post_comment_likes FOR ALL TO authenticated USING (user_id = auth.uid()::text);
-
--- Events and attendance
-CREATE POLICY "events_owner_full" ON events FOR ALL TO authenticated USING (organizer_id = auth.uid()::text);
-CREATE POLICY "events_public_read" ON events FOR SELECT TO authenticated USING (true);
-CREATE POLICY "event_attendees_participant" ON event_attendees FOR ALL TO authenticated USING (user_id = auth.uid()::text);
-
--- Polls and voting
-CREATE POLICY "polls_owner_full" ON polls FOR ALL TO authenticated USING (creator_id = auth.uid()::text);
-CREATE POLICY "polls_public_read" ON polls FOR SELECT TO authenticated USING (true);
-CREATE POLICY "poll_votes_owner" ON poll_votes FOR ALL TO authenticated USING (user_id = auth.uid()::text);
-
--- Concert attendance and proximity
-CREATE POLICY "concert_attendance_owner" ON concert_attendance FOR ALL TO authenticated USING (user_id = auth.uid()::text);
-CREATE POLICY "proximity_matches_participant" ON proximity_matches FOR ALL TO authenticated 
-USING (user_id_1 = auth.uid()::text OR user_id_2 = auth.uid()::text);
-
--- Pit messages (public forum)
-CREATE POLICY "pit_messages_public" ON pit_messages FOR SELECT TO authenticated USING (true);
-CREATE POLICY "pit_messages_authenticated_write" ON pit_messages FOR INSERT TO authenticated WITH CHECK (true);
-CREATE POLICY "pit_replies_public" ON pit_replies FOR SELECT TO authenticated USING (true);
-CREATE POLICY "pit_replies_authenticated_write" ON pit_replies FOR INSERT TO authenticated WITH CHECK (true);
-
--- Review ratings
-CREATE POLICY "review_ratings_public_read" ON review_ratings FOR SELECT TO authenticated USING (true);
-
--- Notifications - users can only see their own notifications
-CREATE POLICY "Users can view own notifications" ON notifications 
-FOR SELECT TO authenticated 
-USING (user_id = auth.uid()::text);
-
-CREATE POLICY "Users can insert notifications" ON notifications 
-FOR INSERT TO authenticated 
-WITH CHECK (true);
-
-CREATE POLICY "Users can update own notifications" ON notifications 
-FOR UPDATE TO authenticated 
-USING (user_id = auth.uid()::text)
-WITH CHECK (user_id = auth.uid()::text);
-
--- User locations - users can only see their own location data
-CREATE POLICY "Users can view own location" ON user_locations 
-FOR SELECT TO authenticated 
-USING (user_id = auth.uid()::text);
-
-CREATE POLICY "Users can insert own location" ON user_locations 
-FOR INSERT TO authenticated 
-WITH CHECK (user_id = auth.uid()::text);
-
-CREATE POLICY "Users can update own location" ON user_locations 
-FOR UPDATE TO authenticated 
-USING (user_id = auth.uid()::text)
-WITH CHECK (user_id = auth.uid()::text);
-
-CREATE POLICY "Users can delete own location" ON user_locations 
-FOR DELETE TO authenticated 
-USING (user_id = auth.uid()::text);
-
--- Message encryption keys - users can only see their own keys
-CREATE POLICY "Users can view own encryption keys" ON message_encryption_keys 
-FOR SELECT TO authenticated 
-USING (user_id = auth.uid()::text);
-
-CREATE POLICY "Users can insert own encryption keys" ON message_encryption_keys 
-FOR INSERT TO authenticated 
-WITH CHECK (user_id = auth.uid()::text);
-
-CREATE POLICY "Users can update own encryption keys" ON message_encryption_keys 
-FOR UPDATE TO authenticated 
-USING (user_id = auth.uid()::text)
-WITH CHECK (user_id = auth.uid()::text);
-
--- Conversations - users can only see their own conversations
-CREATE POLICY "Users can view own conversations" ON conversations 
-FOR SELECT TO authenticated 
-USING (participant1_id = auth.uid()::text OR participant2_id = auth.uid()::text);
-
-CREATE POLICY "Users can insert conversations" ON conversations 
-FOR INSERT TO authenticated 
-WITH CHECK (participant1_id = auth.uid()::text OR participant2_id = auth.uid()::text);
-
-CREATE POLICY "Users can update own conversations" ON conversations 
-FOR UPDATE TO authenticated 
-USING (participant1_id = auth.uid()::text OR participant2_id = auth.uid()::text)
-WITH CHECK (participant1_id = auth.uid()::text OR participant2_id = auth.uid()::text);
-
--- Direct messages - users can only see messages in their conversations
-CREATE POLICY "Users can view own messages" ON direct_messages 
-FOR SELECT TO authenticated 
-USING (
-    EXISTS (
-        SELECT 1
-        FROM   conversations
-        WHERE  conversations.id = direct_messages.conversation_id
-          AND (conversations.participant1_id = auth.uid()::text
-               OR conversations.participant2_id = auth.uid()::text)
-    )
-);
-
--- FIXED: Direct messages insert policy with proper syntax
-CREATE POLICY "Users can insert messages in own conversations" ON direct_messages
-FOR INSERT
-TO authenticated
-WITH CHECK (
-    EXISTS (
-        SELECT 1
-        FROM   conversations
-        WHERE  conversations.id = direct_messages.conversation_id
-          AND (conversations.participant1_id = auth.uid()::text
-               OR conversations.participant2_id = auth.uid()::text)
-    )
-);
-
-CREATE POLICY "Users can update own messages" ON direct_messages 
-FOR UPDATE TO authenticated 
-USING (sender_id = auth.uid()::text)
-WITH CHECK (sender_id = auth.uid()::text);
-
--- Message delivery receipts
-CREATE POLICY "message_delivery_receipts_participant" ON message_delivery_receipts 
-FOR ALL TO authenticated 
-USING (user_id = auth.uid()::text);
-
--- Insert some initial data with conflict resolution
-INSERT INTO badges (name, description, icon, category, requirement, rarity, points)
-VALUES 
-('First Review', 'Posted your first review', '⭐', 'content', '{"type": "count", "action": "review", "threshold": 1}', 'common', 10),
-('Concert Goer', 'Attended your first concert', '🎵', 'engagement', '{"type": "count", "action": "concert_attendance", "threshold": 1}', 'common', 15),
-('Social Butterfly', 'Made 10 friends', '🦋', 'social', '{"type": "count", "action": "friends", "threshold": 10}', 'rare', 25),
-('Metal Head', 'Posted 50 reviews', '🤘', 'content', '{"type": "count", "action": "review", "threshold": 50}', 'epic', 100)
-ON CONFLICT (name) DO UPDATE SET
-    description = EXCLUDED.description,
-    icon = EXCLUDED.icon,
-    category = EXCLUDED.category,
-    requirement = EXCLUDED.requirement,
-    rarity = EXCLUDED.rarity,
-    points = EXCLUDED.points;
+    RAISE NOTICE 'User sessions table operations completed';
+END $$;
 
 -- Success message
-SELECT 'MetalUnion database schema created successfully with all RLS policies fixed!' as status;
+SELECT 'MetalUnion database schema created successfully with UUID consistency!' as status;
