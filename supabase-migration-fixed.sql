@@ -1,22 +1,11 @@
--- MetalUnion Database Migration Script for Supabase
--- This script creates all tables from your Drizzle schema
+-- MetalUnion Database Migration Script for Supabase (Fixed RLS Version)
+-- This script creates all tables and fixes all RLS policy issues
 
 -- Enable necessary extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- Session storage table for authentication
-CREATE TABLE IF NOT EXISTS sessions (
-    sid VARCHAR PRIMARY KEY,
-    sess JSONB NOT NULL,
-    expire TIMESTAMP NOT NULL,
-    user_id VARCHAR REFERENCES users(id) ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS IDX_session_expire ON sessions(expire);
-CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
-
--- User storage table for authentication with enhanced social features
+-- User storage table for authentication with enhanced social features (MUST BE FIRST)
 CREATE TABLE IF NOT EXISTS users (
     id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR UNIQUE,
@@ -58,6 +47,17 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Session storage table for authentication (with user_id reference)
+CREATE TABLE IF NOT EXISTS sessions (
+    sid VARCHAR PRIMARY KEY,
+    sess JSONB NOT NULL,
+    expire TIMESTAMP NOT NULL,
+    user_id VARCHAR REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS IDX_session_expire ON sessions(expire);
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 
 -- Badges system for gamification
 CREATE TABLE IF NOT EXISTS badges (
@@ -553,6 +553,11 @@ ALTER TABLE message_encryption_keys ENABLE ROW LEVEL SECURITY;
 ALTER TABLE message_delivery_receipts ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies if they exist (to avoid conflicts)
+DROP POLICY IF EXISTS "sessions_select_self" ON sessions;
+DROP POLICY IF EXISTS "sessions_insert_self" ON sessions;
+DROP POLICY IF EXISTS "sessions_update_self" ON sessions;
+DROP POLICY IF EXISTS "sessions_delete_self" ON sessions;
+DROP POLICY IF EXISTS "admin_full_access" ON sessions;
 DROP POLICY IF EXISTS "Users can view own profile" ON users;
 DROP POLICY IF EXISTS "Users can update own profile" ON users;
 DROP POLICY IF EXISTS "Users can view own messages" ON direct_messages;
@@ -572,109 +577,211 @@ DROP POLICY IF EXISTS "Users can update own conversations" ON conversations;
 DROP POLICY IF EXISTS "Users can insert messages in own conversations" ON direct_messages;
 DROP POLICY IF EXISTS "Users can update own messages" ON direct_messages;
 
--- Basic RLS policies (you may want to customize these based on your auth system)
--- Users can only see their own data
+-- Sessions table RLS policies (FIXED VERSION)
+CREATE POLICY "sessions_select_self" ON sessions 
+FOR SELECT TO authenticated 
+USING ((SELECT auth.uid()::text) = user_id);
+
+CREATE POLICY "sessions_insert_self" ON sessions 
+FOR INSERT TO authenticated 
+WITH CHECK ((SELECT auth.uid()::text) = user_id);
+
+CREATE POLICY "sessions_update_self" ON sessions 
+FOR UPDATE TO authenticated 
+USING ((SELECT auth.uid()::text) = user_id)
+WITH CHECK ((SELECT auth.uid()::text) = user_id);
+
+CREATE POLICY "sessions_delete_self" ON sessions 
+FOR DELETE TO authenticated 
+USING ((SELECT auth.uid()::text) = user_id);
+
+CREATE POLICY "admin_full_access" ON sessions 
+FOR ALL TO service_role 
+USING (true);
+
+-- Users table policies
 CREATE POLICY "Users can view own profile" ON users 
-FOR SELECT 
-TO authenticated 
+FOR SELECT TO authenticated 
 USING (id = auth.uid()::text);
 
 CREATE POLICY "Users can update own profile" ON users 
-FOR UPDATE 
-TO authenticated 
+FOR UPDATE TO authenticated 
 USING (id = auth.uid()::text);
 
--- Direct messages - users can only see messages in their conversations
-CREATE POLICY "Users can view own messages" ON direct_messages 
-FOR SELECT 
-TO authenticated 
-USING (
-    EXISTS (
-        SELECT 1 FROM conversations 
-        WHERE conversations.id = direct_messages.conversation_id 
-        AND (conversations.participant1_id = auth.uid()::text OR conversations.participant2_id = auth.uid()::text)
-    )
-);
+-- Public read access for bands, tours, reviews, photos (community content)
+CREATE POLICY "bands_public_read" ON bands FOR SELECT TO authenticated USING (true);
+CREATE POLICY "bands_owner_write" ON bands FOR ALL TO authenticated USING (owner_id = auth.uid()::text);
 
--- Conversations - users can only see their own conversations
-CREATE POLICY "Users can view own conversations" ON conversations 
-FOR SELECT 
-TO authenticated 
-USING (participant1_id = auth.uid()::text OR participant2_id = auth.uid()::text);
+CREATE POLICY "tours_public_read" ON tours FOR SELECT TO authenticated USING (true);
+CREATE POLICY "reviews_public_read" ON reviews FOR SELECT TO authenticated USING (true);
+CREATE POLICY "photos_public_read" ON photos FOR SELECT TO authenticated USING (true);
+
+-- User-specific content policies
+CREATE POLICY "posts_owner_full" ON posts FOR ALL TO authenticated USING (user_id = auth.uid()::text);
+CREATE POLICY "posts_public_read" ON posts FOR SELECT TO authenticated USING (is_public = true);
+
+CREATE POLICY "comments_owner_full" ON comments FOR ALL TO authenticated USING (author_id = auth.uid()::text);
+CREATE POLICY "comments_public_read" ON comments FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "messages_owner_full" ON messages FOR ALL TO authenticated USING (author_id = auth.uid()::text);
+CREATE POLICY "messages_public_read" ON messages FOR SELECT TO authenticated USING (true);
+
+-- User badges and achievements
+CREATE POLICY "user_badges_owner" ON user_badges FOR ALL TO authenticated USING (user_id = auth.uid()::text);
+CREATE POLICY "user_achievements_owner" ON user_achievements FOR ALL TO authenticated USING (user_id = auth.uid()::text);
+
+-- Activity feed and social features
+CREATE POLICY "activity_feed_owner" ON activity_feed FOR ALL TO authenticated USING (user_id = auth.uid()::text);
+CREATE POLICY "activity_feed_public_read" ON activity_feed FOR SELECT TO authenticated USING (is_public = true);
+
+CREATE POLICY "user_follows_participant" ON user_follows FOR ALL TO authenticated 
+USING (follower_id = auth.uid()::text OR following_id = auth.uid()::text);
+
+-- Reactions and engagement
+CREATE POLICY "reactions_owner" ON reactions FOR ALL TO authenticated USING (user_id = auth.uid()::text);
+CREATE POLICY "comment_reactions_owner" ON comment_reactions FOR ALL TO authenticated USING (user_id = auth.uid()::text);
+
+-- Post interactions
+CREATE POLICY "post_likes_owner" ON post_likes FOR ALL TO authenticated USING (user_id = auth.uid()::text);
+CREATE POLICY "post_comments_owner" ON post_comments FOR ALL TO authenticated USING (user_id = auth.uid()::text);
+CREATE POLICY "post_comments_public_read" ON post_comments FOR SELECT TO authenticated USING (true);
+CREATE POLICY "post_comment_likes_owner" ON post_comment_likes FOR ALL TO authenticated USING (user_id = auth.uid()::text);
+
+-- Events and attendance
+CREATE POLICY "events_owner_full" ON events FOR ALL TO authenticated USING (organizer_id = auth.uid()::text);
+CREATE POLICY "events_public_read" ON events FOR SELECT TO authenticated USING (true);
+CREATE POLICY "event_attendees_participant" ON event_attendees FOR ALL TO authenticated USING (user_id = auth.uid()::text);
+
+-- Polls and voting
+CREATE POLICY "polls_owner_full" ON polls FOR ALL TO authenticated USING (creator_id = auth.uid()::text);
+CREATE POLICY "polls_public_read" ON polls FOR SELECT TO authenticated USING (true);
+CREATE POLICY "poll_votes_owner" ON poll_votes FOR ALL TO authenticated USING (user_id = auth.uid()::text);
+
+-- Concert attendance and proximity
+CREATE POLICY "concert_attendance_owner" ON concert_attendance FOR ALL TO authenticated USING (user_id = auth.uid()::text);
+CREATE POLICY "proximity_matches_participant" ON proximity_matches FOR ALL TO authenticated 
+USING (user_id_1 = auth.uid()::text OR user_id_2 = auth.uid()::text);
+
+-- Pit messages (public forum)
+CREATE POLICY "pit_messages_public" ON pit_messages FOR SELECT TO authenticated USING (true);
+CREATE POLICY "pit_messages_authenticated_write" ON pit_messages FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "pit_replies_public" ON pit_replies FOR SELECT TO authenticated USING (true);
+CREATE POLICY "pit_replies_authenticated_write" ON pit_replies FOR INSERT TO authenticated WITH CHECK (true);
+
+-- Review ratings
+CREATE POLICY "review_ratings_public_read" ON review_ratings FOR SELECT TO authenticated USING (true);
 
 -- Notifications - users can only see their own notifications
 CREATE POLICY "Users can view own notifications" ON notifications 
-FOR SELECT 
-TO authenticated 
+FOR SELECT TO authenticated 
 USING (user_id = auth.uid()::text);
+
+CREATE POLICY "Users can insert notifications" ON notifications 
+FOR INSERT TO authenticated 
+WITH CHECK (true);
+
+CREATE POLICY "Users can update own notifications" ON notifications 
+FOR UPDATE TO authenticated 
+USING (user_id = auth.uid()::text)
+WITH CHECK (user_id = auth.uid()::text);
 
 -- User locations - users can only see their own location data
 CREATE POLICY "Users can view own location" ON user_locations 
-FOR SELECT 
-TO authenticated 
+FOR SELECT TO authenticated 
 USING (user_id = auth.uid()::text);
 
 CREATE POLICY "Users can insert own location" ON user_locations 
-FOR INSERT 
-TO authenticated 
+FOR INSERT TO authenticated 
 WITH CHECK (user_id = auth.uid()::text);
 
 CREATE POLICY "Users can update own location" ON user_locations 
-FOR UPDATE 
-TO authenticated 
+FOR UPDATE TO authenticated 
 USING (user_id = auth.uid()::text)
 WITH CHECK (user_id = auth.uid()::text);
 
 CREATE POLICY "Users can delete own location" ON user_locations 
-FOR DELETE 
-TO authenticated 
+FOR DELETE TO authenticated 
 USING (user_id = auth.uid()::text);
 
 -- Message encryption keys - users can only see their own keys
 CREATE POLICY "Users can view own encryption keys" ON message_encryption_keys 
-FOR SELECT 
-TO authenticated 
+FOR SELECT TO authenticated 
 USING (user_id = auth.uid()::text);
 
 CREATE POLICY "Users can insert own encryption keys" ON message_encryption_keys 
-FOR INSERT 
-TO authenticated 
+FOR INSERT TO authenticated 
 WITH CHECK (user_id = auth.uid()::text);
 
 CREATE POLICY "Users can update own encryption keys" ON message_encryption_keys 
-FOR UPDATE 
-TO authenticated 
+FOR UPDATE TO authenticated 
 USING (user_id = auth.uid()::text)
 WITH CHECK (user_id = auth.uid()::text);
 
--- Notifications - comprehensive policies
-CREATE POLICY "Users can insert notifications" ON notifications 
-FOR INSERT 
-TO authenticated 
-WITH CHECK (true);
+-- Conversations - users can only see their own conversations
+CREATE POLICY "Users can view own conversations" ON conversations 
+FOR SELECT TO authenticated 
+USING (participant1_id = auth.uid()::text OR participant2_id = auth.uid()::text);
 
-CREATE POLICY "Users can update own notifications" ON notifications 
-FOR UPDATE 
-TO authenticated 
-USING (user_id = auth.uid()::text)
-WITH CHECK (user_id = auth.uid()::text);
-
--- Conversations - comprehensive policies
 CREATE POLICY "Users can insert conversations" ON conversations 
-FOR INSERT 
-TO authenticated 
+FOR INSERT TO authenticated 
 WITH CHECK (participant1_id = auth.uid()::text OR participant2_id = auth.uid()::text);
 
 CREATE POLICY "Users can update own conversations" ON conversations 
-FOR UPDATE 
-TO authenticated 
+FOR UPDATE TO authenticated 
 USING (participant1_id = auth.uid()::text OR participant2_id = auth.uid()::text)
 WITH CHECK (participant1_id = auth.uid()::text OR participant2_id = auth.uid()::text);
 
--- Direct messages - comprehensive policies
-CREATE POLICY "Users can insert messages in own conversations" ON direct_messages 
-FOR INSERT 
-TO authenticated 
+-- Direct messages - users can only see messages in their conversations
+CREATE POLICY "Users can view own messages" ON direct_messages 
+FOR SELECT TO authenticated 
+USING (
+    EXISTS (
+        SELECT 1
+        FROM   conversations
+        WHERE  conversations.id = direct_messages.conversation_id
+          AND (conversations.participant1_id = auth.uid()::text
+               OR conversations.participant2_id = auth.uid()::text)
+    )
+);
+
+-- FIXED: Direct messages insert policy with proper syntax
+CREATE POLICY "Users can insert messages in own conversations" ON direct_messages
+FOR INSERT
+TO authenticated
 WITH CHECK (
     EXISTS (
+        SELECT 1
+        FROM   conversations
+        WHERE  conversations.id = direct_messages.conversation_id
+          AND (conversations.participant1_id = auth.uid()::text
+               OR conversations.participant2_id = auth.uid()::text)
+    )
+);
 
+CREATE POLICY "Users can update own messages" ON direct_messages 
+FOR UPDATE TO authenticated 
+USING (sender_id = auth.uid()::text)
+WITH CHECK (sender_id = auth.uid()::text);
+
+-- Message delivery receipts
+CREATE POLICY "message_delivery_receipts_participant" ON message_delivery_receipts 
+FOR ALL TO authenticated 
+USING (user_id = auth.uid()::text);
+
+-- Insert some initial data with conflict resolution
+INSERT INTO badges (name, description, icon, category, requirement, rarity, points)
+VALUES 
+('First Review', 'Posted your first review', '⭐', 'content', '{"type": "count", "action": "review", "threshold": 1}', 'common', 10),
+('Concert Goer', 'Attended your first concert', '🎵', 'engagement', '{"type": "count", "action": "concert_attendance", "threshold": 1}', 'common', 15),
+('Social Butterfly', 'Made 10 friends', '🦋', 'social', '{"type": "count", "action": "friends", "threshold": 10}', 'rare', 25),
+('Metal Head', 'Posted 50 reviews', '🤘', 'content', '{"type": "count", "action": "review", "threshold": 50}', 'epic', 100)
+ON CONFLICT (name) DO UPDATE SET
+    description = EXCLUDED.description,
+    icon = EXCLUDED.icon,
+    category = EXCLUDED.category,
+    requirement = EXCLUDED.requirement,
+    rarity = EXCLUDED.rarity,
+    points = EXCLUDED.points;
+
+-- Success message
+SELECT 'MetalUnion database schema created successfully with all RLS policies fixed!' as status;

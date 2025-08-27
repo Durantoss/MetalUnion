@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoshUnion Header Test</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .drop-shadow-red {
+            filter: drop-shadow(0 0 10px red);
+        }
+        
+        .hover\:drop-shadow-\[0_0_10px_red\]:hover {
+            filter: drop-shadow(0 0 10px red);
+        }
+    </style>
+</head>
+<body class="bg-black text-white">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        function Header({ currentSection, onSectionChange, onReturnHome }) {
+            const handleLogoClick = () => {
+                if (onReturnHome && typeof onReturnHome === 'function') {
+                    onReturnHome();
+                } else if (onSectionChange) {
+                    onSectionChange('landing');
+                }
+            };
+
+            const handleNavClick = (section) => {
+                if (onSectionChange) {
+                    onSectionChange(section);
+                }
+            };
+
+            return (
+                <header className="flex items-center justify-between px-6 py-4 bg-black border-b border-red-700">
+                    <button onClick={handleLogoClick} className="cursor-pointer">
+                        <img
+                            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABLAAAASwCAYAAADKvaeyAAAACXBIWXMAAAsTAAALEwEAmpwYAAAKT2lDQ1BQaG90b3Nob3AgSUNDIHByb2ZpbGUAAHjanVNnVFPpFj333vRCS4iAlEtvUhUIIFJCi4AUkSYqIQkQSoghodkVUcERRUUEG8igiAOOjoCMFVEsDIoK2AfkIaKOg6OIisr74Xuja9a89+bN/rXXPues852zzwfACAyWSDNRNYAMqUIeEeCDx8TG4eQuQIEKJHAAEAizZCFz/SMBAPh+PDwrIsAHvgABeNMLCADATZvAMByH/w/qQplcAYCEAcB0kThLCIAUAEB6jkKmAEBGAYCdmCZTAKAEAGDLY2LjAFAtAGAnf+bTAICd+Jl7AQBblCEVAaCRACATZYhEAGg7AKzPVopFAFgwABRmS8Q5ANgtADBJV2ZIALC3AMDOEAuyAAgMADBRiIUpAAR7AGDIIyN4AISZABRG8lc88SuuEOcqAAB4mbI8uSQ5RYFbCC1xB1dXLh4ozkkXKxQ2YQJhmkAuwnmZGTKBNA/g88wAAKCRFRHgg/P9eM4Ors7ONo62Dl8t6r8G/yJiYuP+5c+rcEAAAOF0ftH+LC+zGoA7BoBt/qIl7gRoXgugdfeLZrIPQLUAoOnaV/Nw+H48PEWhkLnZ2eXk5NhKxEJbYcpXff5nwl/AV/1s+X48/Pf14L7iJIEyXYFHBPjgwsz0TKUcz5IJhGLc5o9H/LcL//wd0yLESWK5WCoU41EScY5EmozzMqUiiUKSKcUl0v9k4t8s+wM+3zUAsGo+AXuRLahdYwP2SycQWHTA4vcAAPK7b8HUKAgDgGiD4c93/+8//UegJQCAZkmScQAAXkQkLlTKsz/HCAAARKCBKrBBG/TBGCzABhzBBdzBC/xgNoRCJMTCQhBCCmSAHHJgKayCQiiGzbAdKmAv1EAdNMBRaIaTcA4uwlW4Dj1wD/phCJ7BKLyBCQRByAgTYSHaiAFiilgjjggXmYX4IcFIBBKLJCDJiBRRIkuRNUgxUopUIFVIHfI9cgI5h1xGupE7yAAygvyGuZEOYjeAjqYvxkUmwJbJuKiPWnf6brhPi9VbZVdsttdXciVBZHGiVr38v8oOUIAA"
+                            alt="MoshUnion Logo"
+                            className="h-12 md:h-16 hover:drop-shadow-[0_0_10px_red] transition"
+                            onError={(e) => {
+                                // Fallback if image doesn't load
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'block';
+                            }}
+                        />
+                        <div style={{display: 'none'}} className="text-2xl font-bold">
+                            <span className="text-red-500">MOSH</span>
+                            <span className="text-white">UNION</span>
+                        </div>
+                    </button>
+                    <nav className="flex gap-4 text-white">
+                        <button 
+                            onClick={() => handleNavClick('memories')}
+                            className={`hover:text-red-500 transition px-3 py-2 rounded ${currentSection === 'memories' ? 'text-red-500 bg-red-900/20' : ''}`}
+                        >
+                            Memories
+                        </button>
+                        <button 
+                            onClick={() => handleNavClick('social')}
+                            className={`hover:text-red-500 transition px-3 py-2 rounded ${currentSection === 'social' ? 'text-red-500 bg-red-900/20' : ''}`}
+                        >
+                            Collab Wall
+                        </button>
+                        <button 
+                            onClick={() => handleNavClick('profile')}
+                            className={`hover:text-red-500 transition px-3 py-2 rounded ${currentSection === 'profile' ? 'text-red-500 bg-red-900/20' : ''}`}
+                        >
+                            Profile
+                        </button>
+                    </nav>
+                </header>
+            );
+        }
+
+        function HeaderDemo() {
+            const [currentSection, setCurrentSection] = useState('landing');
+
+            const handleSectionChange = (section) => {
+                setCurrentSection(section);
+                console.log('Section changed to:', section);
+            };
+
+            const handleReturnHome = () => {
+                setCurrentSection('landing');
+                console.log('Returned to home');
+            };
+
+            const renderContent = () => {
+                switch (currentSection) {
+                    case 'memories':
+                        return (
+                            <div className="p-8 text-center">
+                                <h1 className="text-4xl font-bold text-red-500 mb-4">Memories</h1>
+                                <p className="text-white text-lg mb-8">Share and explore concert memories, photos, and experiences from the pit!</p>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                                    <div className="bg-gray-800 p-6 rounded-lg border border-red-700">
+                                        <h3 className="text-xl font-bold text-red-400 mb-2">Concert Photos</h3>
+                                        <p className="text-gray-300">Upload and share your best concert photography</p>
+                                    </div>
+                                    <div className="bg-gray-800 p-6 rounded-lg border border-red-700">
+                                        <h3 className="text-xl font-bold text-red-400 mb-2">Show Reviews</h3>
+                                        <p className="text-gray-300">Write reviews of shows you've attended</p>
+                                    </div>
+                                    <div className="bg-gray-800 p-6 rounded-lg border border-red-700">
+                                        <h3 className="text-xl font-bold text-red-400 mb-2">Memory Timeline</h3>
+                                        <p className="text-gray-300">Track your concert history and experiences</p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    case 'social':
+                        return (
+                            <div className="p-8 text-center">
+                                <h1 className="text-4xl font-bold text-red-500 mb-4">Collab Wall</h1>
+                                <p className="text-white text-lg mb-8">Connect with fellow metalheads and collaborate on projects!</p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                                    <div className="bg-gray-800 p-6 rounded-lg border border-red-700">
+                                        <h3 className="text-xl font-bold text-red-400 mb-2">Band Collaborations</h3>
+                                        <p className="text-gray-300">Find musicians to jam with or form new bands</p>
+                                    </div>
+                                    <div className="bg-gray-800 p-6 rounded-lg border border-red-700">
+                                        <h3 className="text-xl font-bold text-red-400 mb-2">Community Projects</h3>
+                                        <p className="text-gray-300">Join community-driven metal projects and initiatives</p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    case 'profile':
+                        return (
+                            <div className="p-8 text-center">
+                                <h1 className="text-4xl font-bold text-red-500 mb-4">Profile</h1>
+                                <p className="text-white text-lg mb-8">Manage your MoshUnion profile and preferences</p>
+                                <div className="max-w-md mx-auto bg-gray-800 p-6 rounded-lg border border-red-700">
+                                    <div className="w-24 h-24 bg-red-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                                        <span className="text-white text-2xl font-bold">MU</span>
+                                    </div>
+                                    <h3 className="text-xl font-bold text-white mb-2">Metal Fan</h3>
+                                    <p className="text-gray-300 mb-4">Passionate about heavy music and live shows</p>
+                                    <div className="space-y-2 text-left">
+                                        <p className="text-gray-400"><span className="text-red-400">Favorite Genre:</span> Death Metal</p>
+                                        <p className="text-gray-400"><span className="text-red-400">Shows Attended:</span> 47</p>
+                                        <p className="text-gray-400"><span className="text-red-400">Member Since:</span> 2024</p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    default:
+                        return (
+                            <div className="p-8 text-center">
+                                <h1 className="text-6xl font-bold mb-4">
+                                    <span className="text-red-500">MOSH</span>
+                                    <span className="text-white">UNION</span>
+                                </h1>
+                                <p className="text-white text-xl mb-8">Unite the Metal Community</p>
+                                <p className="text-gray-300 text-lg max-w-2xl mx-auto mb-12">
+                                    Welcome to MoshUnion - the ultimate platform for metal fans to connect, share memories, 
+                                    collaborate, and celebrate the heavy music we love. Click on the navigation items above 
+                                    to explore different sections!
+                                </p>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                                    <div className="bg-gray-900 p-6 rounded-lg border border-red-700 hover:border-red-500 transition cursor-pointer"
+                                         onClick={() => handleSectionChange('memories')}>
+                                        <h3 className="text-2xl font-bold text-red-400 mb-3">🎸 Memories</h3>
+                                        <p className="text-gray-300">Share concert photos, reviews, and unforgettable moments from the pit</p>
+                                    </div>
+                                    <div className="bg-gray-900 p-6 rounded-lg border border-red-700 hover:border-red-500 transition cursor-pointer"
+                                         onClick={() => handleSectionChange('social')}>
+                                        <h3 className="text-2xl font-bold text-red-400 mb-3">🤝 Collab Wall</h3>
+                                        <p className="text-gray-300">Connect with musicians and fans for collaborations and projects</p>
+                                    </div>
+                                    <div className="bg-gray-900 p-6 rounded-lg border border-red-700 hover:border-red-500 transition cursor-pointer"
+                                         onClick={() => handleSectionChange('profile')}>
+                                        <h3 className="text-2xl font-bold text-red-400 mb-3">👤 Profile</h3>
+                                        <p className="text-gray-300">Customize your profile and track your metal journey</p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-black">
+                    <Header 
+                        currentSection={currentSection}
+                        onSectionChange={handleSectionChange}
+                        onReturnHome={handleReturnHome}
+                    />
+                    <main className="min-h-screen bg-gradient-to-b from-black to-gray-900">
+                        {renderContent()}
+                    </main>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<HeaderDemo />, document.getElementById('root'));
+    </script>
+</body>
+</html>

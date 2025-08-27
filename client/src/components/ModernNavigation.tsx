@@ -62,8 +62,39 @@ export function ModernNavigation({
           aria-label="Go to home page"
           data-testid="logo-button"
         >
+          <img
+            src="/assets/moshunion-logo.png"
+            alt="MoshUnion Logo"
+            style={{
+              height: '3rem',
+              filter: 'drop-shadow(0 0 10px rgba(220, 38, 38, 0.5))',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.filter = 'drop-shadow(0 0 15px rgba(220, 38, 38, 0.8))';
+              e.currentTarget.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.filter = 'drop-shadow(0 0 10px rgba(220, 38, 38, 0.5))';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+            onError={(e) => {
+              // Fallback to existing logo
+              const target = e.target as HTMLImageElement;
+              if (target.src.includes('moshunion-logo.png')) {
+                target.src = '/assets/moshunion-logo.jpeg.png';
+              } else {
+                // Final fallback: hide image and show text logo
+                target.style.display = 'none';
+                const textLogo = target.nextElementSibling as HTMLElement;
+                if (textLogo) {
+                  textLogo.style.display = 'flex';
+                }
+              }
+            }}
+          />
           <div style={{
-            display: 'flex',
+            display: 'none',
             alignItems: 'center',
             gap: '0rem',
             fontSize: '1.5rem',

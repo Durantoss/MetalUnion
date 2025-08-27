@@ -1257,3 +1257,182 @@ input, select, textarea {
     scroll-snap-align: center;
   }
 }
+
+/* Stub Components Specific Styles */
+
+/* Genre-specific pulse animations */
+.genre-pulse {
+  animation: genre-pulse 2s ease-in-out infinite;
+}
+
+@keyframes genre-pulse {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.7; 
+    transform: scale(1.1);
+  }
+}
+
+/* Pulse slow animation for doom genre */
+.pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-slow {
+  0%, 100% { 
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+  }
+  50% { 
+    opacity: 0.8;
+    box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+  }
+}
+
+/* Fracture glow effect for metalcore */
+.fracture-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.fracture-glow::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, 
+    hsl(var(--electric-yellow)), 
+    transparent, 
+    hsl(var(--electric-yellow)));
+  z-index: -1;
+  border-radius: inherit;
+  animation: fracture-rotate 4s linear infinite;
+}
+
+@keyframes fracture-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Electric yellow color variable */
+.border-electric-yellow {
+  border-color: hsl(var(--electric-yellow));
+}
+
+/* Stub card hover effects */
+.stub-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stub-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Timeline specific styles */
+.timeline-item {
+  position: relative;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, 
+    hsl(var(--metal-red)) 0%, 
+    transparent 100%);
+}
+
+/* Memory wall responsive grid */
+.memory-wall-container .mobile-grid {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+@media (max-width: 640px) {
+  .memory-wall-container .mobile-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+}
+
+/* Fan collaboration styles */
+.fan-collab .tagged-friends {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Privacy toggle enhanced styles */
+.privacy-toggle select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+/* Enhanced mobile responsiveness for stub components */
+@media (max-width: 768px) {
+  .stub-demo-container {
+    padding: 1rem;
+  }
+  
+  .timeline-pulse-container .timeline {
+    margin-left: 0;
+  }
+  
+  .timeline-pulse-container .year-section .space-y-8 {
+    margin-left: 2rem;
+  }
+  
+  .timeline-item .absolute.-left-20 {
+    left: -2rem;
+  }
+  
+  .timeline-item .absolute.-left-18 {
+    left: -1.5rem;
+  }
+}
+
+/* Improved accessibility */
+.stub-card:focus-visible,
+.timeline-item:focus-visible {
+  outline: 2px solid hsl(var(--metal-red-bright));
+  outline-offset: 2px;
+}
+
+/* Loading states */
+.stub-loading {
+  background: linear-gradient(90deg, 
+    hsl(var(--card-dark)) 25%, 
+    hsl(var(--metal-gray)) 50%, 
+    hsl(var(--card-dark)) 75%);
+  background-size: 200% 100%;
+  animation: loading-shimmer 2s infinite;
+}
+
+@keyframes loading-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Fade-in animation for splash screen */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out;
+}
