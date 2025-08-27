@@ -13,6 +13,15 @@
 6. Click **Run** to execute the migration
 7. Verify success - you should see: "MetalUnion database schema created successfully with UUID types and all RLS policies fixed!"
 
+### 1.1. Apply UUID Fix (If Needed)
+**If you encounter UUID type errors with the sessions table:**
+
+1. In the same **SQL Editor** in Supabase
+2. Copy the entire contents of `supabase-sessions-uuid-fix.sql`
+3. Paste it into a new SQL Editor tab
+4. Click **Run** to execute the UUID fix
+5. Verify success - you should see: "Sessions table UUID type and RLS policies fixed successfully!"
+
 ### 2. Get Your Environment Variables
 You need these values for Vercel deployment:
 
