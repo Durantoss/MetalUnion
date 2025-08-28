@@ -19,8 +19,15 @@
 1. In the same **SQL Editor** in Supabase
 2. Copy the entire contents of `supabase-sessions-uuid-fix.sql`
 3. Paste it into a new SQL Editor tab
-4. Click **Run** to execute the UUID fix
-5. Verify success - you should see: "Sessions table UUID type and RLS policies fixed successfully!"
+4. **Choose the appropriate method:**
+   - **Method 1**: Basic UUID conversion (try this first)
+   - **Method 2**: Enhanced RLS with SELECT wrapper (if Method 1 fails)
+   - **Method 3**: Complete table recreation (nuclear option - deletes session data)
+   - **Method 4**: Comprehensive fix (recommended - includes admin policies)
+5. Click **Run** to execute the UUID fix
+6. Verify success - you should see: "Sessions table UUID type and RLS policies fixed successfully with multiple methods!"
+
+**Note**: The comprehensive fix file includes verification queries to check if the UUID conversion worked properly.
 
 ### 2. Get Your Environment Variables
 You need these values for Vercel deployment:

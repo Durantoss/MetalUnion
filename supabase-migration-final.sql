@@ -59,6 +59,94 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE INDEX IF NOT EXISTS IDX_session_expire ON sessions(expire);
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 
+-- -----------------------------------------------------------------
+-- 1️⃣ Drop policies that reference users.id and sessions.user_id
+-- -----------------------------------------------------------------
+-- Users table policies
+DROP POLICY IF EXISTS "Users can view own profile"          ON users;
+DROP POLICY IF EXISTS "Users can update own profile"       ON users;
+
+-- Sessions table policies
+DROP POLICY IF EXISTS "sessions_select_self"               ON sessions;
+DROP POLICY IF EXISTS "sessions_insert_self"               ON sessions;
+DROP POLICY IF EXISTS "sessions_update_self"               ON sessions;
+DROP POLICY IF EXISTS "sessions_delete_self"               ON sessions;
+DROP POLICY IF EXISTS "admin_full_access"                  ON sessions;
+
+-- -----------------------------------------------------------------
+-- 2️⃣ Alter column types (now no policies depend on them)
+-- -----------------------------------------------------------------
+-- Ensure users.id is UUID (already defaulted, but force‑cast just in case)
+ALTER TABLE public.users
+  ALTER COLUMN id TYPE UUID USING id::uuid;
+
+-- Convert sessions.user_id to UUID (the CASE‑expression protects bad data)
+ALTER TABLE public.sessions
+  ALTER COLUMN user_id TYPE UUID
+  USING CASE
+          WHEN user_id IS NULL THEN NULL
+          WHEN user_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+               THEN user_id::uuid
+          ELSE NULL   -- you may decide to raise an error instead
+        END;
+
+-- Re‑add the foreign‑key (now both sides are UUID)
+ALTER TABLE public.sessions
+  DROP CONSTRAINT IF EXISTS sessions_user_id_fkey,
+  ADD CONSTRAINT sessions_user_id_fkey
+    FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+-- -----------------------------------------------------------------
+-- 3️⃣ Re‑create the dropped policies (identical to originals)
+-- -----------------------------------------------------------------
+-- Helper function (kept from your original script)
+CREATE OR REPLACE FUNCTION auth_uid_as_uuid()
+RETURNS UUID
+LANGUAGE SQL
+STABLE
+SECURITY DEFINER
+AS $$
+    SELECT COALESCE((auth.uid())::uuid,
+                    '00000000-0000-0000-0000-000000000000'::uuid);
+$$;
+
+-- Sessions policies
+CREATE POLICY "sessions_select_self" ON public.sessions
+FOR SELECT TO authenticated
+USING (user_id IS NOT NULL AND user_id = auth_uid_as_uuid());
+
+CREATE POLICY "sessions_insert_self" ON public.sessions
+FOR INSERT TO authenticated
+WITH CHECK (user_id IS NOT NULL AND user_id = auth_uid_as_uuid());
+
+CREATE POLICY "sessions_update_self" ON public.sessions
+FOR UPDATE TO authenticated
+USING (user_id IS NOT NULL AND user_id = auth_uid_as_uuid())
+WITH CHECK (user_id IS NOT NULL AND user_id = auth_uid_as_uuid());
+
+CREATE POLICY "sessions_delete_self" ON public.sessions
+FOR DELETE TO authenticated
+USING (user_id IS NOT NULL AND user_id = auth_uid_as_uuid());
+
+CREATE POLICY "admin_full_access" ON public.sessions
+FOR ALL TO service_role
+USING (true);
+
+-- Users policies
+CREATE POLICY "Users can view own profile" ON public.users
+FOR SELECT TO authenticated
+USING (id = auth_uid_as_uuid());
+
+CREATE POLICY "Users can update own profile" ON public.users
+FOR UPDATE TO authenticated
+USING (id = auth_uid_as_uuid())
+WITH CHECK (id = auth_uid_as_uuid());
+
+-- (All other policies you already have later in the script can stay unchanged)
+
+-- Test the UUID fix - this query should succeed for the logged-in user
+-- SELECT * FROM sessions WHERE user_id = auth_uid_as_uuid();
+
 -- Badges system for gamification
 CREATE TABLE IF NOT EXISTS badges (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -577,23 +665,23 @@ DROP POLICY IF EXISTS "Users can update own conversations" ON conversations;
 DROP POLICY IF EXISTS "Users can insert messages in own conversations" ON direct_messages;
 DROP POLICY IF EXISTS "Users can update own messages" ON direct_messages;
 
--- Sessions table RLS policies (FIXED VERSION with UUID support)
+-- Sessions table RLS policies (ENHANCED VERSION with UUID support using helper function)
 CREATE POLICY "sessions_select_self" ON sessions 
 FOR SELECT TO authenticated 
-USING (auth.uid() = user_id);
+USING (user_id IS NOT NULL AND user_id = auth_uid_as_uuid());
 
 CREATE POLICY "sessions_insert_self" ON sessions 
 FOR INSERT TO authenticated 
-WITH CHECK (auth.uid() = user_id);
+WITH CHECK (user_id IS NOT NULL AND user_id = auth_uid_as_uuid());
 
 CREATE POLICY "sessions_update_self" ON sessions 
 FOR UPDATE TO authenticated 
-USING (auth.uid() = user_id)
-WITH CHECK (auth.uid() = user_id);
+USING (user_id IS NOT NULL AND user_id = auth_uid_as_uuid())
+WITH CHECK (user_id IS NOT NULL AND user_id = auth_uid_as_uuid());
 
 CREATE POLICY "sessions_delete_self" ON sessions 
 FOR DELETE TO authenticated 
-USING (auth.uid() = user_id);
+USING (user_id IS NOT NULL AND user_id = auth_uid_as_uuid());
 
 CREATE POLICY "admin_full_access" ON sessions 
 FOR ALL TO service_role 
@@ -602,65 +690,85 @@ USING (true);
 -- Users table policies
 CREATE POLICY "Users can view own profile" ON users 
 FOR SELECT TO authenticated 
-USING (id = auth.uid());
+USING (id = auth_uid_as_uuid());
 
 CREATE POLICY "Users can update own profile" ON users 
 FOR UPDATE TO authenticated 
-USING (id = auth.uid());
+USING (id = auth_uid_as_uuid())
+WITH CHECK (id = auth_uid_as_uuid());
 
 -- Public read access for bands, tours, reviews, photos (community content)
 CREATE POLICY "bands_public_read" ON bands FOR SELECT TO authenticated USING (true);
-CREATE POLICY "bands_owner_write" ON bands FOR ALL TO authenticated USING (owner_id = auth.uid());
+CREATE POLICY "bands_owner_write" ON bands FOR ALL TO authenticated 
+USING (owner_id IS NULL OR owner_id = auth_uid_as_uuid());
 
 CREATE POLICY "tours_public_read" ON tours FOR SELECT TO authenticated USING (true);
 CREATE POLICY "reviews_public_read" ON reviews FOR SELECT TO authenticated USING (true);
 CREATE POLICY "photos_public_read" ON photos FOR SELECT TO authenticated USING (true);
 
 -- User-specific content policies
-CREATE POLICY "posts_owner_full" ON posts FOR ALL TO authenticated USING (user_id = auth.uid());
-CREATE POLICY "posts_public_read" ON posts FOR SELECT TO authenticated USING (is_public = true);
+CREATE POLICY "posts_owner_full" ON posts FOR ALL TO authenticated 
+USING (user_id = auth_uid_as_uuid());
+CREATE POLICY "posts_public_read" ON posts FOR SELECT TO authenticated 
+USING (is_public = true);
 
-CREATE POLICY "comments_owner_full" ON comments FOR ALL TO authenticated USING (author_id = auth.uid());
+CREATE POLICY "comments_owner_full" ON comments FOR ALL TO authenticated 
+USING (author_id = auth_uid_as_uuid());
 CREATE POLICY "comments_public_read" ON comments FOR SELECT TO authenticated USING (true);
 
-CREATE POLICY "messages_owner_full" ON messages FOR ALL TO authenticated USING (author_id = auth.uid());
+CREATE POLICY "messages_owner_full" ON messages FOR ALL TO authenticated 
+USING (author_id = auth_uid_as_uuid());
 CREATE POLICY "messages_public_read" ON messages FOR SELECT TO authenticated USING (true);
 
 -- User badges and achievements
-CREATE POLICY "user_badges_owner" ON user_badges FOR ALL TO authenticated USING (user_id = auth.uid());
-CREATE POLICY "user_achievements_owner" ON user_achievements FOR ALL TO authenticated USING (user_id = auth.uid());
+CREATE POLICY "user_badges_owner" ON user_badges FOR ALL TO authenticated 
+USING (user_id = auth_uid_as_uuid());
+CREATE POLICY "user_achievements_owner" ON user_achievements FOR ALL TO authenticated 
+USING (user_id = auth_uid_as_uuid());
 
 -- Activity feed and social features
-CREATE POLICY "activity_feed_owner" ON activity_feed FOR ALL TO authenticated USING (user_id = auth.uid());
-CREATE POLICY "activity_feed_public_read" ON activity_feed FOR SELECT TO authenticated USING (is_public = true);
+CREATE POLICY "activity_feed_owner" ON activity_feed FOR ALL TO authenticated 
+USING (user_id = auth_uid_as_uuid());
+CREATE POLICY "activity_feed_public_read" ON activity_feed FOR SELECT TO authenticated 
+USING (is_public = true);
 
 CREATE POLICY "user_follows_participant" ON user_follows FOR ALL TO authenticated 
-USING (follower_id = auth.uid() OR following_id = auth.uid());
+USING (follower_id = auth_uid_as_uuid() OR following_id = auth_uid_as_uuid());
 
 -- Reactions and engagement
-CREATE POLICY "reactions_owner" ON reactions FOR ALL TO authenticated USING (user_id = auth.uid());
-CREATE POLICY "comment_reactions_owner" ON comment_reactions FOR ALL TO authenticated USING (user_id = auth.uid());
+CREATE POLICY "reactions_owner" ON reactions FOR ALL TO authenticated 
+USING (user_id = auth_uid_as_uuid());
+CREATE POLICY "comment_reactions_owner" ON comment_reactions FOR ALL TO authenticated 
+USING (user_id = auth_uid_as_uuid());
 
 -- Post interactions
-CREATE POLICY "post_likes_owner" ON post_likes FOR ALL TO authenticated USING (user_id = auth.uid());
-CREATE POLICY "post_comments_owner" ON post_comments FOR ALL TO authenticated USING (user_id = auth.uid());
+CREATE POLICY "post_likes_owner" ON post_likes FOR ALL TO authenticated 
+USING (user_id = auth_uid_as_uuid());
+CREATE POLICY "post_comments_owner" ON post_comments FOR ALL TO authenticated 
+USING (user_id = auth_uid_as_uuid());
 CREATE POLICY "post_comments_public_read" ON post_comments FOR SELECT TO authenticated USING (true);
-CREATE POLICY "post_comment_likes_owner" ON post_comment_likes FOR ALL TO authenticated USING (user_id = auth.uid());
+CREATE POLICY "post_comment_likes_owner" ON post_comment_likes FOR ALL TO authenticated 
+USING (user_id = auth_uid_as_uuid());
 
 -- Events and attendance
-CREATE POLICY "events_owner_full" ON events FOR ALL TO authenticated USING (organizer_id = auth.uid());
+CREATE POLICY "events_owner_full" ON events FOR ALL TO authenticated 
+USING (organizer_id = auth_uid_as_uuid());
 CREATE POLICY "events_public_read" ON events FOR SELECT TO authenticated USING (true);
-CREATE POLICY "event_attendees_participant" ON event_attendees FOR ALL TO authenticated USING (user_id = auth.uid());
+CREATE POLICY "event_attendees_participant" ON event_attendees FOR ALL TO authenticated 
+USING (user_id = auth_uid_as_uuid());
 
 -- Polls and voting
-CREATE POLICY "polls_owner_full" ON polls FOR ALL TO authenticated USING (creator_id = auth.uid());
+CREATE POLICY "polls_owner_full" ON polls FOR ALL TO authenticated 
+USING (creator_id = auth_uid_as_uuid());
 CREATE POLICY "polls_public_read" ON polls FOR SELECT TO authenticated USING (true);
-CREATE POLICY "poll_votes_owner" ON poll_votes FOR ALL TO authenticated USING (user_id = auth.uid());
+CREATE POLICY "poll_votes_owner" ON poll_votes FOR ALL TO authenticated 
+USING (user_id = auth_uid_as_uuid());
 
 -- Concert attendance and proximity
-CREATE POLICY "concert_attendance_owner" ON concert_attendance FOR ALL TO authenticated USING (user_id = auth.uid());
+CREATE POLICY "concert_attendance_owner" ON concert_attendance FOR ALL TO authenticated 
+USING (user_id = auth_uid_as_uuid());
 CREATE POLICY "proximity_matches_participant" ON proximity_matches FOR ALL TO authenticated 
-USING (user_id_1 = auth.uid() OR user_id_2 = auth.uid());
+USING (user_id_1 = auth_uid_as_uuid() OR user_id_2 = auth_uid_as_uuid());
 
 -- Pit messages (public forum)
 CREATE POLICY "pit_messages_public" ON pit_messages FOR SELECT TO authenticated USING (true);
@@ -674,7 +782,7 @@ CREATE POLICY "review_ratings_public_read" ON review_ratings FOR SELECT TO authe
 -- Notifications - users can only see their own notifications
 CREATE POLICY "Users can view own notifications" ON notifications 
 FOR SELECT TO authenticated 
-USING (user_id = auth.uid());
+USING (user_id = auth_uid_as_uuid());
 
 CREATE POLICY "Users can insert notifications" ON notifications 
 FOR INSERT TO authenticated 
@@ -682,54 +790,54 @@ WITH CHECK (true);
 
 CREATE POLICY "Users can update own notifications" ON notifications 
 FOR UPDATE TO authenticated 
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
+USING (user_id = auth_uid_as_uuid())
+WITH CHECK (user_id = auth_uid_as_uuid());
 
 -- User locations - users can only see their own location data
 CREATE POLICY "Users can view own location" ON user_locations 
 FOR SELECT TO authenticated 
-USING (user_id = auth.uid());
+USING (user_id = auth_uid_as_uuid());
 
 CREATE POLICY "Users can insert own location" ON user_locations 
 FOR INSERT TO authenticated 
-WITH CHECK (user_id = auth.uid());
+WITH CHECK (user_id = auth_uid_as_uuid());
 
 CREATE POLICY "Users can update own location" ON user_locations 
 FOR UPDATE TO authenticated 
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
+USING (user_id = auth_uid_as_uuid())
+WITH CHECK (user_id = auth_uid_as_uuid());
 
 CREATE POLICY "Users can delete own location" ON user_locations 
 FOR DELETE TO authenticated 
-USING (user_id = auth.uid());
+USING (user_id = auth_uid_as_uuid());
 
 -- Message encryption keys - users can only see their own keys
 CREATE POLICY "Users can view own encryption keys" ON message_encryption_keys 
 FOR SELECT TO authenticated 
-USING (user_id = auth.uid());
+USING (user_id = auth_uid_as_uuid());
 
 CREATE POLICY "Users can insert own encryption keys" ON message_encryption_keys 
 FOR INSERT TO authenticated 
-WITH CHECK (user_id = auth.uid());
+WITH CHECK (user_id = auth_uid_as_uuid());
 
 CREATE POLICY "Users can update own encryption keys" ON message_encryption_keys 
 FOR UPDATE TO authenticated 
-USING (user_id = auth.uid())
-WITH CHECK (user_id = auth.uid());
+USING (user_id = auth_uid_as_uuid())
+WITH CHECK (user_id = auth_uid_as_uuid());
 
 -- Conversations - users can only see their own conversations
 CREATE POLICY "Users can view own conversations" ON conversations 
 FOR SELECT TO authenticated 
-USING (participant1_id = auth.uid() OR participant2_id = auth.uid());
+USING (participant1_id = auth_uid_as_uuid() OR participant2_id = auth_uid_as_uuid());
 
 CREATE POLICY "Users can insert conversations" ON conversations 
 FOR INSERT TO authenticated 
-WITH CHECK (participant1_id = auth.uid() OR participant2_id = auth.uid());
+WITH CHECK (participant1_id = auth_uid_as_uuid() OR participant2_id = auth_uid_as_uuid());
 
 CREATE POLICY "Users can update own conversations" ON conversations 
 FOR UPDATE TO authenticated 
-USING (participant1_id = auth.uid() OR participant2_id = auth.uid())
-WITH CHECK (participant1_id = auth.uid() OR participant2_id = auth.uid());
+USING (participant1_id = auth_uid_as_uuid() OR participant2_id = auth_uid_as_uuid())
+WITH CHECK (participant1_id = auth_uid_as_uuid() OR participant2_id = auth_uid_as_uuid());
 
 -- Direct messages - users can only see messages in their conversations
 CREATE POLICY "Users can view own messages" ON direct_messages 
@@ -739,8 +847,8 @@ USING (
         SELECT 1
         FROM   conversations
         WHERE  conversations.id = direct_messages.conversation_id
-          AND (conversations.participant1_id = auth.uid()
-               OR conversations.participant2_id = auth.uid())
+          AND (conversations.participant1_id = auth_uid_as_uuid()
+               OR conversations.participant2_id = auth_uid_as_uuid())
     )
 );
 
@@ -749,40 +857,165 @@ CREATE POLICY "Users can insert messages in own conversations" ON direct_message
 FOR INSERT
 TO authenticated
 WITH CHECK (
-    sender_id = auth.uid() AND
+    sender_id = auth_uid_as_uuid() AND
     EXISTS (
         SELECT 1
         FROM   conversations
         WHERE  conversations.id = direct_messages.conversation_id
-          AND (conversations.participant1_id = auth.uid()
-               OR conversations.participant2_id = auth.uid())
+          AND (conversations.participant1_id = auth_uid_as_uuid()
+               OR conversations.participant2_id = auth_uid_as_uuid())
     )
 );
 
 CREATE POLICY "Users can update own messages" ON direct_messages 
 FOR UPDATE TO authenticated 
-USING (sender_id = auth.uid())
-WITH CHECK (sender_id = auth.uid());
+USING (sender_id = auth_uid_as_uuid())
+WITH CHECK (sender_id = auth_uid_as_uuid());
 
 -- Message delivery receipts
 CREATE POLICY "message_delivery_receipts_participant" ON message_delivery_receipts 
 FOR ALL TO authenticated 
-USING (user_id = auth.uid());
+USING (user_id = auth_uid_as_uuid());
 
 -- Insert some initial data with conflict resolution
-INSERT INTO badges (name, description, icon, category, requirement, rarity, points)
-VALUES 
-('First Review', 'Posted your first review', '⭐', 'content', '{"type": "count", "action": "review", "threshold": 1}', 'common', 10),
-('Concert Goer', 'Attended your first concert', '🎵', 'engagement', '{"type": "count", "action": "concert_attendance", "threshold": 1}', 'common', 15),
-('Social Butterfly', 'Made 10 friends', '🦋', 'social', '{"type": "count", "action": "friends", "threshold": 10}', 'rare', 25),
-('Metal Head', 'Posted 50 reviews', '🤘', 'content', '{"type": "count", "action": "review", "threshold": 50}', 'epic', 100)
+INSERT INTO badges (
+    name,
+    description,
+    icon,
+    category,
+    requirement,
+    rarity,
+    points
+)
+VALUES
+    ('First Review',
+     'Posted your first review',
+     '⭐',
+     'content',
+     '{"type": "count", "action": "review", "threshold": 1}',
+     'common',
+     10),
+
+    ('Concert Goer',
+     'Attended your first concert',
+     '🎵',
+     'engagement',
+     '{"type": "count", "action": "concert_attendance", "threshold": 1}',
+     'common',
+     15),
+
+    ('Social Butterfly',
+     'Made 10 friends',
+     '🦋',
+     'social',
+     '{"type": "count", "action": "friends", "threshold": 10}',
+     'rare',
+     25),
+
+    ('Metal Head',
+     'Posted 50 reviews',
+     '🤘',
+     'content',
+     '{"type": "count", "action": "review", "threshold": 50}',
+     'epic',
+     100)
 ON CONFLICT (name) DO UPDATE SET
     description = EXCLUDED.description,
-    icon = EXCLUDED.icon,
-    category = EXCLUDED.category,
+    icon        = EXCLUDED.icon,
+    category    = EXCLUDED.category,
     requirement = EXCLUDED.requirement,
-    rarity = EXCLUDED.rarity,
-    points = EXCLUDED.points;
+    rarity      = EXCLUDED.rarity,
+    points      = EXCLUDED.points;
 
 -- Success message
 SELECT 'MetalUnion database schema created successfully with UUID types and all RLS policies fixed!' as status;
+
+/* 
+ROOT VERCEL.JSON CONFIGURATION:
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "client/dist" }
+    },
+    { "src": "api/index.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/index.js" },
+    { "src": "/(.*)", "dest": "/client/dist/$1" }
+  ],
+  "functions": {
+    "api/index.js": { "memory": 1024, "maxDuration": 30 }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization, Cookie, User-Agent" },
+        { "key": "Access-Control-Allow-Credentials", "value": "true" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" }
+      ]
+    }
+  ],
+  "env": { "NODE_ENV": "production" }
+}
+
+CLIENT PACKAGE.JSON BUILD CONFIGURATION:
+- Added "vercel-build": "vite build" script
+- Configured for React/Vite build system
+- Outputs to client/dist directory
+
+API CONFIGURATION:
+- Serverless function at api/index.js
+- 1024MB memory allocation
+- 30 second maximum duration
+- Proper CORS configuration for cross-origin requests
+- Express.js with authentication and route handling
+
+DEPLOYMENT STRUCTURE:
+/ 
+├── client/                 # React frontend
+│   ├── src/               # Source files
+│   ├── dist/              # Build output (generated)
+│   ├── package.json       # With vercel-build script
+│   └── vite.config.ts     # Vite configuration
+├── api/
+│   └── index.js           # Serverless function (1024MB memory)
+├── server/                # Backend logic
+├── shared/                # Shared types/schemas
+└── vercel.json           # Root deployment configuration
+
+ENVIRONMENT VARIABLES REQUIRED:
+- SUPABASE_URL
+- SUPABASE_ANON_KEY
+- SUPABASE_SERVICE_ROLE_KEY
+- DATABASE_URL
+- SESSION_SECRET
+- NODE_ENV=production
+
+DEPLOYMENT NOTES:
+1. Client builds to client/dist using Vite
+2. API routes (/api/*) handled by serverless function
+3. All other routes serve static client files
+4. CORS properly configured for API endpoints
+5. Security headers applied to client routes
+6. Function memory optimized for database operations
+*/
+
+/* 
+End of migration script with Vercel integration
+source: dashboard
+user: 4a1983fa-e476-437b-a249-e0b9b29ab984
+date: 2025-08-27T18:58:01.516Z
+*/

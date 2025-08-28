@@ -1,22 +1,11 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, jsonb, index, boolean, real } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, jsonb, index, boolean, real, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Session storage table for authentication
-export const sessions = pgTable(
-  "sessions",
-  {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
-    expire: timestamp("expire").notNull(),
-  },
-  (table) => [index("IDX_session_expire").on(table.expire)],
-);
-
-// User storage table for authentication with enhanced social features
+// User storage table for authentication with enhanced social features (MUST BE FIRST)
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
@@ -57,9 +46,24 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Session storage table for authentication (with user_id reference)
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    index("IDX_session_expire").on(table.expire),
+    index("idx_sessions_user_id").on(table.userId)
+  ],
+);
+
 // Badges system for gamification
 export const badges = pgTable("badges", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: varchar("name").notNull().unique(),
   description: text("description").notNull(),
   icon: varchar("icon").notNull(), // Icon name or URL
@@ -73,18 +77,18 @@ export const badges = pgTable("badges", {
 
 // User badge awards tracking
 export const userBadges = pgTable("user_badges", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  badgeId: varchar("badge_id").notNull().references(() => badges.id, { onDelete: "cascade" }),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  badgeId: uuid("badge_id").notNull().references(() => badges.id, { onDelete: "cascade" }),
   awardedAt: timestamp("awarded_at").defaultNow(),
   progress: jsonb("progress"), // Current progress towards badge requirements
 });
 
 // Concert attendance tracking for badges
 export const concertAttendance = pgTable("concert_attendance", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  tourId: varchar("tour_id").references(() => tours.id),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  tourId: uuid("tour_id").references(() => tours.id),
   venueName: varchar("venue_name").notNull(),
   bandName: varchar("band_name").notNull(),
   attendanceDate: timestamp("attendance_date").notNull(),
@@ -94,7 +98,7 @@ export const concertAttendance = pgTable("concert_attendance", {
 });
 
 export const bands = pgTable("bands", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   genre: text("genre").notNull(),
   description: text("description").notNull(),
@@ -104,7 +108,7 @@ export const bands = pgTable("bands", {
   albums: text("albums").array(),
   website: text("website"),
   instagram: text("instagram"),
-  ownerId: varchar("owner_id").references(() => users.id),
+  ownerId: uuid("owner_id").references(() => users.id),
   status: text("status").default("pending"), // 'pending', 'approved', 'rejected'
   submittedAt: timestamp("submitted_at").defaultNow(),
   approvedAt: timestamp("approved_at"),
@@ -113,8 +117,8 @@ export const bands = pgTable("bands", {
 
 // Community posts table
 export const posts = pgTable("posts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: uuid("user_id").notNull().references(() => users.id),
   title: text("title").notNull(),
   content: text("content").notNull(),
   postType: varchar("post_type").default("text"), // 'text', 'image', 'link', 'poll'
@@ -132,11 +136,11 @@ export const posts = pgTable("posts", {
 
 // Post comments table  
 export const postComments = pgTable("post_comments", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  postId: varchar("post_id").notNull().references(() => posts.id),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  postId: uuid("post_id").notNull().references(() => posts.id),
+  userId: uuid("user_id").notNull().references(() => users.id),
   content: text("content").notNull(),
-  parentId: varchar("parent_id"), // For nested comments - self reference
+  parentId: uuid("parent_id"), // For nested comments - self reference
   likesCount: integer("likes_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -144,23 +148,23 @@ export const postComments = pgTable("post_comments", {
 
 // Post likes table
 export const postLikes = pgTable("post_likes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  postId: varchar("post_id").notNull().references(() => posts.id),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  postId: uuid("post_id").notNull().references(() => posts.id),
+  userId: uuid("user_id").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Post comment likes table
 export const postCommentLikes = pgTable("post_comment_likes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  commentId: varchar("comment_id").notNull().references(() => postComments.id),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  commentId: uuid("comment_id").notNull().references(() => postComments.id),
+  userId: uuid("user_id").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const reviews = pgTable("reviews", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  bandId: varchar("band_id").notNull().references(() => bands.id),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  bandId: uuid("band_id").notNull().references(() => bands.id),
   stagename: text("stagename").notNull(),
   rating: integer("rating").notNull(),
   title: text("title").notNull(),
@@ -172,8 +176,8 @@ export const reviews = pgTable("reviews", {
 });
 
 export const photos = pgTable("photos", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  bandId: varchar("band_id").references(() => bands.id),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  bandId: uuid("band_id").references(() => bands.id),
   title: text("title").notNull(),
   imageUrl: text("image_url").notNull(),
   category: text("category").notNull(), // 'live', 'promo', 'backstage', 'equipment'
@@ -183,8 +187,8 @@ export const photos = pgTable("photos", {
 });
 
 export const tours = pgTable("tours", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  bandId: varchar("band_id").notNull().references(() => bands.id),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  bandId: uuid("band_id").notNull().references(() => bands.id),
   tourName: text("tour_name").notNull(),
   venue: text("venue").notNull(),
   city: text("city").notNull(),
@@ -205,10 +209,10 @@ export const tours = pgTable("tours", {
 });
 
 export const messages = pgTable("messages", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   content: text("content").notNull(),
-  authorId: varchar("author_id").notNull().references(() => users.id),
+  authorId: uuid("author_id").notNull().references(() => users.id),
   authorStagename: text("author_stagename").notNull(),
   category: text("category").default("general"), // 'general', 'band_discussion', 'gear', 'events'
   likes: integer("likes").default(0),
@@ -217,15 +221,15 @@ export const messages = pgTable("messages", {
 
 // Comments system for reviews, bands, and other content
 export const comments = pgTable("comments", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   content: text("content").notNull(),
-  authorId: varchar("author_id").notNull().references(() => users.id),
+  authorId: uuid("author_id").notNull().references(() => users.id),
   authorStagename: text("author_stagename").notNull(),
   // Polymorphic relationships - comment can be on different types of content
   targetType: text("target_type").notNull(), // 'review', 'band', 'photo', 'tour', 'message'
-  targetId: varchar("target_id").notNull(), // ID of the target (review ID, band ID, etc.)
+  targetId: uuid("target_id").notNull(), // ID of the target (review ID, band ID, etc.)
   // Thread support for nested comments
-  parentCommentId: varchar("parent_comment_id").references((): any => comments.id),
+  parentCommentId: uuid("parent_comment_id").references((): any => comments.id),
   // Engagement metrics
   likes: integer("likes").default(0),
   dislikes: integer("dislikes").default(0),
@@ -240,9 +244,9 @@ export const comments = pgTable("comments", {
 
 // Comment reactions for more detailed engagement
 export const commentReactions = pgTable("comment_reactions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  commentId: varchar("comment_id").notNull().references(() => comments.id),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  commentId: uuid("comment_id").notNull().references(() => comments.id),
+  userId: uuid("user_id").notNull().references(() => users.id),
   reactionType: text("reaction_type").notNull(), // 'like', 'dislike', 'love', 'angry', 'laugh'
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -504,7 +508,7 @@ export type CreateBadge = z.infer<typeof createBadgeSchema>;
 
 // Message Board (The Pit) Tables
 export const pitMessages = pgTable("pit_messages", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   authorName: varchar("author_name").notNull(),
   title: varchar("title").notNull(),
   content: varchar("content", { length: 2000 }).notNull(),
@@ -518,8 +522,8 @@ export const pitMessages = pgTable("pit_messages", {
 
 // User location data for proximity matching
 export const userLocations = pgTable("user_locations", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
   latitude: real("latitude").notNull(),
   longitude: real("longitude").notNull(),
   accuracy: real("accuracy"), // GPS accuracy in meters
@@ -534,9 +538,9 @@ export const userLocations = pgTable("user_locations", {
 
 // Concert proximity matches for connecting users at same venues
 export const proximityMatches = pgTable("proximity_matches", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId1: varchar("user_id_1").references(() => users.id, { onDelete: "cascade" }).notNull(),
-  userId2: varchar("user_id_2").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId1: uuid("user_id_1").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  userId2: uuid("user_id_2").references(() => users.id, { onDelete: "cascade" }).notNull(),
   distance: real("distance"), // Distance in meters
   venueName: varchar("venue_name"),
   eventName: varchar("event_name"),
@@ -547,8 +551,8 @@ export const proximityMatches = pgTable("proximity_matches", {
 });
 
 export const pitReplies = pgTable("pit_replies", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  messageId: varchar("message_id").references(() => pitMessages.id, { onDelete: "cascade" }),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  messageId: uuid("message_id").references(() => pitMessages.id, { onDelete: "cascade" }),
   authorName: varchar("author_name").notNull(),
   content: varchar("content", { length: 1000 }).notNull(),
   likes: integer("likes").default(0),
@@ -557,18 +561,18 @@ export const pitReplies = pgTable("pit_replies", {
 
 // User following/followers system
 export const userFollows = pgTable("user_follows", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  followerId: varchar("follower_id").notNull().references(() => users.id),
-  followingId: varchar("following_id").notNull().references(() => users.id),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  followerId: uuid("follower_id").notNull().references(() => users.id),
+  followingId: uuid("following_id").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Enhanced reactions system
 export const reactions = pgTable("reactions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: uuid("user_id").notNull().references(() => users.id),
   targetType: varchar("target_type").notNull(), // 'review', 'pitMessage', 'pitReply', 'photo'
-  targetId: varchar("target_id").notNull(),
+  targetId: uuid("target_id").notNull(),
   reactionType: varchar("reaction_type").notNull(), // 'like', 'fire', 'rock', 'mind_blown', 'heart'
   createdAt: timestamp("created_at").defaultNow(),
 });
